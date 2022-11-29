@@ -1,0 +1,40 @@
+version: '3.3'
+services:
+    postgres:
+        image: postgres
+        restart: always
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+    scheduler:
+        build:
+            context: .
+        command: scheduler
+        restart: always
+        depends_on:
+            - postgres
+        env_file:
+            - .env
+        volumes:
+            - ./dags:/opt/airflow/dags
+            - ./logs:/opt/airflow/logs
+            - ./requirements:/opt/airflow/requirements
+    webserver:
+        build:
+            context: .
+        entrypoint: ./scripts/entrypoint.sh
+        restart: always
+        depends_on:
+            - postgres
+            - scheduler
+        env_file:
+            - .env
+        volumes:
+            - ./dags:/opt/airflow/dags
+            - ./logs:/opt/airflow/logs
+            - ./scripts:/opt/airflow/scripts
+            - ./requirements:/opt/airflow/requirements
+        ports:
+            - "8080:8080"
+
