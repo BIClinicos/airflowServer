@@ -39,7 +39,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece el cargue de los datos el día 3 de cada mes.
-    # schedule_interval= '20 5 3 * *',
+    schedule_interval= '50 2 6 * *',
     max_active_runs=1
     ) as dag:
 

@@ -67,7 +67,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # se establece la ejecución a las 12:20 PM(Hora servidor) todos los sabados
-    schedule_interval= '40 4 8 * *',
+    schedule_interval= '10 4 6 * *',
     max_active_runs=1
     ) as dag:
 

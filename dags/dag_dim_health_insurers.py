@@ -107,7 +107,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # TODO> set schedule interval
-    schedule_interval= '30 4 8 * *', 
+    schedule_interval= '20 4 6 * *', 
     max_active_runs=1
     ) as dag:
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 # from posixpath import dirname
 # from dateutil.parser import parse
@@ -12,6 +12,19 @@ from azure.storage.blob import ContainerClient
 import xlrd
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
+
+def add_days_to_date(date, days):
+    """Add days to a date and return the date.
+    
+    Args: 
+        date (string): Date string in YYYY-MM-DD format. 
+        days (int): Number of days to add to date
+    
+    Returns: 
+        date (date): Date in YYYY-MM-DD with X days added. 
+    """
+
+    return date + timedelta(days=days)
 
 def normalize_str_categorical(df_serie,func_type='upper'):
   if func_type == 'upper':
@@ -37,6 +50,19 @@ def load_df_to_sql(df, sql_table, sql_connid):
     # Upload data to SQL Server
     sql_conn = MsSqlHook(sql_connid)
     sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
+    sql_conn.insert_rows(sql_table, row_list2)
+
+#Función creada por FMGUTIERREZ
+def load_df_to_sql_2(df, sql_table, sql_connid):
+    """Function to upload excel file to SQL table"""
+    rows = df.to_records(index=False)
+    rows_list = list(rows)
+    row_list2 = [ tuple(None if item == 'None' or item == 'nan' or item == 'NAN' or pd.isnull(item) or pd.isna(item) or item == 'NaT' else item for item in row) for row in rows_list ]
+    # print(row_list2)
+
+    # Upload data to SQL Server
+    sql_conn = MsSqlHook(sql_connid)
+    #sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
     sql_conn.insert_rows(sql_table, row_list2)
 
 def remove_accents_cols(df_cols):

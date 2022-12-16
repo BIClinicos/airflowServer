@@ -10,44 +10,36 @@ from datetime import datetime, timedelta
 from datetime import date
 import pandas as pd
 from pandas import read_excel
-from variables import sql_connid,sql_connid_gomedisys #FMG Nombre de las conexiones a DB BI y Gomedisys
-from utils import sql_2_df #FMG Importa libreria que permite consultaR sql Y cargarlo en un df
+from variables import sql_connid,sql_connid_gomedisys 
+from utils import sql_2_df, load_df_to_sql 
 
 
-#  Se nombran las variables a utilizar en el dag -FMG Nombre del DAG
-dag_name = 'dag_' + 'TEC_PYR_DOMIConsultasReporte'
-dirname = '/opt/airflow/dags/generated_files/' #FMG Ruta donde se almacenarán los archivos generados 
+#  Se nombran las variables a utilizar en el dag
+db_tmp_table = 'tmp_SAL_DOM_CO_Consultations'
+db_table = "SAL_DOM_CO_Consultations"
+dag_name = 'dag_' + db_table
 
-#FMGSe calcula el primer dia del mes y tres meses atras 
-today = date.today()
-last_day = today - timedelta(today.day)
-last_date = today - timedelta(today.day -1)
-last_month = last_day - timedelta(last_day.day)
-middle_date = last_month - timedelta(last_month.day -1)
-middle_date_op = last_month - timedelta(last_month.day)
-first_date = middle_date_op - timedelta(middle_date_op.day -1)
+#Se halla las fechas de cargue de la data 
+now = datetime.now()
+last_week = now - timedelta(weeks=1)
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+now = now.strftime('%Y-%m-%d %H:%M:%S')
 
-# Parametros para ejecucion de la consulta SQL - Mes y anio del mes a reportar
-year = last_day.year
-month = last_day.month
-month_1 = middle_date.month
-month_2 = first_date.month
+#year = last_week.year
+#month = last_week.month
 
-# Nombre estandar de reportes generados (.csv,.xlsx)
-filename = f'Reporte_Domi_Consultas_{year}_{month}_{month_1}_{month_2}.csv'
-filename2 = f'Reporte_Domi_Consultas_{year}_{month}_{month_1}_{month_2}.xlsx'
-
-# Función de generacion de reporte y envío via email.
 def func_get_TEC_PYR_DOMIConsultas ():
 
-    print('Fecha inicio ', first_date)
-    print('Fecha fin ', last_date)
+    print('Fecha inicio ', last_week)
+    print('Fecha fin ', now)
     
     domiConsultas_query = f"""
         (SELECT DISTINCT 
         ENC.identifier 									AS Ingreso, 
-        FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
-        FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm') AS FechaActividad,
+        --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
+        --FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm') AS FechaActividad,
+        ENC.dateStart                                   AS FechaIngreso,
+        EV.actionRecordedDate                           AS FechaActividad,
         USRC.code 										AS TipoDocumentoProfesional,
         USR.documentNumber 								AS DocumentoProfesional,
         CONCAT(USR.givenName,' ',USR.familyName) 		AS NombreProfesional,
@@ -89,15 +81,18 @@ def func_get_TEC_PYR_DOMIConsultas ():
         OR GS.name like '%Cardiolog_a%' OR GS.name like '%Medicina Interna%' OR GS.name like '%Medicina Familiar%' OR GS.name like '%Pediatr_a%' 
         OR GS.name like '%Trabajo%Social%') --Especialidades manejadas en el contrato
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
-        --AND YEAR(ENC.dateStart) = '{year}' AND MONTH(ENC.dateStart) = '{month}' --Año y mes del ingreso
-        AND ENC.dateStart >= '{first_date}' AND ENC.dateStart < '{last_date}'
+        
+        AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}'
+        --AND ENC.dateStart >= '2022-12-01 00:00:00.000' AND ENC.dateStart < '2022-12-16 00:00:00.000'
     )   
     UNION ALL
     (   
     SELECT DISTINCT
         ENC.identifier 									AS Ingreso,
-        FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
-        FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm') AS FechaActividad,
+        --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
+        --FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm') AS FechaActividad,
+        ENC.dateStart                                   AS FechaIngreso,
+        EV.actionRecordedDate                           AS FechaActividad,
         USRC.code 										AS TipoDocumentoProfesional,
         USR.documentNumber 								AS DocumentoProfesional,
         CONCAT(USR.givenName,' ',USR.familyName) 		AS NombreProfesional,
@@ -134,19 +129,26 @@ def func_get_TEC_PYR_DOMIConsultas ():
     WHERE 
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
-        --AND YEAR(ENC.dateStart) = '{year}' AND MONTH(ENC.dateStart) = '{month}') --Año y mes del ingreso)   
-        AND ENC.dateStart >= '{first_date}' AND ENC.dateStart < '{last_date}')
-    ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
+        
+        AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}')
+        --AND ENC.dateStart >= '2022-12-01 00:00:00.000' AND ENC.dateStart < '2022-12-16 00:00:00.000')
+    --ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
+    ORDER BY DocumentoPaciente, EV.actionRecordedDate
     """
-    # Dispensacion y formulacion debe ser maximo hasta el último día del mes
+    # Ejecutar la consulta capturandola en un dataframe
     df = sql_2_df(domiConsultas_query, sql_conn_id=sql_connid_gomedisys)
     
+    #Convertir a str los campos de tipo fecha 
+    cols_dates = ['FechaIngreso','FechaActividad']
+    for col in cols_dates:
+        df[col] = df[col].astype(str)
+
     print(df.columns)
     print(df.dtypes)
     print(df)
 
-    df.to_csv(dirname+filename, index=False)
-    #df.to_excel(dirname+filename2, index=False)
+    if ~df.empty and len(df.columns) >0:
+        load_df_to_sql(df, db_tmp_table, sql_connid)
 
 # Se declara un objeto con los parámetros del DAG
 default_args = {
@@ -155,35 +157,38 @@ default_args = {
     'start_date': datetime(2015, 6, 1),
 }
 
-# Se declara el DAG con sus respectivos parámetros
 with DAG(dag_name,
     catchup=False,
     default_args=default_args,
-    # Se establece el cargue de los datos el día 3 de cada mes.
-    #schedule_interval= '0 0 1 * *',
+    # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
+    schedule_interval= '40 5 * * *',
     max_active_runs=1
     ) as dag:
 
     # Se declara la función que sirve para denotar el inicio del DAG a través de DummyOperator
     start_task = DummyOperator(task_id='dummy_start')
 
-    # Se declara y se llama la función encargada de generar el reporte
-    get_TEC_PYR_DOMIConsultas_python_task = PythonOperator(task_id = "get_TEC_PYR_DOMIConsultas",
-        python_callable = func_get_TEC_PYR_DOMIConsultas)
+    #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
+    get_TEC_PYR_GEFDispensacion_python_task = PythonOperator(
+                                                            task_id = "get_TEC_PYR_GEFDispensacion",
+                                                            python_callable = func_get_TEC_PYR_DOMIConsultas,
+                                                            email_on_failure=True, 
+                                                            email='BI@clinicos.com.co',
+                                                            dag=dag
+                                                            )
     
-    # Se declara la función encargada de enviar por correo los reportes generados
-    email_summary = email_operator.EmailOperator(
-        task_id='email_summary',
-        to=['dcardenas@clinicos.com.co','fmgutierrez@clinicos.com.co','nrosas@clinicos.com.co'],
-        subject=f'PRUEBA - Reporte automático Domi Consultas {year}-{month}-{month_1}-{month_2}',
-        html_content="""<p>Saludos, envio reporte de gomedisys de DOMI Consultas
-        (mail creado automaticamente).</p>
-        <br/>
-        """,
-        files=[f'{dirname}{filename}']#,f'{dirname}{filename2}']
-        )
+    # Se declara la función encargada de ejecutar el "Stored Procedure"
+    load_TEC_PYR_GEFDispensacion = MsSqlOperator(task_id='Load_TEC_PYR_GEFDispensacion',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE sp_load_SAL_DOM_CO_Consultations",
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_TEC_PYR_DOMIConsultas_python_task >> email_summary >> task_end
+start_task >> get_TEC_PYR_GEFDispensacion_python_task >> load_TEC_PYR_GEFDispensacion >> task_end
+#start_task >> get_TEC_PYR_GEFDispensacion_python_task >> task_end

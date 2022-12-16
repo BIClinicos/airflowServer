@@ -666,3 +666,98 @@ git commit -m "FEAT: dag_fact_new_contrats.py: code version with first Nuevos_Co
 git push
 helm show values apache-airflow/airflow > values.yaml 
 sudo snap install helm
+ls
+pwd
+git status
+git add .
+git commit -m "fitz: change airflow.cfg enable_xcom_pickling = True"
+git push
+git submodule deinit dags
+ls
+git add .
+git commit -m "Delete submodule dags"
+git push
+clear
+rm -rf .git/modules/dags
+git status
+git rm --cached dags
+git status
+git add .
+git status
+git commit -mAdd d dags folder"
+
+clear
+git commit -m "Add dags folder"
+git push
+cd dags
+clear
+ls -la
+cd 
+clear
+git add .
+git commit -m "Feat add dags file to git ignore"
+git push
+clear
+cd dags/
+pwd
+cd 
+git status
+git pull
+git status 
+clear
+git status 
+ls -la
+rm -rf .git
+clear
+ls -la
+git status
+clear
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git push -u origin main
+clear
+git init
+git add .
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git push -u origin main
+clear
+git status
+git add .
+git commit -m "Git config test"
+git push
+clear
+git status
+exit
+sudo bash clean_docker_USE_WISELY.sh 
+history
+sudo find ./ -type f -name '*.log' -print -delete
+sudo bash clean_docker_USE_WISELY.sh 
+cd dags/
+ls
+git status
+git rm --cached
+git rm --cached -r
+cd ..
+ls
+ls 'lah
+ls -lah
+wsl
+Remote-Containers
+/usr/bin/python3
+git status
+sudo chmod -R 777 files_rcv/
+cd dags/
+sudo chmod -R 777 files_rcv/
+cd
+clear
+cd /opt/airflow/dags/files_rcv/
+sudo chmod -R 777 /opt/airflow/dags/files_rcv/
+cd /opt/
+ls -la
+cd
+clear

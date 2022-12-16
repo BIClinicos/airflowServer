@@ -27,7 +27,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= '@once',
+    schedule_interval= '10 7 * * 2',
     max_active_runs=1
     ) as dag:
 

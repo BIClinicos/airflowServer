@@ -45,6 +45,11 @@ def transform_data (path):
     elif 'Nombre' not in df.columns:
         df['Nombre completo'] = ''
 
+    # Correcciones por cambio en formato 15/12/2022
+    df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?'] = df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de tu punto de atención?']
+    df['Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'] = df['Basados en tu última atención médica ¿Recomendarías tu punto de atención con tus conocidos?']
+    #
+
     df = df[[
             'ID',
             'Hora de inicio',

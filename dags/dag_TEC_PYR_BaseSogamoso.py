@@ -87,7 +87,7 @@ def transform_tables (path):
     df['entidad'] ='UNION TEMPORAL CLINICOS ATENCION MEDICA BOYACA - UT'
     
     df['cups'] = normalize_str_categorical(df['prestacion'].astype(str))
-    df['cups'] = df['cups'].str.extract(r'(^\d+\w)')
+    df['cups'] = df['cups'].str.extract(r'(\d+\w$)')
     df['cups'] = df['cups'].fillna('NO DATA')
 
     # Columna que tiene nombre vacio

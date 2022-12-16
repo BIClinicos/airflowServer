@@ -22,34 +22,20 @@ wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 #  Se nombran las variables a utilizar en el dag
 db_table = "BI_MIPRES_prescripcion"
 db_tmp_table = 'TMP_BI_MIPRES_prescripcion'
-#db_tmp_table2 = 'TMP_BI_MIPRESS_serviciosComplementarios'
-#db_tmp_table3 = 'TMP_BI_MIPRESS_medicamentos'
-#db_tmp_table4 = 'TMP_BI_MIPRESS_PrincipiosActivos'
-#db_tmp_table5 = 'TMP_BI_MIPRESS_productosnutricionales'
-#db_tmp_table6 = 'TMP_BI_MIPRESS_procedimientos'
-dag_name = 'dag_' + 'BI_MIPRES_prescr'
-
-
-# Se declaran los valores de los componentes necesarios para construir la URL con la cual hacemos el request a la API
-nit='900496641'
-date='2022-01-03'
-token='148CA3F2-9233-411E-A728-76CE02ABFED5'
-
-#se compone la URL con estas string previamente declaradas usando format.
-url = f'https://wsmipres.sispro.gov.co/WSMIPRESNOPBS/api/Prescripcion/{nit}/{date}/{token}'
-
-#esta función implementa el método get de la librería requests utilizando la URL
-req = requests.get(url)
-
-#esta función trae a req e implementa el método .json para traer al objeto en memoria una lista con un contenido en formato json
-res = req.json()
+db_tmp_table2 = 'TMP_BI_MIPRES_serviciosComplementarios'
+db_tmp_tablemayo = 'TMP_BI_MIPRES_medicamentos_prueba_mayo'
+db_table_meds = 'BI_MIPRES_medicamentos_prueba_mayo'
+db_tmp_table4 = 'TMP_BI_MIPRES_PrincipiosActivos'
+db_tmp_table5 = 'TMP_BI_MIPRES_productosnutricionales'
+db_tmp_table6 = 'TMP_BI_MIPRES_procedimientos'
+dag_name = 'dag_' + 'BI_MIPRES_prescripcion_pruebas'
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
 def func_get_BI_MIPRES_prescripcion():
     
     #dates = ['2022-01-31', '2022-02-28', '2022-03-31', '2022-04-30','2022-05-31', '2022-06-30', '2022-07-31']
 
-    dates = pd.date_range(start='27/11/2022', end = pd.datetime.today(),freq='D')
+    dates = pd.date_range(start='01/05/2022', end ='31/05/2022',freq='D')
 
     dates = dates.tolist()
 
@@ -101,27 +87,33 @@ def func_get_BI_MIPRES_prescripcion():
                   #i['NoPrescripcion'] = df_prescripcion['NoPrescripcion']
           else: 
               print("Request to {} failed".format(date))
+    
 
         return df_prescripcion, df_servicios_complementarios, df_meds, df_principios_act, df_principios_nutri, df_procedimientos
 
     [df_prescripcion, df_servicios_complementarios, df_meds, df_principios_act, df_principios_nutri, df_procedimientos] = charge_tables(dates2)
+
     
-    print(df_prescripcion.columns)
-    
+    # Transformación de datos de tabla de prescripción
+
     #se procesa columnas para llevarlas a datetime, dado qué luego de leer la API, pandas las interpreta cómo tipo string
     date_columns = ['FPrescripcion']
 
+    date_columns = ['FPrescripcion']
     for i in date_columns:
         df_prescripcion[i] = df_prescripcion[i].astype(str)
         df_prescripcion[i] = df_prescripcion[i].str.strip()
         df_prescripcion[i] = pd.to_datetime(df_prescripcion[i], format="%Y-%m-%d", errors = 'coerce')
+    
+    df_prescripcion['HPrescripcion'] = pd.to_datetime(df_prescripcion['HPrescripcion'], format='%H:%M:%S')
+    # df_prescripcion['HPrescripcion'] = df_prescripcion['HPrescripcion'].dt.strftime('%H:%M:%S')
+    #df_prescripcion.update(df_prescripcion[['HPrescripcion']].applymap('"{}"'.format))
 
-    df_prescripcion['HPrescripcion'] = pd.to_datetime(df_prescripcion['HPrescripcion'], format="H%:M%", errors = 'coerce')
+    df_prescripcion['FechaProceso'] = datetime.now().strftime("%Y-%m-%d")
+    df_prescripcion['FechaProceso'] = pd.to_datetime(df_prescripcion['FechaProceso'], format="%Y-%m-%d", errors = 'coerce')
 
-    missing_columns = ['FechaProceso']
-    for i in missing_columns:
-        df_prescripcion[i] = datetime.now().strftime("%Y-%m-%d")
-        
+    df_prescripcion = df_prescripcion.drop_duplicates(subset=['NoPrescripcion','FPrescripcion','CodHabIPS','PAPaciente','CodDxPpal','CodEPS'])
+
     df_prescripcion = df_prescripcion[['NoPrescripcion', 'FPrescripcion', 'HPrescripcion', 'CodHabIPS',
        'TipoIDIPS', 'NroIDIPS', 'CodDANEMunIPS', 'DirSedeIPS', 'TelSedeIPS',
        'TipoIDProf', 'NumIDProf', 'PNProfS', 'SNProfS', 'PAProfS', 'SAProfS',
@@ -131,6 +123,27 @@ def func_get_BI_MIPRES_prescripcion():
        'CodDxPpal', 'CodDxRel1', 'CodDxRel2', 'SopNutricional', 'CodEPS',
        'TipoIDMadrePaciente', 'NroIDMadrePaciente', 'TipoTransc',
        'TipoIDDonanteVivo', 'NroIDDonanteVivo', 'EstPres','FechaProceso']]
+
+    print(df_prescripcion)
+    print(df_prescripcion.dtypes)
+    print(df_prescripcion['HPrescripcion'])
+    print(df_prescripcion['FechaProceso'])
+    # df_prescripcion.to_excel('/opt/airflow/dags/generated_files/output.xlsx')
+
+    
+    # Transformación de datos de tabla de Medicamentos
+
+    float_col_meds = [
+    'ConOrden',
+    'TipoMed',
+    'TipoPrest',
+    'CodFreAdmon',
+    'IndEsp',
+    'DurTrat',
+    'EstJM'
+    ]
+    
+    df_meds[float_col_meds] = df_meds[float_col_meds].astype('int')
 
     df_meds.drop(['PrincipiosActivos','IndicacionesUNIRS'], axis=1, inplace=True)   
     
@@ -142,67 +155,74 @@ def func_get_BI_MIPRES_prescripcion():
        'CodFF', 'CodVA', 'JustNoPBS', 'Dosis', 'DosisUM', 'NoFAdmon',
        'CodFreAdmon', 'IndEsp', 'CanTrat', 'DurTrat', 'CantTotalF',
        'UFCantTotal', 'IndRec', 'EstJM','NoPrescripcion']]
-    
-    float_col_meds = [
-    'ConOrden',
-    'TipoMed',
-    'TipoPrest',
-    'CodFreAdmon',
-    'IndEsp',
-    'DurTrat',
-    'EstJM',
-    ]
 
-    for i in float_col_meds:
-        df_meds[i] = df_meds[i].astype(str)
-        df_meds[i] = df_meds[i].replace(' ','')
-        df_meds[i] = pd.to_numeric(df_meds[i], errors='coerce')
-        
-    
-    tonumeric_cols = ['CanForm','CadaFreUso','Cant','CantTotal']
-    df_prescripcion[tonumeric_cols] = df_prescripcion[tonumeric_cols].apply(pd.to_numeric, errors='coerce', axis=1)
+    # Transformación de datos de tabla de Servicios complementarios
 
-    #df_servicios_complementarios = df_servicios_complementarios[['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
-    #   'DescCausaS4', 'CausaS5', 'CodSerComp', 'DescSerComp', 'CanForm',
-    #   'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat',
-    #   'TipoTrans', 'ReqAcom', 'TipoIDAcomAlb', 'NroIDAcomAlb',
-    #   'ParentAcomAlb', 'NombAlb', 'CodMunOriAlb', 'CodMunDesAlb', 'JustNoPBS',
-    #   'IndRec', 'EstJM','NoPrescripcion']]
+    df_servicios_complementarios = df_servicios_complementarios[['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
+      'DescCausaS4', 'CausaS5', 'CodSerComp', 'DescSerComp', 'CanForm',
+      'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat',
+      'TipoTrans', 'ReqAcom', 'TipoIDAcomAlb', 'NroIDAcomAlb',
+      'ParentAcomAlb', 'NombAlb', 'CodMunOriAlb', 'CodMunDesAlb', 'JustNoPBS',
+      'IndRec', 'EstJM','NoPrescripcion']]
     
     toint_cols = ['CanForm','CadaFreUso','Cant','CantTotal']
     df_servicios_complementarios[toint_cols] = df_servicios_complementarios[toint_cols].apply(pd.to_numeric, errors='coerce', axis=1)
 
+    # Transformación de datos de tabla de principios activos
     
-    #df_principios_act = df_principios_act[['ConOrden', 'CodPriAct', 'ConcCant', 'UMedConc', 'CantCont',
-    #   'UMedCantCont','NoPrescripcion']]
+    df_principios_act = df_principios_act[['ConOrden', 'CodPriAct', 'ConcCant', 'UMedConc', 'CantCont',
+      'UMedCantCont','NoPrescripcion']]
     
-    to_int_cols_act = ['ConcCant','CantCont','Cant','CantTotal']
-    df_principios_act[to_int_cols_act] = df_principios_act[to_int_cols_act].apply(pd.to_numeric, errors='coerce', axis=1)
+    # to_int_cols_act = ['ConcCant','CantCont']
+    # df_principios_act[to_int_cols_act] = df_principios_act[to_int_cols_act].apply(pd.to_numeric, errors='coerce', axis=1)
+    df_principios_act.to_excel('/opt/airflow/dags/generated_files/output_df_principios_act.xlsx')
 
-    #df_principios_nutri = df_principios_nutri['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
-    #   'ProNutUtilizado', 'RznCausaS41', 'DescRzn41', 'RznCausaS42',
-    #   'DescRzn42', 'CausaS5', 'ProNutDescartado', 'RznCausaS51', 'DescRzn51',
-    #   'RznCausaS52', 'DescRzn52', 'RznCausaS53', 'DescRzn53', 'RznCausaS54',
-    #   'DescRzn54', 'DXEnfHuer', 'DXVIH', 'DXCaPal', 'DXEnfRCEV', 'DXDesPro',
-    #   'TippProNut', 'DescProdNutr', 'CodForma', 'CodViaAdmon', 'JustNoPBS',
-    #   'Dosis', 'DosisUM', 'NoFAdmon', 'CodFreAdmon', 'IndEsp', 'CanTrat',
-    #   'DurTrat', 'CantTotalF', 'UFCantTotal', 'IndRec', 'NoPrescAso',
-    #   'EstJM','NoPrescripcion']
-    
-    toint_cols_nutri = ['Dosis','CanTrat','CantTotalIF','UFCantTotal']
+    #Transformación de datos de tabla de Productos nutricionales
+
+    df_principios_nutri = df_principios_nutri[['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
+      'ProNutUtilizado', 'RznCausaS41', 'DescRzn41', 'RznCausaS42',
+      'DescRzn42', 'CausaS5', 'ProNutDescartado', 'RznCausaS51', 'DescRzn51',
+      'RznCausaS52', 'DescRzn52', 'RznCausaS53', 'DescRzn53', 'RznCausaS54',
+      'DescRzn54', 'DXEnfHuer', 'DXVIH', 'DXCaPal', 'DXEnfRCEV', 'DXDesPro',
+      'TippProNut', 'DescProdNutr', 'CodForma', 'CodViaAdmon', 'JustNoPBS',
+      'Dosis', 'DosisUM', 'NoFAdmon', 'CodFreAdmon', 'IndEsp', 'CanTrat',
+      'DurTrat', 'CantTotalF', 'UFCantTotal', 'IndRec', 'NoPrescAso',
+      'EstJM','NoPrescripcion']]
+
+    toint_cols_nutri = ['Dosis']
     df_principios_nutri[toint_cols_nutri] = df_principios_nutri[toint_cols_nutri].apply(pd.to_numeric, errors='coerce', axis=1)
+    df_principios_nutri.to_excel('/opt/airflow/dags/generated_files/output_df_principios_nutri.xlsx')
 
-    print(df_prescripcion.dtypes)
-    print(df_prescripcion.columns)
-    print(df_prescripcion)
-    print('columnas de las tablas',df_prescripcion.columns)
+    print("Medicamentos ",df_meds)
+    print(df_meds.columns)
+    print("Procedimientos ",df_procedimientos)
+    print(df_procedimientos.columns)
+    print("Principios activos ",df_principios_act)
+    print(df_principios_act.columns)
+    print("Productos nutricionales ",df_principios_nutri)
+    print(df_principios_nutri.columns)
+    print("Servicios complementarios ",df_servicios_complementarios)
+    print(df_servicios_complementarios.columns)
+
+
+    # if ~df_prescripcion.empty and len(df_prescripcion.columns) >0:
+    #     load_df_to_sql(df_prescripcion, db_tmp_table, sql_connid)
     
-    df_prescripcion = df_prescripcion.drop_duplicates(subset=['NoPrescripcion','FPrescripcion','CodHabIPS','PAPaciente','CodDxPpal','CodEPS'])
-
-    if ~df_prescripcion.empty and len(df_prescripcion.columns) >0:
-        load_df_to_sql(df_prescripcion, db_tmp_table, sql_connid)
+    if ~df_meds.empty and len(df_meds.columns) >0:
+        load_df_to_sql(df_meds, db_tmp_tablemayo, sql_connid)
+    
+    # if ~df_procedimientos.empty and len(df_procedimientos.columns) >0:
+    #     load_df_to_sql(df_procedimientos, db_tmp_table6, sql_connid)
         
-    return df_prescripcion, df_servicios_complementarios, df_meds, df_principios_act, df_principios_nutri, df_procedimientos
+    #if ~df_principios_act.empty and len(df_principios_act.columns) >0:
+    #    load_df_to_sql(df_principios_act, db_tmp_table4, sql_connid)
+
+    # if ~df_principios_nutri.empty and len(df_principios_nutri.columns) >0:
+    #     load_df_to_sql(df_principios_nutri, db_tmp_table5, sql_connid)
+
+    # if ~df_servicios_complementarios.empty and len(df_servicios_complementarios.columns) >0:
+    #     load_df_to_sql(df_servicios_complementarios, db_tmp_table2, sql_connid)
+        
 
 # Se declara un objeto con los parámetros del DAG
 default_args = {
@@ -224,31 +244,31 @@ with DAG(
     start_task = DummyOperator(task_id='dummy_start')
 
     func_get_BI_MIPRES_prescripcion_python_task = PythonOperator(task_id = "get_BI_MIPRES_prescripcion",
-                                                python_callable = func_get_BI_MIPRES_prescripcion,
+                                                python_callable = func_get_BI_MIPRES_prescripcion
                                                 #email_on_failure=True, 
                                                 #email='BI@clinicos.com.co',
                                                 #dag=dag,
                                                 )
 
     #Se declara la función encargada de ejecutar el "Stored Procedure"
-    Load_BI_MIPRES_prescripcion = MsSqlOperator(task_id='Load_BI_MIPRES_prescripcion',
-                                      mssql_conn_id=sql_connid,
-                                      autocommit=True,
-                                      sql="EXECUTE sp_load_BI_MIPRES_prescripcion",
-                                      #email_on_failure=True, 
-                                      #email='BI@clinicos.com.co',
-                                      #dag=dag,
-                                      )
-
-    #Se declara la función encargada de ejecutar el "Stored Procedure"
-    #Load_BI_MIPRES_medicamentos = MsSqlOperator(task_id='Load_BI_MIPRES_medicamentos',
+    #Load_BI_MIPRES_prescripcion = MsSqlOperator(task_id='Load_BI_MIPRES_prescripcion',
     #                                  mssql_conn_id=sql_connid,
     #                                  autocommit=True,
-    #                                  sql="EXECUTE sp_load_BI_MIPRES_medicamentos",
+    #                                  sql="EXECUTE sp_load_BI_MIPRES_prescripcion"
     #                                  #email_on_failure=True, 
     #                                  #email='BI@clinicos.com.co',
     #                                  #dag=dag,
     #                                  )
+
+    #Se declara la función encargada de ejecutar el "Stored Procedure"
+    Load_BI_MIPRES_medicamentos = MsSqlOperator(task_id='Load_BI_MIPRES_medicamentos',
+                                      mssql_conn_id=sql_connid,
+                                      autocommit=True,
+                                      sql="EXECUTE sp_load_BI_MIPRES_medicamento_prueba_mayo",
+                                      #email_on_failure=True, 
+                                      #email='BI@clinicos.com.co',
+                                      #dag=dag,
+                                      )
 
     #Se declara la función encargada de ejecutar el "Stored Procedure"
     #Load_BI_MIPRES_serviciosComplementarios = MsSqlOperator(task_id='Load_BI_MIPRES_serviciosComplementarios',
@@ -295,4 +315,4 @@ with DAG(
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> func_get_BI_MIPRES_prescripcion_python_task  >> Load_BI_MIPRES_prescripcion >> task_end
+start_task >> func_get_BI_MIPRES_prescripcion_python_task  >> Load_BI_MIPRES_medicamentos>> task_end

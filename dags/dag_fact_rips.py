@@ -139,8 +139,8 @@ def func_get_fact_rips ():
     print(df)
     print(df.dtypes)
 
-    # if ~df.empty and len(df.columns) >0:
-    #     load_df_to_sql(df, db_tmp_table_fact, sql_connid)
+    if ~df.empty and len(df.columns) >0:
+        load_df_to_sql(df, db_tmp_table_fact, sql_connid)
 
 
 # Se declara un objeto con los parámetros del DAG
@@ -154,7 +154,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece el cargue de los datos el primer día de cada mes.
-    schedule_interval= '10 5 6 * *',
+    schedule_interval= '30 4 6 * *',
     max_active_runs=1
     ) as dag:
 

@@ -181,7 +181,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece el cargue de los datos el primer día de cada mes.
-    schedule_interval= '50 3 1 * *',
+    schedule_interval= '20 7 * * 2',
     max_active_runs=1
     ) as dag:
 
