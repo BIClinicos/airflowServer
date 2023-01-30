@@ -31,8 +31,11 @@ def check_connection():
 
 # Función de transformación de los archivos xlsx
 def transform_data (path):
-    # Lectura 
-    df = pd.read_excel(path)
+    # 20230123 Correccion por hoja con tabla dinamica
+    try:
+        df = pd.read_excel(path, sheet_name=1)
+    except ValueError:
+        df = pd.read_excel(path)
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.replace('\n|\xa0|\t',' ',regex=True)
     df.columns = df.columns.str.replace(':','').str.strip()
@@ -46,8 +49,12 @@ def transform_data (path):
         df['Nombre completo'] = ''
 
     # Correcciones por cambio en formato 15/12/2022
-    df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?'] = df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de tu punto de atención?']
-    df['Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'] = df['Basados en tu última atención médica ¿Recomendarías tu punto de atención con tus conocidos?']
+    new_1 = '¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de tu punto de atención?'
+    new_2 = 'Basados en tu última atención médica ¿Recomendarías tu punto de atención con tus conocidos?'
+    if new_1 in df.columns:
+        df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?'] = df[new_1]
+    if new_2 in df.columns:
+        df['Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'] = df[new_2]
     #
 
     df = df[[
@@ -58,13 +65,18 @@ def transform_data (path):
             'Nombre completo',
             'Número de documento',
             'EPS',
-            'Contrato',
             'Sede de atención',
+            'Contrato',
             '¿Cómo calificas nuestra atención medica prestada?',
             '¿El servicio médico prestado suplió tus necesidades?',
             '¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?',
             'Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'
-        ]]   
+        ]]  
+
+    """cols_dates = ['Hora de inicio','Hora de finalización']
+    for col in cols_dates:
+        df[col] = df[col].astype(str)"""
+
     return df
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql

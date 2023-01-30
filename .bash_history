@@ -761,3 +761,27 @@ cd /opt/
 ls -la
 cd
 clear
+git status
+clear
+git add .
+git status
+clear
+
+git status
+clear
+git commit -m "Last IA Aplicada changes"
+git push
+clear
+git status
+clear
+find . -name *.pem
+log
+find . -name dag_BI_MIPRES.py
+find /home  -name dag_BI_MIPRES.py
+find /home   ame da*.pem
+find /home   -name *.pem
+htop 
+clear
+sudo docker ps
+htop
+/usr/bin/python3 /home/airflowclinicos/dags/dag_TEC_SVA_PQRS.py

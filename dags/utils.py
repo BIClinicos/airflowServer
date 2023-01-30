@@ -13,6 +13,20 @@ import xlrd
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
+def last_day_of_month(any_day):
+    """Returns last day of month
+
+    Args: 
+        any_day: Date in date.time format
+    
+    Returns: 
+        Last date of month correspondig to any_day in date.time format. 
+    """
+    # The day 28 exists in every month. 4 days later, it's always next month
+    next_month = any_day.replace(day=28) + timedelta(days=4)
+    # subtracting the number of the current day brings us back one month
+    return next_month - timedelta(days=next_month.day)
+
 def add_days_to_date(date, days):
     """Add days to a date and return the date.
     
@@ -44,7 +58,11 @@ def load_df_to_sql(df, sql_table, sql_connid):
     """Function to upload excel file to SQL table"""
     rows = df.to_records(index=False)
     rows_list = list(rows)
-    row_list2 = [ tuple(None if item == 'None' or item == 'nan' or item == 'NAN' or pd.isnull(item) or pd.isna(item) or item == 'NaT' else item for item in row) for row in rows_list ]
+    # Try Catch planteado por errores por comparacion de pd.NA (David Cardenas 2023-01-20)
+    try:
+        row_list2 = [ tuple(None if item == 'None' or item == 'nan' or item == 'NAN' or pd.isnull(item) or pd.isna(item) or item == 'NaT' else item for item in row) for row in rows_list ]
+    except TypeError:
+        row_list2 = [ tuple(None if pd.isnull(item) or pd.isna(item) else item for item in row) for row in rows_list ]    
     # print(row_list2)
 
     # Upload data to SQL Server

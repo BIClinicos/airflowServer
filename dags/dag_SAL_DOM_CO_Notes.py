@@ -68,10 +68,9 @@ def func_get_SAL_DOM_CO_Notas ():
     WHERE 
         GACT.name like '%Nota%' --Acciones que corresponden a Notas
         AND ENCR.idPrincipalContract = 57 --Código del contrato de Compensar-Domiciliaria
-        --AND YEAR(ENC.dateStart) = @agnoIngreso AND MONTH(ENC.dateStart) = @mesIngreso --Año y mes del ingreso
-        --AND ENC.dateStart >= '2022-12-01 00:00:00.000' AND ENC.dateStart < '2022-12-15 00:00:00.000'
         AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}')
-        
+        --AND ENC.dateStart >= '2022-10-01 00:00:00.000' AND ENC.dateStart < '2022-12-17 00:00:00.000')
+                
     --ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
     ORDER BY DocumentoPaciente, EV.actionRecordedDate
     """
@@ -118,17 +117,17 @@ with DAG(dag_name,
                                                     )
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    """load_SAL_DOM_CO_Notas_Task = MsSqlOperator(task_id='Load_SAL_DOM_CO_Notas',
+    load_SAL_DOM_CO_Notas_Task = MsSqlOperator(task_id='Load_SAL_DOM_CO_Notas',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_SAL_DOM_CO_Notas",
+                                        sql="EXECUTE sp_load_SAL_DOM_CO_Notes",
                                         email_on_failure=True, 
                                         email='BI@clinicos.com.co',
                                         dag=dag
-                                       )"""
+                                       )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-#start_task >> get_SAL_DOM_CO_Notas_python_task >> load_SAL_DOM_CO_Notas_Task >> task_end
-start_task >> get_SAL_DOM_CO_Notas_python_task >> task_end
+start_task >> get_SAL_DOM_CO_Notas_python_task >> load_SAL_DOM_CO_Notas_Task >> task_end
+#start_task >> get_SAL_DOM_CO_Notas_python_task >> task_end

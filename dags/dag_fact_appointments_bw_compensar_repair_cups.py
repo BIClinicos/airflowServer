@@ -39,64 +39,64 @@ with DAG(dag_name,
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_general_medicine",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_repair_general_surgery = MsSqlOperator(task_id='load_repair_general_surgery',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_general_surgery",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_repair_gynecology = MsSqlOperator(task_id='load_repair_gynecology',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_gynecology",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                       email_on_failure=True, 
+                                       email='BI@clinicos.com.co'
                                        )
 
     load_repair_gynecology_obstetrics = MsSqlOperator(task_id='load_repair_gynecology_obstetrics',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_gynecology_obstetrics",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_repair_internal_medicine = MsSqlOperator(task_id='load_repair_internal_medicine',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_internal_medicine",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_repair_odontology = MsSqlOperator(task_id='load_repair_odontology',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_odontology",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_repair_pediatrics = MsSqlOperator(task_id='load_repair_pediatrics',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_fact_appointments_bw_compensar_repair_pediatrics",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
 
     load_fact_appointments_bw_compensar_cups_repaired = MsSqlOperator(task_id='load_fact_appointments_bw_compensar_cups_repaired',
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_load_fact_appointments_bw_compensar_cups_repaired",
-                                    #    email_on_failure=True, 
-                                    #    email='BI@clinicos.com.co'
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co'
                                        )
     
 

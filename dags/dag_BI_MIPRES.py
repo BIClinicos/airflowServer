@@ -56,7 +56,7 @@ def charge_tables(dates2):
     try:
         for date in dates2:
             url=f'https://wsmipres.sispro.gov.co/WSMIPRESNOPBS/api/Prescripcion/{nit}/{date}/{token}'
-            req = requests.get(url)
+            req = requests.get(url, verify=False)
             #if req.status_code == 200:
             res = req.json()
             for obj in res:    
@@ -93,7 +93,9 @@ def func_get_BI_MIPRES_prescripcion():
     # Get date list from the last 5 days
     now = pd.datetime.today()
     days_ago = add_days_to_date(now,-5)
-    
+    #now = datetime(2022,7,17)
+    #days_ago = datetime(2022,7,14)
+
     dates = pd.date_range(start=days_ago, end = now,freq='D')
 
     dates = dates.tolist()
@@ -275,7 +277,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= '20 5 * * *',
+    schedule_interval= '20 10 * * *',
     max_active_runs=1
     ) as dag:
 

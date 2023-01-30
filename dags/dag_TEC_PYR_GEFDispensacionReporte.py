@@ -38,7 +38,15 @@ year = today.year
 # Fechas usadas para filtrar data de query de reporte en una venta de tiempo
 
 # Dia 1 del mes anterior a las 0:00 horas
-past_month_date = datetime(year,month-1,1)
+"""
+#Esta fórmula presentó errores el 01/01/2023 por tanto se generó un nuevo cálculo para la fecha
+past_month_date = datetime(year,month-1,1)"""
+last_day = today - timedelta(today.day)
+past_month_date = last_day - timedelta(last_day.day -1)
+
+#Se calculan los valores de mes y año para el asunto del correo 
+month_subj = past_month_date.month
+year_subj = past_month_date.year
 
 # Día 1 del mes actual a las 0:00 horas
 first_month_execution_date = datetime(year,month,1)
@@ -52,7 +60,7 @@ get_working_ago_date = get_working_ago_date.strftime('%Y-%m-%d')
 
 # Nombre estandar de reportes generados (.csv,.xlsx)
 #filename = f'Reporte_{year}-{month-1}.csv'
-filename2 = f'Reporte_{year}-{month-1}.xlsx'
+filename2 = f'Reporte_{year_subj}-{month_subj}.xlsx'
 
 # Función de generacion de reporte y envío via email.
 def func_get_TEC_PYR_GEFDispensacion ():
@@ -142,10 +150,10 @@ with DAG(dag_name,
     # Se declara la función encargada de enviar por correo los reportes generados
     email_summary = email_operator.EmailOperator(
         task_id='email_summary',
-        #to=['BI@clinicos.com.co','quimico.farmaceutico@clinicos.com.co','kcastellanos@clinicos.com.co'],
+        #to=['BI@clinicos.com.co'],
         to=['BI@clinicos.com.co', 'kcastellanos@clinicos.com.co', 'quimico.farmaceutico@clinicos.com.co'],
-        subject=f'Reporte Dispensacion {year}-{month-1}',
-        html_content="""<p>Saludos, adjunto se envía reporte de gomedisys para gestión farmacéutica
+        subject=f'Reporte Dispensacion {year_subj}-{month_subj}', 
+        html_content=f"""<p>Saludos, adjunto se envía reporte de gomedisys para gestión farmacéutica del periodo {year_subj}-{month_subj}
         (mail creado automaticamente).</p>
         <br/>
         """,

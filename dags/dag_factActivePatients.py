@@ -24,7 +24,14 @@ month = today.month
 year = today.year
 
 # Dia 1 del mes anterior
+"""
+#Este cálculo de fecha dio error para la ejecución del 01/01/2023 DD/MM/YYYY 
+#por tanto se creó un nuevo cálculo para el parámetro 
 past_month_date = datetime(year,month-1,1)
+past_month_date = past_month_date.strftime('%Y-%m-%d') """
+
+last_day = today - timedelta(today.day)
+past_month_date = last_day - timedelta(last_day.day -1)
 past_month_date = past_month_date.strftime('%Y-%m-%d')
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -153,8 +160,8 @@ def func_get_factActivePatients ():
 
 
     # PROCESAMIENTO
-
     print(df.columns)
+	
     # Format columns
     df.columns = ['dateStart', 'idEHREvent', 'idPatient', 'month', 'planDeBeneficios',
        'mesIngreso', 'diaIngreso', 'fechaIngreso', 'anioEgreso', 'mesDelEgreso',

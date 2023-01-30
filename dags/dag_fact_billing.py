@@ -190,7 +190,7 @@ def func_get_fact_billing():
  
     print('columnas de las tablas',df.columns) 
 
-    df = df.drop_duplicates(subset=['client_name','date','service'])
+    df = df.drop_duplicates(subset=['client_name','date','service','type_contract'])
 
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql(df, db_tmp_table, sql_connid)

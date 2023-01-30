@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from datetime import date
 import pandas as pd
 from pandas import read_excel
+from numpy import nan
 from variables import sql_connid,sql_connid_gomedisys
 from utils import sql_2_df,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get
 
@@ -30,13 +31,37 @@ def check_connection():
     print('Conexión OK')
     return(wb.check_for_blob(container,filename))
 
+# Edicion 2023-01-13. Ajuste de reglas de negocio, aplicar previa devolucion del df
+# por la funcion transform_tables
+def data_correction_pqrs(df):
+    # Parametros hardcode para indicar las columnas requeridas
+    age = 'edad' # Columnas de edad
+    client = 'eps_paciente' # Columna de EPS
+    unit = 'unidad' # Columna de unidad
+    # Adicion de PRIMARIA a COMPENSAR o ALIANSALUD
+    cond_1 = df[unit].str.contains('PRIMARIA') & df[client].str.contains(r'^(COMPENSAR$|ALIANSALUD$).*', regex = True)
+    df.loc[cond_1, client] += (' PRIMARIA')    
+    # Correccion de edad
+    cond_2 = (df[age] == 0)
+    df.loc[cond_2, age] = nan
+    # Correccion gestion farmaceutica
+    cond_3 = df[unit].str.contains('GESTIÓN FARMACEUTICA', na=False)
+    cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
+    df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
+    df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
+    # Retorno de df
+    return df
+
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
 def transform_tables (path):
 
     # lectura del dataframe desde el archivo csv
     # df = pd.read_csv(path, sep = ";")
     # 20221123 lectura de la segunda hoja
-    df = pd.read_excel(path, sheet_name=1)
+    try:
+        df = pd.read_excel(path, sheet_name=1)
+    except ValueError:
+        df = pd.read_excel(path)
 
     print("Como está leyendo el dataframe inicialmente",df)
     print("Nombres y tipos de columnas leídos del dataframe sin transformar",df.dtypes)
@@ -165,6 +190,8 @@ def transform_tables (path):
        'fecha_respuesta', 'oportuna', 'contrato', 'observacion', 'cruce',
        'fecha_operacion']]
 
+    df = data_correction_pqrs(df)
+
     return df
     
     
@@ -217,8 +244,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_TEC_SVA_PQRS_python_task = PythonOperator(task_id = "get_TEC_SVA_PQRS",
                                                   python_callable = func_get_TEC_SVA_PQRS,
-                                                  email_on_failure=True, 
-                                                  email='BI@clinicos.com.co',
+                                                  #email_on_failure=True, 
+                                                  #email='BI@clinicos.com.co',
                                                   dag=dag,
                                                   )
     
@@ -227,8 +254,8 @@ with DAG(dag_name,
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_load_TEC_SVA_PQRS",
-                                       email_on_failure=True, 
-                                       email='BI@clinicos.com.co',
+                                       #email_on_failure=True, 
+                                       #email='BI@clinicos.com.co',
                                        dag=dag,
                                        )
 

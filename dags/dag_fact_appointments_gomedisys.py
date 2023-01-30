@@ -25,8 +25,8 @@ month = today.month
 year = today.year
 
 # Dia 1 del mes anterior
-past_month_date = datetime(year,month-1,1)
-past_month_date = past_month_date.strftime('%Y-%m-%d')
+#past_month_date = datetime(year,month-1,1)
+#past_month_date = past_month_date.strftime('%Y-%m-%d')
 
 
 
