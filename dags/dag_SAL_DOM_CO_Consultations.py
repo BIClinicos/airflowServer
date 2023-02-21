@@ -83,7 +83,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
         
         AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}'
-        --AND ENC.dateStart >= '2022-12-01 00:00:00.000' AND ENC.dateStart < '2022-12-16 00:00:00.000'
+        --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00'
     )   
     UNION ALL
     (   
@@ -131,7 +131,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
         
         AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}')
-        --AND ENC.dateStart >= '2022-12-01 00:00:00.000' AND ENC.dateStart < '2022-12-16 00:00:00.000')
+        --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')
     --ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
     ORDER BY DocumentoPaciente, EV.actionRecordedDate
     """

@@ -37,7 +37,7 @@ def transform_table(path):
     df = pd.read_excel(path, header = [2], sheet_name = "OPS")
     
 
-    df_col_adi = df.columns[24:]
+    df_col_adi = df.columns[26:]
     df = df.drop(df_col_adi ,axis=1)
 
     df.columns = df.columns.str.lower()
@@ -71,7 +71,7 @@ def transform_table(path):
     df['fecha_verificacion_titulo'] = df['fecha_verificacion_titulo'].replace('.', '')
     # df['fecha_verificacion_titulo'] = pd.to_datetime(df['fecha_verificacion_titulo'], format="%d-%m-%Y", errors='coerce')
 
-    date_columns = ['inicio_contrato','fecha_nacimiento','fecha_verificacion_titulo','fecha_retiro']
+    date_columns = ['inicio_contrato','fecha_nacimiento','fecha_verificacion_titulo','fecha_retiro', 'fecha_ingreso_clinicos']
 
     for i in date_columns:
         df[i] = df[i].astype(str)
@@ -135,7 +135,7 @@ def transform_table(path):
         'fecha_nacimiento','lugar_expedicion_id','rh','correo','telefono','direccion',
         'banco','numero_cuenta','tipo_cuenta','eps','pension','arl',
         'fecha_verificacion_titulo','estado_activo_inactivo_retirado','fecha_retiro',
-        'observaciones']]   
+        'observaciones','fecha_ingreso_clinicos', 'organizacion']]   
 
     return df
 

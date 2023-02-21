@@ -69,7 +69,7 @@ def func_get_SAL_DOM_CO_Notas ():
         GACT.name like '%Nota%' --Acciones que corresponden a Notas
         AND ENCR.idPrincipalContract = 57 --Código del contrato de Compensar-Domiciliaria
         AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}')
-        --AND ENC.dateStart >= '2022-10-01 00:00:00.000' AND ENC.dateStart < '2022-12-17 00:00:00.000')
+        --AND ENC.dateStart >= '2023-01-01 00:00:00.000' AND ENC.dateStart < '2023-02-01 00:00:00.000')
                 
     --ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
     ORDER BY DocumentoPaciente, EV.actionRecordedDate

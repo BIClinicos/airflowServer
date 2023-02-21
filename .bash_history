@@ -785,3 +785,13 @@ clear
 sudo docker ps
 htop
 /usr/bin/python3 /home/airflowclinicos/dags/dag_TEC_SVA_PQRS.py
+git status
+git commit -m "Changes 20230130"
+git add .
+git commit -m "Changes 20230130"
+clear
+git push
+git status 
+exit
+HTOP 
+htop 

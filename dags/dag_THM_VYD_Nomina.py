@@ -104,16 +104,36 @@ def transform_table(path):
 
     print(df['cargo'].head(30))
 
+    ## Campos nuevos para requerimiento febrero 16 - 2023
+    df['fecha_ingreso_clinicos'] = df['fecha_ingreso_pilar']
+
     # Reordenar columnas del dataframe
-    df = df[['identific.', 'tipo_id', 'empleado', 'sexo', 'estado_civil', 'hijos',
-       'pers_cargo', 'fecha_nacim', 'ciudad_nacim', 'tel1', 'tel_2',
-       'direccion', 'e-mail','nivel_cargo', 'cargo', '%_tiempo_trabajado', 'forma_pago',
-       'banco', 'cuenta_no.', 'sucursal', 'ccosto', 'nombre_ccosto', 
-       'ciud.ubic', 'regimen_salarial', 'clase_salario', 'pension',
-       'extranjero', 'reside_extranjero', 'fecha_ingreso', 'fecha_retiro',
-       'contrato', 'tipo_contrato', 'metodo_retenc', 'correcc._monetaria',
-       'entidad_eps', 'entidad_afp', 'entidad_caja', 'entidad_arp',
-       'porcentaje_atep', 'estado', 'unidad']] #, 'migrado_innovar'
+    df = df[['identific.'
+      ,'tipo_id'
+      ,'empleado'
+      ,'estado_civil'
+      ,'fecha_nacim'
+      ,'ciudad_nacim'
+      ,'tel1'
+      ,'direccion'
+      ,'e-mail'
+      ,'nivel_cargo'
+      ,'cargo'
+      ,'%_tiempo_trabajado'
+      ,'sucursal'
+      ,'nombre_ccosto'
+      ,'ciud.ubic'
+      ,'fecha_ingreso'
+      ,'fecha_retiro'
+      ,'tipo_contrato'
+      ,'entidad_eps'
+      ,'entidad_afp'
+      ,'entidad_caja'
+      ,'entidad_arp'
+      ,'estado'
+      ,'unidad'
+      ,'fecha_ingreso_clinicos'
+      ,'organizacion']] #, 'migrado_innovar'
 
 
     df['fecha_retiro'] = pd.to_datetime(df['fecha_retiro'], format='%Y/%m/%d')
