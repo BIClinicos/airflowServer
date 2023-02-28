@@ -51,6 +51,9 @@ def transform_tables (path):
 
     # Estandarización de las columnas de fechas a tipo fecha
 
+    if 'semana' in df.columns:
+        df['mes'] = df['semana']
+
     date_columns = ['mes']
 
     for i in date_columns:

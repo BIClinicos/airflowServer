@@ -795,3 +795,13 @@ git status
 exit
 HTOP 
 htop 
+git status 
+git add .
+clear
+git commit -m "Changes Fabian 20230220"
+git push
+/usr/bin/python3
+sudo docker ps
+htop
+git status
+git remote -v

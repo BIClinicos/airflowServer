@@ -32,10 +32,12 @@ def check_connection():
 # Función de transformación de los archivos xlsx
 def transform_data (path):
     # 20230123 Correccion por hoja con tabla dinamica
-    try:
+    # 20230227 Se quita flujo por nuevo error. Intentar metodo para verificar si primera hoja tiene
+    '''try:
         df = pd.read_excel(path, sheet_name=1)
     except ValueError:
-        df = pd.read_excel(path)
+        df = pd.read_excel(path)'''
+    df = pd.read_excel(path)
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.replace('\n|\xa0|\t',' ',regex=True)
     df.columns = df.columns.str.replace(':','').str.strip()
@@ -49,12 +51,13 @@ def transform_data (path):
         df['Nombre completo'] = ''
 
     # Correcciones por cambio en formato 15/12/2022
-    new_1 = '¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de tu punto de atención?'
+    new_1 = '¿Cómo calificas la atención prestada por nuestro(s) profesional(es)?'
     new_2 = 'Basados en tu última atención médica ¿Recomendarías tu punto de atención con tus conocidos?'
     if new_1 in df.columns:
         df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?'] = df[new_1]
     if new_2 in df.columns:
         df['Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'] = df[new_2]
+    
     #
 
     df = df[[
