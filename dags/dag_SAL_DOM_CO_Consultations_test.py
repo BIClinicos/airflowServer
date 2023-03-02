@@ -21,13 +21,16 @@ dag_name = 'dag_' + db_table
 
 #Se halla las fechas de cargue de la data 
 #now = datetime.now()
-fecha_texto = '2023-01-01 00:00:00'
+fecha_texto = '2023-03-02 05:40:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 #last_week = now - timedelta(weeks=1)
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-03-02 05:40:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
+print("Fecha Inicio",now)
+print("Fecha Fin",last_week)
 #year = last_week.yearget
 #month = last_week.month
 
@@ -85,7 +88,7 @@ def get_data_consultations ():
         OR GS.name like '%Trabajo%Social%') --Especialidades manejadas en el contrato
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
         
-        AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}'
+        AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}'
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00'
     )   
     UNION ALL
@@ -133,7 +136,7 @@ def get_data_consultations ():
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
         AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
         
-        AND ENC.dateStart >= '{last_week}' AND ENC.dateStart < '{now}')
+        AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')
     --ORDER BY DocumentoPaciente,FORMAT(EV.actionRecordedDate,'dd/MM/yyyy HH:mm')
     ORDER BY DocumentoPaciente, EV.actionRecordedDate

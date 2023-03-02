@@ -857,3 +857,14 @@ python ~dags/dag_SAL_DOM_CO_Consultations_test.py
 python ~/dags/dag_SAL_DOM_CO_Consultations_test.py
 python ~/dags/get_fechas.py
 airflow scheduler
+~/dags/get_fechas.py
+python ~/dags/get_fechas.py
+git branch -l
+git add .
+git commit -m "Correción de DAG_CO_Consultatios"
+git push manar_miguel
+git push orgin manar_miguel
+git push dev  manar_miguel
+git push master manar_miguel
+git push main manar_miguel
+git push main/manar_miguel
