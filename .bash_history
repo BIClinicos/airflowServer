@@ -805,3 +805,55 @@ sudo docker ps
 htop
 git status
 git remote -v
+git init
+git status
+git add .
+git status
+git push origin manar_miguel
+git push origin/manar_miguel
+git push manar_miguel
+git branch -ls
+git branch -l
+git push main
+git push origin main
+cls
+clear
+git status
+git commit -m "Inicial commit entorno 28-02-2023"
+git push origin main
+git push origin manar_miguel
+git branch manar_miguel
+git status
+git branch -l
+git checouk manar_miguel
+git chekout manar_miguel
+git checkout manar_miguel
+git branch -l
+cd dags/
+dag_SAL_DOM_CO_Consultations_test.py
+phyton dag_SAL_DOM_CO_Consultations_test.py
+pip --version
+cd ..
+pip --version
+python
+clear
+python /dags/dag_SAL_DOM_CO_Consultations_test.py
+python dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/airflow/dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/dag_SAL_DOM_CO_Consultations_test.py
+source env/bin/activate
+airflow
+cd..
+cd .
+airflow 
+python ~/dags/get_fechas.py
+clear
+python ~/dags/get_fechas.py
+phyton ~dags/dag_SAL_DOM_CO_Consultations_test.py
+phython
+python
+clear
+python ~dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/get_fechas.py
+airflow scheduler
