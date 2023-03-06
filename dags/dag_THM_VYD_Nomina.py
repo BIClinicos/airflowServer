@@ -42,27 +42,61 @@ def norm_excel_date_gen(date_gen):
         res = pd.to_datetime(date_gen, format='%d/%m/%Y')
     # Excepcion por tipo (esperando fecha)
     except TypeError:
-        res = date_gen    
+        res = date_gen   
+    # Excepcion por conversion    
+    except OverflowError:
+        res = date_gen 
     return res 
 
 # Función de transformación de los archivos xlsx
 def transform_table(path):
 
-    # dataframe de la hoja de activos
+    # dataframe activos
 
-
-    df_active = pd.read_excel(path, header = [3], sheet_name = 0)
+    df_active = pd.read_excel(path, header = [4], sheet_name = 0)
     df_active["estado"] = "Activos"
+    df_active["organizacion"] = "CLÍNICOS"
 
+    df_active_innovar = pd.read_excel(path, header = [4], sheet_name = 2)
+    df_active_innovar["estado"] = "Activos"
+    df_active_innovar["organizacion"] = "INNOVAR"
 
     # dataframe de la hoja de retirados
 
-
     df_retired = pd.read_excel(path, header = [3], sheet_name = 1)
     df_retired["estado"] = "Retirados"
+    df_retired["organizacion"] = "CLÍNICOS"
+
+    df_retired_innovar = pd.read_excel(path, header = [4], sheet_name = 3)
+    df_retired_innovar["estado"] = "Retirados"
+    df_retired_innovar["organizacion"] = "INNOVAR"
+
+    # Remplazo de campos innovar
+    assign_innovar = {
+        " CEDULA ":"Identific.",
+        "FECHA DE INGRESO  MDA":"Fecha Ingreso",
+        "NOMBRE":"Empleado",
+        "TIPO DE CONTRATO":"Tipo Contrato",
+        "CELULAR":"Tel1",
+        "DIRECCION":"Dirección",
+        "CORREO CORPORATIVO":"e-mail",
+        "FECHA NACIMIENTO":"Fecha Nacim",
+        "SEDE":"Sucursal",
+        "AREA":"UNIDAD",
+        "FECHA DE RETIRO":"Fecha Retiro",
+        "FECHA NACIMIENTO":"Fecha Nacim",
+        "CARGO":"Cargo",
+    }
+    df_active_innovar.rename(columns = assign_innovar, inplace = True)
+    df_retired_innovar.rename(columns = assign_innovar, inplace = True) 
+
+    # Arreglo de los cargos con "-" en innovar
+    df_active_innovar['Cargo'] = df_active_innovar['Cargo'].str.replace('-','')
+    df_retired_innovar['Cargo'] = df_retired_innovar['Cargo'].str.replace('-','')
 
     # Append entre las hojas de activos y retirados
-    df = df_active.append(df_retired, ignore_index=True)
+    df = pd.concat([df_active, df_active_innovar, df_retired, df_retired_innovar], ignore_index=True)
+    print(f'Las dimensiones son {df.shape}')
 
     # Reemplazo de valores mal escritos en la columna nombre_ccosto
     df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Administrativa','Unidad administrativa')
@@ -75,6 +109,7 @@ def transform_table(path):
     df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
     df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
     df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
+    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(DOMICILIARIA)+.*$)','Unidad Domiciliaria', case = False)
     df['UNIDAD'] = df['UNIDAD'].str.upper()
     df['UNIDAD'].fillna(df['Nombre CCosto'])
 
@@ -88,7 +123,8 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ó','o')
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
-    
+    print(df['cargo'].dtype)
+
     # Separación del cargo y nivel_cargo en dos columnas dentro del dataframe
     df_cargo = df['cargo'].str.split('-', n=1, expand = True)
     
@@ -147,6 +183,9 @@ def transform_table(path):
     print(df_1.head(46))
     print(df_2.head(46))
 
+    # Llenado de nulos columnas no numericas
+    obj_cols = df.select_dtypes(include=['object']).columns
+    df[obj_cols] = df[obj_cols].fillna(value='S/D')
 
     print(df.isnull().sum())
 

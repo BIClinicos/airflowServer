@@ -805,3 +805,38 @@ sudo docker ps
 htop
 git status
 git remote -v
+git status
+git branch
+git checkout manar_miguel
+git status
+git commit -m '202303 v1 modficaciones consultas y notas'
+git push
+git push --set-upstream origin manar_miguel
+git status
+git switch main
+git checkout main
+git push
+git merge manar_miguel1
+git diff main..manar_miguel1
+git diff mai manar_miguel1
+git diff main-- manar_miguel1
+git diff main manar_miguel
+git merge manar_miguel
+git status
+git chekout -- dags/__pycache__/dag_SAL_DOM_CO_Consultations.cpython-38.pyc
+git chcekout -- dags/__pycache__/dag_SAL_DOM_CO_Consultations.cpython-38.pyc
+git cccekout -- dags/__pycache__/dag_SAL_DOM_CO_Consultations.cpython-38.pyc
+git checkout -- dags/__pycache__/dag_SAL_DOM_CO_Consultations.cpython-38.pyc
+git checkout- dags/__pycache__/dag_SAL_DOM_CO_Notes.cpython-38.pyc
+git check -- ut- dags/__pycache__/dag_SAL_DOM_CO_Notes.cpython-38.pyc
+git checkout -- dags/__pycache__/dag_SAL_DOM_CO_Notes.cpython-38.pyc
+git checkout -- dags/__pycache__/dag_TEC_SVA_SatisfaccionGral.cpython-38.pyc
+git status
+git checkout -- dags/__pycache__/dag_SAL_DOM_CO_Consultations.cpython-38.pyc
+git status
+git checkout -- dags/__pycache__/dag_SAL_DOM_CO_Notes.cpython-38.pyc
+git status
+git branch -l
+git branch manar_miguel
+git checkout  manar_miguel
+/usr/bin/python3
