@@ -881,3 +881,27 @@ git diff main manar_miguel --  dags/dag_SAL_DOM_CO_Consultations.py
 git diff main manar_miguel --  dags/dag_SAL_DOM_CO_CoNotes.py
 git status
 git checkout main
+git branch -l
+git push main/manar_miguel
+git push origin manar_miguel
+git config user.name MVelandia29
+git config credential.username MVelandia29
+git push origin manar_miguel
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git status
+git branch -l
+git add .
+git commit "Cambios en dags/__pycache"
+git commit "Cambios en dags/pycache"
+git commit "C -mambios en dags/pycache"
+git commit -m "C -mambios en dag/pycache"
+git push origin manar_miguel
+git remote set-url https://github.com/BIClinicos/airflowServer.git
+git remote -v
+git push origin manar_miguel
+clear
+git remote -v
+git push origin manar_miguel
+git config --global user.name MVelandia29
+git config --global user.email miguel.velandia@manar.com.co
+git config -l
