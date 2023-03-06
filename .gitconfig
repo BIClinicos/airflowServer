@@ -1,3 +1,5 @@
 [user]
 	name = BIClinicos
 	email = bi@clinicos.com.co
+[credential]
+	helper = cache

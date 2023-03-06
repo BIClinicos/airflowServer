@@ -868,3 +868,16 @@ git push dev  manar_miguel
 git push master manar_miguel
 git push main manar_miguel
 git push main/manar_miguel
+git config --global credential.helper cache
+git config --global credential.helper
+git diff main manar_miguel
+git diff main manar_miguel dag_SAL_DOM_CO_Consultations
+git diff main manar_migueldag/ dag_SAL_DOM_CO_Consultations
+git status
+git diff maiin manar_miguel dags/dag_SAL_DOM_CO_Consultations
+git diff maiin manar_miguel dags/dag_SAL_DOM_CO_Consultations.py
+git diff maiin manar_miguel --  dags/dag_SAL_DOM_CO_Consultations.py
+git diff main manar_miguel --  dags/dag_SAL_DOM_CO_Consultations.py
+git diff main manar_miguel --  dags/dag_SAL_DOM_CO_CoNotes.py
+git status
+git checkout main
