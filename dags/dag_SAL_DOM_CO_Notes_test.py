@@ -15,15 +15,20 @@ from utils import sql_2_df, load_df_to_sql
 
 
 #  Se nombran las variables a utilizar en el dag
-db_tmp_table = 'TMP_SAL_DOM_CO_Notes'
-db_table = "SAL_DOM_CO_Notes"
+db_tmp_table = 'TMP_SAL_DOM_CO_Notes_Test'
+db_table = "SAL_DOM_CO_Notes_Test"
 dag_name = 'dag_' + db_table
 
+
 #Se halla las fechas de cargue de la data 
-now = datetime.now()
-last_week = now - timedelta(weeks=1)
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+#now = datetime.now()
+fecha_texto = '2023-03-06 05:40:00'
+now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
+#last_week = now - timedelta(weeks=1)
+#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 05:40:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 #year = last_week.year
 #month = last_week.month
@@ -67,7 +72,7 @@ def func_get_SAL_DOM_CO_Notas ():
 
     WHERE 
         GACT.name like '%Nota%' --Acciones que corresponden a Notas
-        AND ENCR.idPrincipalContract = 57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva Eps
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00.000' AND ENC.dateStart < '2023-03-01 00:00:00.000')
                 
@@ -100,7 +105,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= '50 5 * * *',
+    schedule_interval= None,
     max_active_runs=1
     ) as dag:
 
@@ -111,8 +116,6 @@ with DAG(dag_name,
     get_SAL_DOM_CO_Notas_python_task = PythonOperator(
                                                     task_id = "get_SAL_DOM_CO_Notas",
                                                     python_callable = func_get_SAL_DOM_CO_Notas,
-                                                    email_on_failure=True, 
-                                                    email='BI@clinicos.com.co',
                                                     dag=dag
                                                     )
     
@@ -120,9 +123,7 @@ with DAG(dag_name,
     load_SAL_DOM_CO_Notas_Task = MsSqlOperator(task_id='Load_SAL_DOM_CO_Notas',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_SAL_DOM_CO_Notes",
-                                        email_on_failure=True, 
-                                        email='BI@clinicos.com.co',
+                                        sql="EXECUTE sp_load_SAL_DOM_CO_Notes_Test",
                                         dag=dag
                                        )
 

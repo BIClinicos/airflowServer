@@ -15,20 +15,25 @@ from utils import sql_2_df, load_df_to_sql
 
 
 #  Se nombran las variables a utilizar en el dag
-db_tmp_table = 'tmp_SAL_DOM_CO_Consultations'
-db_table = "SAL_DOM_CO_Consultations"
+db_tmp_table = 'tmp_SAL_DOM_CO_Consultations_test'
+db_table = "SAL_DOM_CO_Consultations_test"
 dag_name = 'dag_' + db_table
 
 #Se halla las fechas de cargue de la data 
-now = datetime.now()
-last_week = now - timedelta(weeks=1)
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+#now = datetime.now()
+fecha_texto = '2023-03-06 05:40:00'
+now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
+#last_week = now - timedelta(weeks=1)
+#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 05:40:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
-#year = last_week.year
+
+#year = last_week.yearget
 #month = last_week.month
 
-def func_get_TEC_PYR_DOMIConsultas ():
+def get_data_consultations ():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
@@ -80,7 +85,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         OR GS.name like '%Neurolog_a%'OR GS.name like '%Neumolog_a%' OR GS.name like '%Fisiatr_a%'
         OR GS.name like '%Cardiolog_a%' OR GS.name like '%Medicina Interna%' OR GS.name like '%Medicina Familiar%' OR GS.name like '%Pediatr_a%' 
         OR GS.name like '%Trabajo%Social%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva Eps
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}'
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00'
@@ -128,7 +133,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
     
     WHERE 
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')
@@ -161,7 +166,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= '40 5 * * *',
+    schedule_interval= None,
     max_active_runs=1
     ) as dag:
 
@@ -169,26 +174,22 @@ with DAG(dag_name,
     start_task = DummyOperator(task_id='dummy_start')
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
-    get_TEC_PYR_GEFDispensacion_python_task = PythonOperator(
-                                                            task_id = "get_TEC_PYR_GEFDispensacion",
-                                                            python_callable = func_get_TEC_PYR_DOMIConsultas,
-                                                            email_on_failure=True, 
-                                                            email='BI@clinicos.com.co',
-                                                            dag=dag
-                                                            )
+    get_data_consultations_python_task = PythonOperator(
+                                                        task_id = "get_data_consultations_python_task",
+                                                        python_callable = get_data_consultations,
+                                                        dag=dag
+                                                        )
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_TEC_PYR_GEFDispensacion = MsSqlOperator(task_id='Load_TEC_PYR_GEFDispensacion',
+    load_data_consultations = MsSqlOperator(task_id='load_data_consultations',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_SAL_DOM_CO_Consultations",
-                                        email_on_failure=True, 
-                                        email='BI@clinicos.com.co',
+                                        sql="EXECUTE sp_load_SAL_DOM_CO_Consultations_test",
                                         dag=dag
                                        )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_TEC_PYR_GEFDispensacion_python_task >> load_TEC_PYR_GEFDispensacion >> task_end
+start_task >> get_data_consultations_python_task >> load_data_consultations >> task_end
 #start_task >> get_TEC_PYR_GEFDispensacion_python_task >> task_end

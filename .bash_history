@@ -805,6 +805,7 @@ sudo docker ps
 htop
 git status
 git remote -v
+<<<<<<< HEAD
 git status
 git branch
 git checkout manar_miguel
@@ -840,3 +841,105 @@ git branch -l
 git branch manar_miguel
 git checkout  manar_miguel
 /usr/bin/python3
+=======
+git init
+git status
+git add .
+git status
+git push origin manar_miguel
+git push origin/manar_miguel
+git push manar_miguel
+git branch -ls
+git branch -l
+git push main
+git push origin main
+cls
+clear
+git status
+git commit -m "Inicial commit entorno 28-02-2023"
+git push origin main
+git push origin manar_miguel
+git branch manar_miguel
+git status
+git branch -l
+git checouk manar_miguel
+git chekout manar_miguel
+git checkout manar_miguel
+git branch -l
+cd dags/
+dag_SAL_DOM_CO_Consultations_test.py
+phyton dag_SAL_DOM_CO_Consultations_test.py
+pip --version
+cd ..
+pip --version
+python
+clear
+python /dags/dag_SAL_DOM_CO_Consultations_test.py
+python dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/airflow/dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/dag_SAL_DOM_CO_Consultations_test.py
+source env/bin/activate
+airflow
+cd..
+cd .
+airflow 
+python ~/dags/get_fechas.py
+clear
+python ~/dags/get_fechas.py
+phyton ~dags/dag_SAL_DOM_CO_Consultations_test.py
+phython
+python
+clear
+python ~dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/dag_SAL_DOM_CO_Consultations_test.py
+python ~/dags/get_fechas.py
+airflow scheduler
+~/dags/get_fechas.py
+python ~/dags/get_fechas.py
+git branch -l
+git add .
+git commit -m "Correción de DAG_CO_Consultatios"
+git push manar_miguel
+git push orgin manar_miguel
+git push dev  manar_miguel
+git push master manar_miguel
+git push main manar_miguel
+git push main/manar_miguel
+git config --global credential.helper cache
+git config --global credential.helper
+git diff main manar_miguel
+git diff main manar_miguel dag_SAL_DOM_CO_Consultations
+git diff main manar_migueldag/ dag_SAL_DOM_CO_Consultations
+git status
+git diff maiin manar_miguel dags/dag_SAL_DOM_CO_Consultations
+git diff maiin manar_miguel dags/dag_SAL_DOM_CO_Consultations.py
+git diff maiin manar_miguel --  dags/dag_SAL_DOM_CO_Consultations.py
+git diff main manar_miguel --  dags/dag_SAL_DOM_CO_Consultations.py
+git diff main manar_miguel --  dags/dag_SAL_DOM_CO_CoNotes.py
+git status
+git checkout main
+git branch -l
+git push main/manar_miguel
+git push origin manar_miguel
+git config user.name MVelandia29
+git config credential.username MVelandia29
+git push origin manar_miguel
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git status
+git branch -l
+git add .
+git commit "Cambios en dags/__pycache"
+git commit "Cambios en dags/pycache"
+git commit "C -mambios en dags/pycache"
+git commit -m "C -mambios en dag/pycache"
+git push origin manar_miguel
+git remote set-url https://github.com/BIClinicos/airflowServer.git
+git remote -v
+git push origin manar_miguel
+clear
+git remote -v
+git push origin manar_miguel
+git config --global user.name MVelandia29
+git config --global user.email miguel.velandia@manar.com.co
+git config -l
+>>>>>>> manar_miguel

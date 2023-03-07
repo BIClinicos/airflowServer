@@ -12,6 +12,7 @@ import pandas as pd
 from pandas import read_excel
 from variables import sql_connid
 from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get
+import numpy as np
 
 #  Se nombran las variables a utilizar en el dag
 
@@ -54,10 +55,13 @@ def transform_data (path):
     new_1 = '¿Cómo calificas la atención prestada por nuestro(s) profesional(es)?'
     new_2 = 'Basados en tu última atención médica ¿Recomendarías tu punto de atención con tus conocidos?'
     if new_1 in df.columns:
-        df['¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?'] = df[new_1]
+        df['¿Cómo calificas nuestra atención medica prestada?'] = df[new_1]
     if new_2 in df.columns:
         df['Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'] = df[new_2]
-    
+    # Columnas no usadas desde 2023/02
+    old_1 = '¿El servicio médico prestado suplió tus necesidades?',
+    if old_1 not in df.columns:
+        df['¿El servicio médico prestado suplió tus necesidades?'] = ''
     #
 
     df = df[[
