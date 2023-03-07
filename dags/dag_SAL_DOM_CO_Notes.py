@@ -67,7 +67,7 @@ def func_get_SAL_DOM_CO_Notas ():
 
     WHERE 
         GACT.name like '%Nota%' --Acciones que corresponden a Notas
-        AND ENCR.idPrincipalContract = 57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva Eps
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00.000' AND ENC.dateStart < '2023-03-01 00:00:00.000')
                 

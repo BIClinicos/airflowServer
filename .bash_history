@@ -905,3 +905,21 @@ git push origin manar_miguel
 git config --global user.name MVelandia29
 git config --global user.email miguel.velandia@manar.com.co
 git config -l
+git pull origin main
+git push origin manar_miguel
+git branch -l
+git checkout manar_miguel
+git status
+git checkout manar_miguel
+git add .
+git commit -m "Change gitignore"
+git push origin main
+git checkout manar_miguel
+git pull origin main
+git checkout main
+git checkout origin main
+git branch -l
+git add .
+git commit -m "change git ignore"
+git push origin manar_miguel
+git config -l

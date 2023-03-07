@@ -22,7 +22,7 @@ dag_name = 'dag_' + db_table
 
 #Se halla las fechas de cargue de la data 
 #now = datetime.now()
-fecha_texto = '2023-03-06 05:40:00'
+fecha_texto = '2023-03-07 05:40:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 #last_week = now - timedelta(weeks=1)
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
