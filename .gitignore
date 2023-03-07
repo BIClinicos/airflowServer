@@ -20,3 +20,4 @@
 /dags/files_segmentacion/*.*
 /dags/generated_files/*.*
 /dags/__pycache__/*.*
+.gitconfig
