@@ -21,3 +21,4 @@
 /dags/generated_files/*.*
 /dags/__pycache__/*.*
 .gitconfig
+.bash_history

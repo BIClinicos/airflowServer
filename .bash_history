@@ -943,3 +943,22 @@ git config --global user.name MVelandia29
 git config --global user.email miguel.velandia@manar.com.co
 git config -l
 >>>>>>> manar_miguel
+git status
+git checkout main
+git merge manar_miguel
+git status
+git commit -m 'Exclusión de binarios pycache de repo'
+git status
+git add .
+git commit -m 'Exclusion de binarios pycache'
+git merge manar_miguel
+git push
+git add .
+git commit -m 'Exclusion de gitconfig'
+git push
+git init
+git push
+git remote -b
+git remote -v
+git branc -l
+git branch -l
