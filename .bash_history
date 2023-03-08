@@ -923,3 +923,12 @@ git add .
 git commit -m "change git ignore"
 git push origin manar_miguel
 git config -l
+git status
+git init
+git status
+git branch -l
+git commit -m "Paso a producción add contrato nueva eps consultas y notas"
+git add .
+git commit -m "Paso a producción add contrato nueva eps consultas y notas"
+git push origin manar_miguel
+git status
