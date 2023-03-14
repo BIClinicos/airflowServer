@@ -932,3 +932,4 @@ git add .
 git commit -m "Paso a producción add contrato nueva eps consultas y notas"
 git push origin manar_miguel
 git status
+sudo su
