@@ -962,3 +962,100 @@ git remote -b
 git remote -v
 git branc -l
 git branch -l
+git checkout main
+git add .
+git commit -m 'Cambios locales Miguel'
+git checkout main
+git status
+git add .
+git commit -m "Corrección bugs ETL dag_SAL_DOM_CO_Notes"
+git push origin manar_miguel
+git remote set-url origin https://github.com/BIClinicos/airflowServer.git/
+git push origin manar_miguel
+git remote set-url origin https://github.com/BIClinicos/airflowServer.git/
+clear
+git push origin manar_miguel
+git branch -ls
+clear
+git branch -l
+git push origin manar_miguel
+git branch -l
+git status
+git add .
+git commit -m "Config profile"
+git push origin miguel_manar
+git push origin manar_miguel
+git remote set-url origin https://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@hithub.com/MVelandia29/BIClinicos/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/BIClinicos/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/BIClinicos/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/airflowServer.git
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/airflowServer.git
+git push origin manar_miguel
+git remote add https://github.com/BIClinicos/airflowServer.git
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git remote -v
+git remote add origin https://github.com/BIClinicos/airflowServer.git
+git remote set-url origin https://github.com/BIClinicos/airflowServer.git
+git remote -v
+git branch -l
+git push origin manar_miguel
+git remote set-url origin https://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@github.com/MVelandia29/airflowServer.git
+git push origin manar_miguel
+git remote -v
+git status
+git commit -m "Prueba subir"
+git branch -l
+git status
+git pull 
+git remote set-url origin https://github.com/BIClinicos/airflowServer.git
+git status
+git pull 
+git push origin manar_miguel
+git remote -v
+git push origin manar_miguel
+git push origin
+git push origin manar_miguel
+git add .
+git commit -m "Add contrado nueva EPS a reporte de consultas y notas"
+git push origin manar_miguel
+git branch -ls
+clear
+git 
+git status
+git add .
+git chekout manar_miguel
+git checkout manar_miguel
+git remote checkout  manar_miguel
+git commit -m "Cambios en nomina"
+git checkout manar_miguel
+git status
+git push origin manar_miguel
+git remote set-url origin ssh://github.com/BIClinicos/airflowServer.git
+git push origin manar_miguel
+git config --local credential.helper ""
+git push origin manar_miguel
+git remote set-url origin https://github.com/BIClinicos/airflowServer.git
+git push origin manar_miguel
+git diff main manar_miguel
+cd logs/
+ls
+sudo rm -r -f dag*
+cd logs/
+ls
+sudo rm -r -f dag*
+ls
+cd scheduler
+ls
+df -h
+cd 2022-09-12
+sudo rm -r -f
+sudo rm -r -f *files
+exit
