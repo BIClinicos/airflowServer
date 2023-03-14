@@ -55,10 +55,10 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_data_exam_python_task = PythonOperator(
-                           exa                             task_id = "get_data_exam_python_task",
-                                                        python_callable = get_data_exams,
-                                                        dag=dag
-                                                        )
+                                             task_id = "get_data_exam_python_task",
+                                             python_callable = get_data_exams,
+                                             dag=dag
+                                                    )
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
     load_data_exam = MsSqlOperator(task_id='load_data_exam',

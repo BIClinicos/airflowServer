@@ -933,3 +933,42 @@ git commit -m "Paso a producción add contrato nueva eps consultas y notas"
 git push origin manar_miguel
 git status
 sudo su
+git branch -l
+git pull
+git checkout manar_miguel
+git branch -l
+git add .
+git commit -m "archivos pycache"
+git checkout manar_miguel
+git branch -l
+git pull origin main
+git branch -l
+git status
+git commit -m "archivos pycache"
+git add .
+git commit -m "archivos pycache"
+git status
+git add.
+git branch -l
+git add .
+git commit -m "Add DAG oficinas, profesionales medicos y examenes"
+git push origin manar_miguel
+git push
+git status
+git push origin manar_miguel
+git branch /l
+git branch -l
+clear
+git branch -l
+git remote -v
+git push origin manar_miguel
+git push 
+git push origin/manar_miguel
+git push origin manar_miguel
+git push -u origen manar_miguel
+git add .
+git commit -m "Add dag Examenes"
+git push origin manar_miguel
+sudo git push
+git push origin manar_miguel
+clear
