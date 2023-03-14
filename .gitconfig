@@ -2,4 +2,4 @@
 	name = MVelandia29
 	email = miguel.velandia@manar.com.co
 [credential]
-	helper = cache
+	helper = manager
