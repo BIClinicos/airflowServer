@@ -51,32 +51,18 @@ def transform_table(path):
     # dataframe de la hoja de activos
 
 
-    df_active = pd.read_excel(path, header = [3], sheet_name = 0)
+    df_active = pd.read_excel(path, header = [0], sheet_name = 0)
     df_active["estado"] = "Activos"
 
 
     # dataframe de la hoja de retirados
 
 
-    df_retired = pd.read_excel(path, header = [3], sheet_name = 1)
+    df_retired = pd.read_excel(path, header = [0], sheet_name = 1)
     df_retired["estado"] = "Retirados"
 
     # Append entre las hojas de activos y retirados
     df = df_active.append(df_retired, ignore_index=True)
-
-    # Reemplazo de valores mal escritos en la columna nombre_ccosto
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Administrativa','Unidad administrativa')
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Unidades Domiciliaria','unidad domiciliaria')
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.upper()
-
-    # Reemplazo de valores para estandarizar la columna UNIDAD
-    df['UNIDAD'] = df['UNIDAD'].str.replace('GERENCIA  GENERAL','Unidad administrativa')
-    df['UNIDAD'] = df['UNIDAD'].str.replace('MERK','Unidad administrativa')
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.upper()
-    df['UNIDAD'].fillna(df['Nombre CCosto'])
 
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.lower()
@@ -88,6 +74,22 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ó','o')
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
+
+    ## Quitar Nombre CCosto de ingesta - 20230321
+    # Reemplazo de valores mal escritos en la columna nombre_ccosto
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Administrativa','Unidad administrativa')
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Unidades Domiciliaria','unidad domiciliaria')
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.upper()
+
+    # Reemplazo de valores para estandarizar la columna UNIDAD
+    df['unidad'] = df['unidad'].str.replace('GERENCIA  GENERAL','Unidad administrativa')
+    df['unidad'] = df['unidad'].str.replace('MERK','Unidad administrativa')
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
+    df['unidad'] = df['unidad'].str.upper()
+    ## Quitar Nombre CCosto de ingesta - 20230321
+    # df['Unidad'].fillna(df['Nombre CCosto'])
     
     # Separación del cargo y nivel_cargo en dos columnas dentro del dataframe
     df_cargo = df['cargo'].str.split('-', n=1, expand = True)
@@ -108,28 +110,29 @@ def transform_table(path):
     df['fecha_ingreso_clinicos'] = df['fecha_ingreso_pilar']
 
     # Reordenar columnas del dataframe
+    ## Quitar de ingesta   
     df = df[['identific.'
       ,'tipo_id'
       ,'empleado'
-      ,'estado_civil'
-      ,'fecha_nacim'
-      ,'ciudad_nacim'
-      ,'tel1'
-      ,'direccion'
-      ,'e-mail'
+      #,'estado_civil'
+      #,'fecha_nacim'
+      #,'ciudad_nacim'
+      #,'tel1'
+      #,'direccion'
+      #,'e-mail'
       ,'nivel_cargo'
       ,'cargo'
-      ,'%_tiempo_trabajado'
+      #,'%_tiempo_trabajado'
       ,'sucursal'
-      ,'nombre_ccosto'
-      ,'ciud.ubic'
+      #,'nombre_ccosto'
+      #,'ciud.ubic'
       ,'fecha_ingreso'
       ,'fecha_retiro'
-      ,'tipo_contrato'
-      ,'entidad_eps'
-      ,'entidad_afp'
-      ,'entidad_caja'
-      ,'entidad_arp'
+      #,'tipo_contrato'
+      #,'entidad_eps'
+      #,'entidad_afp'
+      #,'entidad_caja'
+      #,'entidad_arp'
       ,'estado'
       ,'unidad'
       ,'fecha_ingreso_clinicos'
@@ -138,7 +141,8 @@ def transform_table(path):
 
     df['fecha_retiro'] = pd.to_datetime(df['fecha_retiro'], format='%Y/%m/%d')
 
-    df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
+    ## Quitar de ingesta - 20230321
+    # df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
 
     df['sucursal'] = df['sucursal'].str.strip()
 

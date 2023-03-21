@@ -13,10 +13,9 @@ from utils import sql_2_df,load_df_to_sql_2
 
 
 #  Se nombran las variables a utilizar en el dag
-db_tmp_table = 'tmp_exam_detail_staging'
-db_table = "Fac_Examen_Detalle"
+db_tmp_table = 'tmp_cita_detail_staging'
+db_table = "Fac_Cita_Detalle"
 dag_name = 'dag_' + db_table
-
 
 #Se halla las fechas de cargue de la data 
 #now = datetime.now()
@@ -31,21 +30,27 @@ last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 #year = last_week.year
 #month = last_week.month
 
-def func_get_examen_detail ():
+def func_get_cita_detail ():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
     
     domiConsultas_query = f"""
-    SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,AES.idAppointmentExam,ASCH.dateBegin
+    SELECT ASS.idAppointmentSchedulerSlots,ASS.idAppointment,AP.idContract,APRO.idProduct,ASCH.dateBegin
     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)
     INNER JOIN dbo.appointmentSchedulerSlots ASS WITH (NOLOCK) ON ASCH.idAppointmenScheduler=ASS.idAppointmentScheduler
-    INNER JOIN dbo.appointmentExamSchedulers AES WITH (NOLOCK) ON ASCH.idAppointmenScheduler=AES.idAppointmentScheduler
+    LEFT JOIN  dbo.appointments AP WITH (NOLOCK) ON ASS.idAppointment=AP.idAppointment
+    LEFT JOIN dbo.contracts CON  WITH (NOLOCK) ON AP.idContract=CON.idContract
+    LEFT JOIN dbo.appointmentProducts APRO WITH (NOLOCK) ON AP.idAppointment=APRO.idAppointment
     WHERE ASCH.dateBegin >='{last_week}' AND ASCH.dateBegin<'{now}'
     """
     # Ejecutar la consulta capturandola en un dataframe
     df = sql_2_df(domiConsultas_query, sql_conn_id=sql_connid_gomedisys)
     
+    df= df.fillna(0)
+    df['idContract']=df['idContract'].astype(int)
+    df['idProduct']=df['idProduct'].astype(int)  
+                  
     #Convertir a str los campos de tipo fecha 
     cols_dates = ['dateBegin']
     for col in cols_dates:
@@ -53,7 +58,7 @@ def func_get_examen_detail ():
 
     print(df.columns)
     print(df.dtypes)
-    print(df)
+    print(df.head())
 
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql_2(df, db_tmp_table, sql_connid)
@@ -61,7 +66,7 @@ def func_get_examen_detail ():
 
 def execute_Sql():
      query = f"""
-     delete from tmp_exam_detail_staging where dateBegin >='{last_week}' AND dateBegin<'{now}'
+     delete from tmp_cita_detail_staging where dateBegin >='{last_week}' AND dateBegin<'{now}'
      """
      hook = MsSqlHook(sql_connid)
      hook.run(query)
@@ -87,30 +92,30 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     
-    extract_examen_detail= PythonOperator(
-                                     task_id = "extract_examen_detail",
+    extract_cita_detail= PythonOperator(
+                                     task_id = "extract_cita_detail",
                                      python_callable = execute_Sql,
                                      dag=dag
                                      )
     
-    get_examen_detail= PythonOperator(
-                                     task_id = "get_examen_detail",
-                                     python_callable = func_get_examen_detail,
+    get_cita_detail= PythonOperator(
+                                     task_id = "get_cita_detail",
+                                     python_callable = func_get_cita_detail,
                                      dag=dag
                                      )
     
     
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_fact_examen_detail = MsSqlOperator(task_id='load_fact_examen_detail',
-                                            mssql_conn_id=sql_connid,
-                                            autocommit=True,
-                                            sql="EXECUTE sp_load_Fac_Examen_Detalle",
-                                            dag=dag
-                                            )
+    load_fact_cita_detail = MsSqlOperator(task_id='load_fact_cita_detail',
+                                          mssql_conn_id=sql_connid,
+                                          autocommit=True,
+                                          sql="EXECUTE sp_load_Fac_Cita_Detalle",
+                                          dag=dag
+                                         )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-#start_task >> get_examen_detail >> load_fact_examen_detail >> task_end
-start_task >> extract_examen_detail >>get_examen_detail>> load_fact_examen_detail>>task_end
+
+start_task >> extract_cita_detail >>get_cita_detail>> load_fact_cita_detail>>task_end

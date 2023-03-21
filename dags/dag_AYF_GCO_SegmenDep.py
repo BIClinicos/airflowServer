@@ -47,7 +47,7 @@ def transform_tables (df):
     df.columns = df.columns.str.replace('ñ','ni')
 
     df = df.drop(['tipo_identificacion'], axis=1)
-
+    print("Como queda",df.dtypes)
     df['numero_mes'] = ''
 
     df.loc[df['mes'] == 'Enero', 'numero_mes'] = '1'

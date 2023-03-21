@@ -972,3 +972,7 @@ git push origin manar_miguel
 sudo git push
 git push origin manar_miguel
 clear
+git add .
+git commit -m "Creación de dag Fac examenes detalle"
+git push origin manar_miguel
+git status
