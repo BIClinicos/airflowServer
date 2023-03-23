@@ -13,8 +13,8 @@ from utils import sql_2_df,load_df_to_sql
 
 #  Se nombran las variables a utilizar en el dag
 
-db_table = "Dim_Examen"
-db_tmp_table = "tmp_exam_staging"
+db_table = "TblDExamenes"
+db_tmp_table = "TmpExamenes"
 dag_name = 'dag_' + db_table
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -46,7 +46,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= None,
+    schedule_interval= '20 6 * * *',
     max_active_runs=1
     ) as dag:
 
@@ -57,6 +57,8 @@ with DAG(dag_name,
     get_data_exam_python_task = PythonOperator(
                                              task_id = "get_data_exam_python_task",
                                              python_callable = get_data_exams,
+                                             email_on_failure=True, 
+                                             email='BI@clinicos.com.co',
                                              dag=dag
                                                     )
     
@@ -64,7 +66,9 @@ with DAG(dag_name,
     load_data_exam = MsSqlOperator(task_id='load_data_exam',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_dim_exam",
+                                        sql="EXECUTE uspCarga_TblDExamenes",
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
 

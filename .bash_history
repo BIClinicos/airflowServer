@@ -976,3 +976,16 @@ git add .
 git commit -m "Creación de dag Fac examenes detalle"
 git push origin manar_miguel
 git status
+/usr/bin/python3
+git brand main
+git add .
+git commit -m 'Guardado 20230321'
+git checkout mian
+git checkout main
+git checkout miguel_manar1
+git checkout manar_miguel
+git add .
+git commit -m 'Cambios 20230321'
+git checkout manar_miguel
+git branch -l
+/usr/bin/python3 /home/airflowclinicos/dags/dag_dim_cita.py

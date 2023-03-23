@@ -13,17 +13,17 @@ from utils import sql_2_df,load_df_to_sql_2
 
 
 #  Se nombran las variables a utilizar en el dag
-db_tmp_table = 'tmp_cita_detail_staging'
-db_table = "Fac_Cita_Detalle"
+db_tmp_table = 'TmpCitasDetalles'
+db_table = "TblHCitasDetalles"
 dag_name = 'dag_' + db_table
 
 #Se halla las fechas de cargue de la data 
-#now = datetime.now()
-fecha_texto = '2023-03-14 04:00:00'
-now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-#last_week = now - timedelta(weeks=1)
+now = datetime.now()
+#fecha_texto = '2023-03-14 04:00:00'
+#now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
+last_week = now - timedelta(weeks=1)
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -66,7 +66,7 @@ def func_get_cita_detail ():
 
 def execute_Sql():
      query = f"""
-     delete from tmp_cita_detail_staging where dateBegin >='{last_week}' AND dateBegin<'{now}'
+     delete from TmpCitasDetalles where dateBegin >='{last_week}' AND dateBegin<'{now}'
      """
      hook = MsSqlHook(sql_connid)
      hook.run(query)
@@ -83,7 +83,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= None,
+    schedule_interval= '45 6 * * *',
     max_active_runs=1
     ) as dag:
 
@@ -95,12 +95,16 @@ with DAG(dag_name,
     extract_cita_detail= PythonOperator(
                                      task_id = "extract_cita_detail",
                                      python_callable = execute_Sql,
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
     get_cita_detail= PythonOperator(
                                      task_id = "get_cita_detail",
                                      python_callable = func_get_cita_detail,
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
@@ -110,7 +114,9 @@ with DAG(dag_name,
     load_fact_cita_detail = MsSqlOperator(task_id='load_fact_cita_detail',
                                           mssql_conn_id=sql_connid,
                                           autocommit=True,
-                                          sql="EXECUTE sp_load_Fac_Cita_Detalle",
+                                          sql="EXECUTE uspCarga_TblHCitasDetalles",
+                                          email_on_failure=True, 
+                                          email='BI@clinicos.com.co',
                                           dag=dag
                                          )
 

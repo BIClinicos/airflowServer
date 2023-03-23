@@ -45,24 +45,72 @@ def norm_excel_date_gen(date_gen):
         res = date_gen    
     return res 
 
+# Normalizar de nombres de columnas
+def norm_col_names(df):
+    # Estandarización de los nombres de columnas del dataframe
+    df.columns = df.columns.str.lower()
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.replace(' ','_')
+    df.columns = df.columns.str.replace('á','a')
+    df.columns = df.columns.str.replace('é','e')
+    df.columns = df.columns.str.replace('í','i')
+    df.columns = df.columns.str.replace('ó','o')
+    df.columns = df.columns.str.replace('ú','u')
+    df.columns = df.columns.str.replace('ñ','ni')
+    return df
+
 # Función de transformación de los archivos xlsx
 def transform_table(path):
 
-    # dataframe de la hoja de activos
-
+    # dataframe activos
 
     df_active = pd.read_excel(path, header = [0], sheet_name = 0)
     df_active["estado"] = "Activos"
+    df_active["organizacion"] = "CLÍNICOS"
+    df_active = norm_col_names(df_active)
 
+    df_active_innovar = pd.read_excel(path, header = [0], sheet_name = 2)
+    df_active_innovar["estado"] = "Activos"
+    df_active_innovar["organizacion"] = "INNOVAR"
 
     # dataframe de la hoja de retirados
 
-
     df_retired = pd.read_excel(path, header = [0], sheet_name = 1)
     df_retired["estado"] = "Retirados"
+    df_retired["organizacion"] = "CLÍNICOS"
+    df_retired = norm_col_names(df_retired)
+
+    df_retired_innovar = pd.read_excel(path, header = [0], sheet_name = 3)
+    df_retired_innovar["estado"] = "Retirados"
+    df_retired_innovar["organizacion"] = "INNOVAR"
+
+    # Remplazo de campos innovar
+    assign_innovar = {
+        "DOCUMENTO":"Identific.",
+        "FECHA DE INGRESO  MDA":"Fecha Ingreso",
+        "NOMBRE":"Empleado",
+        "TIPO DE CONTRATO":"Tipo Contrato",
+        "CELULAR":"Tel1",
+        "DIRECCION":"Dirección",
+        "CORREO CORPORATIVO":"e-mail",
+        "FECHA NACIMIENTO":"Fecha Nacim",
+        "SEDE":"Sucursal",
+        "AREA":"UNIDAD",
+        "FECHA DE RETIRO":"Fecha Retiro",
+        "FECHA NACIMIENTO":"Fecha Nacim",
+        "CARGO":"Cargo",
+    }
+    df_active_innovar.rename(columns = assign_innovar, inplace = True)
+    df_retired_innovar.rename(columns = assign_innovar, inplace = True) 
+    df_active_innovar = norm_col_names(df_active_innovar)
+    df_retired_innovar = norm_col_names(df_retired_innovar)
+
+    ## Corregir Cargo INNOVAR
+    df_active_innovar['cargo'] = df_active_innovar['cargo'].str.replace('-','') 
+    df_retired_innovar['cargo'] = df_retired_innovar['cargo'].str.replace('-','')
 
     # Append entre las hojas de activos y retirados
-    df = df_active.append(df_retired, ignore_index=True)
+    df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
 
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.lower()
@@ -110,29 +158,43 @@ def transform_table(path):
     df['fecha_ingreso_clinicos'] = df['fecha_ingreso_pilar']
 
     # Reordenar columnas del dataframe
-    ## Quitar de ingesta   
+    ## Ingresar nulos
+    null_cols = [
+        'estado_civil'
+        ,'ciudad_nacim'
+        ,'%_tiempo_trabajado'
+        ,'nombre_ccosto'
+        ,'ciud.ubic'
+        ,'entidad_eps'
+        ,'entidad_afp'
+        ,'entidad_caja'
+        ,'entidad_arp'
+    ]
+    df = df.reindex(columns=[*[*df.columns.tolist(), *null_cols]])
+    
+    ##
     df = df[['identific.'
       ,'tipo_id'
       ,'empleado'
-      #,'estado_civil'
-      #,'fecha_nacim'
-      #,'ciudad_nacim'
-      #,'tel1'
-      #,'direccion'
-      #,'e-mail'
+      ,'estado_civil'
+      ,'fecha_nacim'
+      ,'ciudad_nacim'
+      ,'tel1'
+      ,'direccion'
+      ,'e-mail'
       ,'nivel_cargo'
       ,'cargo'
-      #,'%_tiempo_trabajado'
+      ,'%_tiempo_trabajado'
       ,'sucursal'
-      #,'nombre_ccosto'
-      #,'ciud.ubic'
+      ,'nombre_ccosto'
+      ,'ciud.ubic'
       ,'fecha_ingreso'
       ,'fecha_retiro'
-      #,'tipo_contrato'
-      #,'entidad_eps'
-      #,'entidad_afp'
-      #,'entidad_caja'
-      #,'entidad_arp'
+      ,'tipo_contrato'
+      ,'entidad_eps'
+      ,'entidad_afp'
+      ,'entidad_caja'
+      ,'entidad_arp'
       ,'estado'
       ,'unidad'
       ,'fecha_ingreso_clinicos'
@@ -143,6 +205,9 @@ def transform_table(path):
 
     ## Quitar de ingesta - 20230321
     # df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
+
+    ## Fill tipo_id
+    df['tipo_id'] = df['tipo_id'].fillna('CC')
 
     df['sucursal'] = df['sucursal'].str.strip()
 

@@ -13,8 +13,8 @@ from utils import sql_2_df,load_df_to_sql
 
 #  Se nombran las variables a utilizar en el dag
 
-db_table = "Dim_Cita"
-db_tmp_table = "tmp_cita_staging"
+db_table = "TblDCitas"
+db_tmp_table = "TmpCitas"
 dag_name = 'dag_' + db_table
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -34,15 +34,19 @@ def get_data_citas():
     print('Fecha fin ', now)
 
     query = f"""
-        SELECT AP.idAppointment,AP.idContract,APRO.idProduct,CON.name as Contrato,PRO.name AS Producto,PRO.legalCode AS CUPS, AP.dateAppointment, AP.dateRecord
+        SELECT distinct AP.idAppointment,AP.idContract,APRO.idProduct,CON.name as Contrato,PRO.name AS Producto,PRO.legalCode AS CUPS, AP.dateAppointment, AP.dateRecord
         FROM  dbo.appointments AP WITH (NOLOCK)
         INNER JOIN  dbo.contracts CON  WITH (NOLOCK) ON AP.idContract=CON.idContract
-        INNER JOIN  dbo.appointmentProducts APRO WITH (NOLOCK) ON AP.idAppointment=APRO.idAppointment
-        INNER JOIN  dbo.products PRO WITH (NOLOCK) ON APRO.idProduct=PRO.idProduct
+        LEFT JOIN  dbo.appointmentProducts APRO WITH (NOLOCK) ON AP.idAppointment=APRO.idAppointment
+        LEFT JOIN  dbo.products PRO WITH (NOLOCK) ON APRO.idProduct=PRO.idProduct   
         WHERE AP.dateAppointment >='{last_week}' AND AP.dateAppointment<'{now}'  
         """
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
     
+    df= df.fillna(0)
+    df['idContract']=df['idContract'].astype(int)
+    df['idProduct']=df['idProduct'].astype(int)  
+
     print(df.columns)
     print(df.dtypes)
     print(df.head())
@@ -67,7 +71,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= None,
+    schedule_interval= '35 6 * * *',
     max_active_runs=1
     ) as dag:
 
@@ -78,6 +82,8 @@ with DAG(dag_name,
     get_data_citas_python_task = PythonOperator(
                                              task_id = "get_data_citas_python_task",
                                              python_callable = get_data_citas,
+                                             email_on_failure=True, 
+                                             email='BI@clinicos.com.co',
                                              dag=dag
                                                     )
     
@@ -85,7 +91,9 @@ with DAG(dag_name,
     load_data_citas = MsSqlOperator(task_id='load_data_citas',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_dim_cita",
+                                        sql="EXECUTE uspCarga_TblDCitas",
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
 

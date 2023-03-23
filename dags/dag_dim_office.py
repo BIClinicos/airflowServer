@@ -11,8 +11,8 @@ from utils import sql_2_df,load_df_to_sql
 
 #  Se nombran las variables a utilizar en el dag
 
-db_table = "Dim_Oficina"
-db_tmp_table = "tmp_office_staging"
+db_table = "TblDOficinas"
+db_tmp_table = "TmpOficinas"
 dag_name = 'dag_' + db_table
 ### mensual 40 2 6 * *
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -46,7 +46,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= None,
+    schedule_interval= '@monthly',
     max_active_runs=1
     ) as dag:
 
@@ -57,6 +57,8 @@ with DAG(dag_name,
     get_data_officies_python_task = PythonOperator(
                                                         task_id = "get_data_officies_python_task",
                                                         python_callable = get_data_officies,
+                                                        email_on_failure=True, 
+                                                        email='BI@clinicos.com.co',
                                                         dag=dag
                                                         )
     
@@ -64,7 +66,9 @@ with DAG(dag_name,
     load_data_officies = MsSqlOperator(task_id='load_data_officies',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE sp_load_dim_oficina",
+                                        sql="EXECUTE uspCarga_TblDOficinas",
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
 
