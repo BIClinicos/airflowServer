@@ -989,3 +989,6 @@ git commit -m 'Cambios 20230321'
 git checkout manar_miguel
 git branch -l
 /usr/bin/python3 /home/airflowclinicos/dags/dag_dim_cita.py
+git branch -l
+git add .
+git commit -m 'Modificacioens archivo de OPS y Nomina'
