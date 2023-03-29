@@ -992,3 +992,4 @@ git branch -l
 git branch -l
 git add .
 git commit -m 'Modificacioens archivo de OPS y Nomina'
+git status

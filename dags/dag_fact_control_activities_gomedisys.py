@@ -112,6 +112,7 @@ def query_appointments_bogota(start):
 		ORDER BY AppSd.dateAppointment
 	"""
 	# Lectura de data frame
+    
 	df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 	print("Como está leyendo el dataframe inicialmente",df)
 	print("Nombres y tipos de columnas leídos del dataframe sin transformar",df.dtypes)
@@ -134,6 +135,12 @@ def query_appointments_bogota(start):
 	return df
 
 ### Metodo de transformacion
+
+def truncate(x,n):
+    if(len(x)>n):
+        x=x[:n]
+    
+    return x
 
 def transform_activities(df):
 	"""Transformacion de las actividades al requerimiento de la unidad
@@ -174,6 +181,12 @@ def transform_activities(df):
 	df['activity'] = df['activity'].str.strip()
 	# Eliminar columnas en desuso
 	df.drop(['exam', 'exam_alter'], inplace=True, axis=1)
+	
+
+	# Se trunca el valor de la columna document_number para valores atipicos mayores a 20 caracteres
+	df['document_number'] = df['document_number'].astype(str)
+	df['document_number']=df['document_number'].apply(lambda x :truncate(x,20))
+    
 	# Retorno del data frame
 	return df
 
