@@ -30,7 +30,7 @@ last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 #year = last_week.year
 #month = last_week.month
 
-def func_get_cita_detail ():
+def func_get_appointment_detail():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
@@ -92,17 +92,17 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     
-    extract_cita_detail= PythonOperator(
-                                     task_id = "extract_cita_detail",
+    extract_appointment_detail= PythonOperator(
+                                     task_id = "extract_appointment_detail",
                                      python_callable = execute_Sql,
                                      email_on_failure=True, 
                                      email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
-    get_cita_detail= PythonOperator(
-                                     task_id = "get_cita_detail",
-                                     python_callable = func_get_cita_detail,
+    get_appointment_detail= PythonOperator(
+                                     task_id = "get_appointment_detail",
+                                     python_callable = func_get_appointment_detail,
                                      email_on_failure=True, 
                                      email='BI@clinicos.com.co',
                                      dag=dag
@@ -111,7 +111,7 @@ with DAG(dag_name,
     
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_fact_cita_detail = MsSqlOperator(task_id='load_fact_cita_detail',
+    load_fact_appointment_detail = MsSqlOperator(task_id='load_fact_appointment_detail',
                                           mssql_conn_id=sql_connid,
                                           autocommit=True,
                                           sql="EXECUTE uspCarga_TblHCitasDetalles",
@@ -124,4 +124,4 @@ with DAG(dag_name,
     task_end = DummyOperator(task_id='task_end')
 
 
-start_task >> extract_cita_detail >>get_cita_detail>> load_fact_cita_detail>>task_end
+start_task >> extract_appointment_detail >>get_appointment_detail>> load_fact_appointment_detail>>task_end

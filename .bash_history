@@ -993,3 +993,20 @@ git branch -l
 git add .
 git commit -m 'Modificacioens archivo de OPS y Nomina'
 git status
+git
+git status
+clear
+git add .
+git commit -m "Add ETL Honotarios domiciliaria"
+git push origin manar_miguel
+git push origin miguel_manar
+git push origin manar_miguel
+git branch -l
+git push origin manar_miguel
+git push manar_miguel
+clear
+git push
+sudo git push origin manar_miguel
+clear
+git branch -l
+/usr/bin/python3 /home/airflowclinicos/dags/dag_fact_honorarios_citas_programadas.py

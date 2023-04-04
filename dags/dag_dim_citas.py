@@ -9,8 +9,6 @@ import pandas as pd
 from variables import sql_connid,sql_connid_gomedisys
 from utils import sql_2_df,load_df_to_sql
 
-
-
 #  Se nombran las variables a utilizar en el dag
 
 db_table = "TblDCitas"
@@ -28,7 +26,7 @@ last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
-def get_data_citas():
+def get_data_appointments():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
@@ -79,16 +77,16 @@ with DAG(dag_name,
     start_task = DummyOperator(task_id='dummy_start')
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
-    get_data_citas_python_task = PythonOperator(
-                                             task_id = "get_data_citas_python_task",
-                                             python_callable = get_data_citas,
+    get_data_appointments_python_task = PythonOperator(
+                                             task_id = "get_data_appointments_python_task",
+                                             python_callable = get_data_appointments,
                                              email_on_failure=True, 
                                              email='BI@clinicos.com.co',
                                              dag=dag
                                                     )
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_data_citas = MsSqlOperator(task_id='load_data_citas',
+    load_data_appointments = MsSqlOperator(task_id='load_data_appointments',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
                                         sql="EXECUTE uspCarga_TblDCitas",
@@ -100,4 +98,4 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_data_citas_python_task >> load_data_citas >> task_end
+start_task >> get_data_appointments_python_task >> load_data_appointments >> task_end

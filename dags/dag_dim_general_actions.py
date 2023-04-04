@@ -14,7 +14,7 @@ from utils import sql_2_df,load_df_to_sql
 db_table = "TblDAccionesGenerales"
 db_tmp_table = "TmpAccionesGenerales"
 dag_name = 'dag_' + db_table
-### mensual 40 2 6 * *
+
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
 def get_data_general_actions():
 
@@ -46,7 +46,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval= None,
+    schedule_interval= '05 7 * * *',
     max_active_runs=1
     ) as dag:
 
@@ -57,8 +57,8 @@ with DAG(dag_name,
     get_data_general_actions_python_task = PythonOperator(
                                                         task_id = "get_data_general_actions_python_task",
                                                         python_callable = get_data_general_actions,
-                                                        #email_on_failure=True, 
-                                                        #email='BI@clinicos.com.co',
+                                                        email_on_failure=True, 
+                                                        email='BI@clinicos.com.co',
                                                         dag=dag
                                                         )
     

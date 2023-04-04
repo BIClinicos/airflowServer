@@ -160,7 +160,12 @@ def transform_table(path):
     # Reordenar columnas del dataframe
     ## Ingresar nulos
     null_cols = [
-        'estado_civil'
+        'e-mail'
+        ,'tipo_contrato'
+        ,'fecha_nacim'
+        ,'direccion'
+        ,'tel1'
+        ,'estado_civil'
         ,'ciudad_nacim'
         ,'%_tiempo_trabajado'
         ,'nombre_ccosto'
@@ -171,7 +176,8 @@ def transform_table(path):
         ,'entidad_arp'
     ]
     df = df.reindex(columns=[*[*df.columns.tolist(), *null_cols]])
-    
+    df['fecha_nacim'] = datetime.strptime('1900-01-01', '%Y-%m-%d')
+
     ##
     df = df[['identific.'
       ,'tipo_id'

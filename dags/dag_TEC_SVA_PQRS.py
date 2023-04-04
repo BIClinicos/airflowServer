@@ -244,8 +244,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_TEC_SVA_PQRS_python_task = PythonOperator(task_id = "get_TEC_SVA_PQRS",
                                                   python_callable = func_get_TEC_SVA_PQRS,
-                                                  #email_on_failure=True, 
-                                                  #email='BI@clinicos.com.co',
+                                                  email_on_failure=True, 
+                                                  email='BI@clinicos.com.co',
                                                   dag=dag,
                                                   )
     
@@ -254,8 +254,8 @@ with DAG(dag_name,
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_load_TEC_SVA_PQRS",
-                                       #email_on_failure=True, 
-                                       #email='BI@clinicos.com.co',
+                                       email_on_failure=True, 
+                                       email='BI@clinicos.com.co',
                                        dag=dag,
                                        )
 

@@ -22,15 +22,15 @@ now = datetime.now()
 #fecha_texto = '2023-03-14 04:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 last_week = now - timedelta(weeks=1)
-#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 #last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 #year = last_week.year
 #month = last_week.month
 
-def func_get_honorarios_stating ():
+def func_get_honoraries_stating ():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
@@ -44,7 +44,7 @@ def func_get_honorarios_stating ():
                     set @is_asistente ='Especialista Asistente'
                 SELECT TODOX.* FROM (
 	                (
-	                SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idUserProfessional AS User_id,@is_profesional as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys
+	                SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idUserProfessional AS User_id,@is_profesional as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
                     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)
                     INNER JOIN dbo.appointmentSchedulerSlots ASS WITH (NOLOCK) ON ASCH.idAppointmenScheduler=ASS.idAppointmentScheduler
                     LEFT JOIN (SELECT idAppointmenScheduler,idUserProfessional,Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from (
@@ -64,7 +64,7 @@ def func_get_honorarios_stating ():
                     )
                 UNION ALL
                 (
-                    SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idAssistantSpecialist AS User_id,@is_asistente as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys
+                    SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idAssistantSpecialist AS User_id,@is_asistente as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
                     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)
                     INNER JOIN dbo.appointmentSchedulerSlots ASS WITH (NOLOCK) ON ASCH.idAppointmenScheduler=ASS.idAppointmentScheduler
                     LEFT JOIN (SELECT idAppointmenScheduler,idAssistantSpecialist,Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from (
@@ -130,17 +130,17 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     
-    extract_honorarios_stating= PythonOperator(
-                                     task_id = "extract_honorarios_stating",
+    extract_honoraries_stating= PythonOperator(
+                                     task_id = "extract_honoraries_stating",
                                      python_callable = execute_Sql,
                                      email_on_failure=True, 
                                      email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
-    get_honorarios_stating= PythonOperator(
-                                     task_id = "get_honorarios_stating",
-                                     python_callable = func_get_honorarios_stating,
+    get_honoraries_stating= PythonOperator(
+                                     task_id = "get_honoraries_stating",
+                                     python_callable = func_get_honoraries_stating,
                                      email_on_failure=True, 
                                      email='BI@clinicos.com.co',
                                      dag=dag
@@ -149,7 +149,7 @@ with DAG(dag_name,
     
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_fact_Honorarios_Citas_programadas = MsSqlOperator(task_id='load_fact_Honorarios_Citas_programadas',
+    load_fact_honoraries_scheduled_appointments = MsSqlOperator(task_id='load_fact_honoraries_scheduled_appointments',
                                           mssql_conn_id=sql_connid,
                                           autocommit=True,
                                           sql="EXECUTE uspCarga_TblHHonorariosCitasModeloEspecializada",
@@ -161,5 +161,5 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> extract_honorarios_stating >>get_honorarios_stating>> load_fact_Honorarios_Citas_programadas>>task_end
+start_task >> extract_honoraries_stating >>get_honoraries_stating>> load_fact_honoraries_scheduled_appointments>>task_end
 #start_task >> extract_cita_detail >>get_cita_detail>>task_end

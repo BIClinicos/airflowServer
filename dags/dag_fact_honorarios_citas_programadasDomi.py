@@ -100,7 +100,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag todos los viernes a las 10:00 am(Hora servidor)
-    schedule_interval=None,
+    schedule_interval='15 7 * * *',
     max_active_runs=1
     ) as dag:
 
@@ -109,36 +109,35 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     
-    extract_honorarios_stating= PythonOperator(
-                                     task_id = "extract_honorarios_stating",
+    extract_honoraries_stating= PythonOperator(
+                                     task_id = "extract_honoraries_stating",
                                      python_callable = execute_Sql,
-                                     #email_on_failure=True, 
-                                     #email='BI@clinicos.com.co',
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
-    get_honorarios_stating= PythonOperator(
-                                     task_id = "get_honorarios_stating",
+    get_honoraries_stating= PythonOperator(
+                                     task_id = "get_honoraries_stating",
                                      python_callable = func_get_honorarios_stating,
-                                     #email_on_failure=True, 
-                                     #email='BI@clinicos.com.co',
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
                                      dag=dag
                                      )
     
     
     
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_fact_Honorarios_Citas_programadas = MsSqlOperator(task_id='load_fact_Honorarios_Citas_programadas',
+    load_fact_honoraries_scheduled_appointments = MsSqlOperator(task_id='load_fact_honoraries_scheduled_appointments',
                                           mssql_conn_id=sql_connid,
                                           autocommit=True,
                                           sql="EXECUTE uspCarga_TblHHonorariosCitasModeloDomiciliaria",
-                                          #email_on_failure=True, 
-                                          #email='BI@clinicos.com.co',
+                                          email_on_failure=True, 
+                                          email='BI@clinicos.com.co',
                                           dag=dag
                                          )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> extract_honorarios_stating >>get_honorarios_stating>> load_fact_Honorarios_Citas_programadas>>task_end
-#start_task >> extract_honorarios_stating >>get_honorarios_stating>>task_end
+start_task >> extract_honoraries_stating >>get_honoraries_stating>> load_fact_honoraries_scheduled_appointments>>task_end
