@@ -29,7 +29,7 @@ dag_name = 'dag_' + db_table_fact
 def transform_data (path):
 
     # lectura del archivo de excel
-    df = pd.read_excel(path, header = [0])
+    df = pd.read_excel(path, header = [0], converters={'# CC': str})
 
 
 
@@ -91,12 +91,17 @@ def transform_data (path):
             'rcv' : 'rcv',
             'mega' : 'mega', 
             'periodo' : 'period',
-            'en_programa_erc' : 'in_erc_program', 
+            'columna1' : 'in_erc_program', 
             'insulinizado' : 'insulinized'
         }
     )
     print(df['last_creatine'].head(10))
-
+    # Llenar vacios en tracking_hba1c
+    df['tracking_hba1c'] = df['tracking_hba1c'].fillna('N/D')
+    # Recortar insulinized
+    df['insulinized'] = df['insulinized'].str[:5]
+    # Llenar vacios en nursing_professional
+    df['nursing_professional'] = df['nursing_professional'].fillna('JEFE YENITH PUENTES')
 
     # Se agrega la columna document_type = cc
 
@@ -143,7 +148,7 @@ def transform_data (path):
     # Estandarización columnas tipo texto
 
     cat_col = [
-        'document_number',
+        #'document_number',
         'full_name',
         'phone_number', 
         'phone_number_two',

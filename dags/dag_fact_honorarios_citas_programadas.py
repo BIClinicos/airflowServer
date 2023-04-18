@@ -42,7 +42,7 @@ def func_get_honoraries_stating ():
 
                     set @is_profesional ='Principal'
                     set @is_asistente ='Especialista Asistente'
-                SELECT TODOX.* FROM (
+                SELECT DISTINCT TODOX.* FROM (
 	                (
 	                SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idUserProfessional AS User_id,@is_profesional as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
                     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)

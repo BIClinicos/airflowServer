@@ -139,14 +139,18 @@ def transform_table(path):
     df['valor_contrato'] = df['valor_contrato'].fillna(df['valor_contrato_principal'])
     df['valor_contrato'] = df['valor_contrato'].astype(str)
 
-    ### Adicion 20230323
-    if 'tarifa_ajustada' in df.columns:
-        df['valor_contrato'] = df['tarifa_ajustada'].fillna(df['valor_contrato'])
-
     df_valor = df['valor_contrato'].str.split(' /', n=1, expand = True)
     df['valor_contrato'] = df_valor[0]
     df['valor_contrato'] = df['valor_contrato'].apply(lambda x: x.replace("$ ",""))
     df['valor_contrato'] = pd.to_numeric(df['valor_contrato'], errors = 'coerce')
+    ### Adicion 20230323
+    if 'tarifa_ajustada' in df.columns:
+        df_valor = df['tarifa_ajustada'].str.split(' /', n=1, expand = True)
+        df['tarifa_ajustada'] = df_valor[0]
+        df['tarifa_ajustada'] = df['tarifa_ajustada'].apply(lambda x: x.replace("$ ",""))
+        df['tarifa_ajustada'] = pd.to_numeric(df['tarifa_ajustada'], errors = 'coerce')
+        df['valor_contrato'] = df['tarifa_ajustada'].fillna(df['valor_contrato'])
+    df['valor_contrato'] = [x * 1000 if x< 500 else x for x in df['valor_contrato']]
 
     print(df_valor.head(20))
     print(df['valor_contrato'].head(20))
