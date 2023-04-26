@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from datetime import date
 import pandas as pd
 from variables import sql_connid,sql_connid_gomedisys
-from utils import sql_2_df,load_df_to_sql_2
+from utils import sql_2_df,load_df_to_sql
 
 
 
@@ -17,18 +17,18 @@ db_tmp_table = 'TmpHonorariosCitasModeloEspecializada'
 db_table = "TblHHonorariosCitasModeloEspecializada"
 dag_name = 'dag_' + db_table
 
-#Se halla las fechas de cargue de la data 
-now = datetime.now()
-#fecha_texto = '2023-03-14 04:00:00'
+# Para correr manualmente las fechas
+#fecha_texto = '2023-04-19 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week = now - timedelta(weeks=1)
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-#last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
-now = now.strftime('%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+#now = now.strftime('%Y-%m-%d %H:%M:%S')
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
-#year = last_week.year
-#month = last_week.month
+# Para correr fechas con delta
+now = datetime.now()
+last_week = now - timedelta(weeks=1)
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+now = now.strftime('%Y-%m-%d %H:%M:%S')
 
 def func_get_honoraries_stating ():
 
@@ -44,7 +44,7 @@ def func_get_honoraries_stating ():
                     set @is_asistente ='Especialista Asistente'
                 SELECT DISTINCT TODOX.* FROM (
 	                (
-	                SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idUserProfessional AS User_id,@is_profesional as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
+	                SELECT DISTINCT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idUserProfessional AS User_id,@is_profesional as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
                     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)
                     INNER JOIN dbo.appointmentSchedulerSlots ASS WITH (NOLOCK) ON ASCH.idAppointmenScheduler=ASS.idAppointmentScheduler
                     LEFT JOIN (SELECT idAppointmenScheduler,idUserProfessional,Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from (
@@ -64,7 +64,7 @@ def func_get_honoraries_stating ():
                     )
                 UNION ALL
                 (
-                    SELECT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idAssistantSpecialist AS User_id,@is_asistente as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
+                    SELECT DISTINCT ASS.idAppointmentSchedulerSlots,ASCH.idAppointmenScheduler,ASS.idAppointment, ASCH.idOffice as Office_id,ASCH.isActive AS Agenda_Activa,ASCH.isDeleted AS Agenda_Eliminada,ASCH.dateBegin AS Fecha_Inicio, ASCH.dateEnd AS Fecha_Fin,ASS.dateAppointment AS Fecha_Cita ,ASCH.durationTimeSlots AS Duracion,ASS.indEstado AS Espacio_Activo,ASCH.idAssistantSpecialist AS User_id,@is_asistente as "Tipo Profesional",Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys,ASS.isDeleted AS Espacio_Eliminado
                     FROM dbo.appointmentSchedulers ASCH  WITH (NOLOCK)
                     INNER JOIN dbo.appointmentSchedulerSlots ASS WITH (NOLOCK) ON ASCH.idAppointmenScheduler=ASS.idAppointmentScheduler
                     LEFT JOIN (SELECT idAppointmenScheduler,idAssistantSpecialist,Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from (
@@ -99,7 +99,7 @@ def func_get_honoraries_stating ():
     print(df.head())
 
     if ~df.empty and len(df.columns) >0:
-        load_df_to_sql_2(df, db_tmp_table, sql_connid)
+        load_df_to_sql(df, db_tmp_table, sql_connid)
 
 
 def execute_Sql():

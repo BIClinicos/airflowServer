@@ -99,6 +99,7 @@ def transform_data (path):
     # Llenar vacios en tracking_hba1c
     df['tracking_hba1c'] = df['tracking_hba1c'].fillna('N/D')
     # Recortar insulinized
+    df['insulinized'] = df['insulinized'].astype(str)
     df['insulinized'] = df['insulinized'].str[:5]
     # Llenar vacios en nursing_professional
     df['nursing_professional'] = df['nursing_professional'].fillna('JEFE YENITH PUENTES')

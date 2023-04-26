@@ -49,6 +49,11 @@ def data_correction_pqrs(df):
     cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
     df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
     df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
+    # Correccion otros
+    cond_5 = df[client].str.contains('OTROS', na=False)
+    cond_6 = df[unit].str.contains('DOMICILIARIA', na=False)
+    df.loc[cond_5 & cond_6, client] = 'OTROS DOMICILIARIA'
+    df.loc[cond_5 & ~cond_6, unit] = 'OTROS ESPECIALIZADA'
     # Retorno de df
     return df
 
@@ -178,7 +183,10 @@ def transform_tables (path):
 
     # df.loc[df['edad'].str.lower().str.contains('mes') == True, 'edad'] = 0
 
-
+    # Remplazo de columnas 2023-04
+    dict_replace = {'eps':'peticionario'}
+    df.rename(columns = dict_replace, inplace = True)
+    print(df.columns)
     df = df[['canal_de_recepcion', 'peticionario', 'oys',
        'nombres_y_apellidos_paciente', 'cc', 'no_documento',
        'edad', 'telefonos', 'correo', 'eps_paciente', 'unidad', 'ciudad',

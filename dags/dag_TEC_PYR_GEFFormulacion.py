@@ -26,8 +26,8 @@ def func_get_TEC_PYR_GEFFormulacion ():
     # Trae datos de ultima semana
     now = datetime.now()
     last_week = now - timedelta(weeks=1)
-    last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-    #last_week=datetime.strptime('2023-03-01 04:00:00', '%Y-%m-%d %H:%M:%S')
+    #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+    last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
     print(now)
     print(last_week)
 
@@ -45,7 +45,9 @@ def func_get_TEC_PYR_GEFFormulacion ():
         , CONCAT(CAST(round(EVF.doseValue, 0, 0)AS INT), ' ',  EFP.name) periodicity
         , EVF.valueAdministrationTime, EVF.formulatedAmount, EVF.dateRecorded, EVF.idProductGeneric
         ,EVE.idEHREvent,ENC.idEncounter
-        , DGN.code as diagnostic    
+        , DGN.code as diagnostic
+        , CONCAT(USR_B.firstGivenName, ' ', USR_B.secondGiveName, ' ', USR_B.firstFamilyName, ' ', USR_B.secondFamilyName) AS namePractitioner
+        , USR_B.documentNumber AS idPractitioner    
     FROM 
         dbo.encounters ENC
         , dbo.users USR
@@ -60,6 +62,7 @@ def func_get_TEC_PYR_GEFFormulacion ():
         , dbo.diagnostics DGN
         , dbo.userConfTypeDocuments DCT
         , dbo.userConfAdministrativeSex GNR
+        , dbo.users USR_B
     WHERE 
 
         ENC.idUserPatient = USR.idUser 
@@ -78,6 +81,7 @@ def func_get_TEC_PYR_GEFFormulacion ():
         AND USR.idDocumentType = DCT.idTypeDocument
         AND USR.idUser = PEO.idUser
         AND PEO.idAdministrativeSex = GNR.idAdministrativeSex
+        AND EVF.idUserPractitioner = USR_B.idUser
         AND EVF.idProductGeneric IN ('41109','2468','40140','38420','41153','40921','1785','1627','41107','39295','1393','41140','39215'
         ,'1950','41154','2614','38483','41054','1628','41155','2167','41156','2561','39835','41152','41157','1953','39163','2017','41158'
         ,'1504','41133','40925','2316','41119','2474','41116','38157','41159','1901','41160','36597','2248','36606','41268','41161','36598'

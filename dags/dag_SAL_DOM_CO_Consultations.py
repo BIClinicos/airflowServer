@@ -24,6 +24,10 @@ now = datetime.now()
 last_week = now - timedelta(weeks=1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
+###### Mod problema mipres
+#now=datetime.strptime('2022-08-31 23:59:00', '%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2022-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+
 
 #year = last_week.year
 #month = last_week.month

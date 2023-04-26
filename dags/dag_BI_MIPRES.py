@@ -93,10 +93,11 @@ def func_get_BI_MIPRES_prescripcion():
     # Get date list from the last 5 days
     now = pd.datetime.today()
     days_ago = add_days_to_date(now,-5)
-    #now = datetime(2022,7,17)
-    #days_ago = datetime(2022,7,14)
+    now = datetime(2022,12,31)
+    days_ago = datetime(2022,12,1)
 
     dates = pd.date_range(start=days_ago, end = now,freq='D')
+    print(dates)
 
     dates = dates.tolist()
 
@@ -128,6 +129,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_pres = ['CodAmbAte', 'PacCovid19', 'EnfHuerfana', 'EstPres']
 
     for i in int_col_pres:
+        df_prescripcion[i] = df_prescripcion[i].fillna(0)
+        df_prescripcion[i] = df_prescripcion[i].astype(int)
         df_prescripcion[i] = df_prescripcion[i].astype(str)
         df_prescripcion[i] = df_prescripcion[i].str.replace('.0','', regex=False)
     
@@ -147,6 +150,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_med = ['ConOrden', 'DosisUM', 'CanTrat', 'DurTrat', 'CantTotalF', 'UFCantTotal', 'EstJM']
 
     for i in int_col_med:
+        df_meds[i] = df_meds[i].fillna(0)
+        df_meds[i] = df_meds[i].astype(int)
         df_meds[i] = df_meds[i].astype(str)
         df_meds[i] = df_meds[i].str.replace('.0','', regex=False)
     
@@ -177,6 +182,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_servcom = ['ConOrden', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat', 'EstJM']
 
     for i in int_col_servcom:
+        df_servicios_complementarios[i] = df_servicios_complementarios[i].fillna(0)
+        df_servicios_complementarios[i] = df_servicios_complementarios[i].astype(int)
         df_servicios_complementarios[i] = df_servicios_complementarios[i].astype(str)
         df_servicios_complementarios[i] = df_servicios_complementarios[i].str.replace('.0','', regex=False)
 
@@ -198,6 +205,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_seract = ['ConOrden', 'UMedCantCont']
 
     for i in int_col_seract:
+        df_principios_act[i] = df_principios_act[i].fillna(0)
+        df_principios_act[i] = df_principios_act[i].astype(int)
         df_principios_act[i] = df_principios_act[i].astype(str)
         df_principios_act[i] = df_principios_act[i].str.replace('.0','', regex=False)
     
@@ -216,6 +225,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_prodnut = ['ConOrden', 'CanTrat','DurTrat', 'CantTotalF', 'UFCantTotal', 'EstJM']
 
     for i in int_col_prodnut:
+        df_principios_nutri[i] = df_principios_nutri[i].fillna(0)
+        df_principios_nutri[i] = df_principios_nutri[i].astype(int)
         df_principios_nutri[i] = df_principios_nutri[i].astype(str)
         df_principios_nutri[i] = df_principios_nutri[i].str.replace('.0','', regex=False)
 
@@ -238,6 +249,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_proc = ['ConOrden', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'EstJM']
 
     for i in int_col_proc:
+        df_procedimientos[i] = df_procedimientos[i].fillna(0)
+        df_procedimientos[i] = df_procedimientos[i].astype(int)
         df_procedimientos[i] = df_procedimientos[i].astype(str)
         df_procedimientos[i] = df_procedimientos[i].str.replace('.0','', regex=False)
 

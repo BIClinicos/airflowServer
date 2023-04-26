@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from datetime import date
 import pandas as pd
 from variables import sql_connid,sql_connid_gomedisys
-from utils import sql_2_df,load_df_to_sql_2
+from utils import sql_2_df,load_df_to_sql
 
 
 
@@ -17,15 +17,18 @@ db_tmp_table = 'TmpHonorariosCitasModeloDomiciliaria'
 db_table = "TblHHonorariosCitasModeloDomiciliaria"
 dag_name = 'dag_' + db_table
 
-#Se halla las fechas de cargue de la data 
-now = datetime.now()
-#fecha_texto = '2023-03-27 00:00:00'
+# Para correr manualmente las fechas
+#fecha_texto = '2023-04-21 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+#now = now.strftime('%Y-%m-%d %H:%M:%S')
+#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+
+# Para correr fechas con delta
+now = datetime.now()
 last_week = now - timedelta(weeks=1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
-#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 #year = last_week.year
 #month = last_week.month
@@ -36,7 +39,7 @@ def func_get_honorarios_stating ():
     print('Fecha fin ', now)
     
     domiConsultas_query = f"""
-                    SELECT HRE.idEHREvent, HRE.idPractitioner as User_id,HRE.idEncounter,ENC.idOffice,HRE.actionRecordedDate as Fecha_Cita,HRE.isActive as Agenda_Activa,HRE.idAction as action_id,idPatientLocation,ENCR.idPrincipalContract as contract_id,Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys
+                    SELECT DISTINCT HRE.idEHREvent, HRE.idPractitioner as User_id,HRE.idEncounter,ENC.idOffice,HRE.actionRecordedDate as Fecha_Cita,HRE.isActive as Agenda_Activa,HRE.idAction as action_id,idPatientLocation,ENCR.idPrincipalContract as contract_id,Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys
                     FROM dbo.EHREvents HRE WITH (NOLOCK)
                     LEFT JOIN dbo.encounters  ENC WITH (NOLOCK) on HRE.idEncounter=ENC.idEncounter
                     LEFT JOIN dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
@@ -78,7 +81,7 @@ def func_get_honorarios_stating ():
     print(df.head())
 
     if ~df.empty and len(df.columns) >0:
-        load_df_to_sql_2(df, db_tmp_table, sql_connid)
+        load_df_to_sql(df, db_tmp_table, sql_connid)
 
 
 def execute_Sql():
