@@ -19,7 +19,7 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-#fecha_texto = '2023-04-24 00:00:00'
+#fecha_texto = '2023-05-02 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 #last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 #now = now.strftime('%Y-%m-%d %H:%M:%S')
@@ -37,7 +37,7 @@ def func_get_dispensation_medicines_stating ():
     print('Fecha fin ', now)
     
     query = f"""
-            select distinct PRD.idPharmacyRequestDetail as Id_EntregaFarmacia,EHRE.idEHREvent as Id_Evento,PRD.idGenericProduct as MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,ENC.identifier as Formulación,PRQ.dateRecord as [Fecha_Pedido],PRQ.isAuthorized as [Formulación Autorizada],PRQ.note as Notas,EHRE.idAction as id_accion,GAC.code as Codigo_Accion,GAC.name as [Nombre Acción],GAC.isActive as [Acción Activa],ENC.idUserPatient AS Paciente_id,PRQ.idUserAuthorized as Usuario_Autoriza_Id,ENCR.idActualPractitioner as Medico_Id,ENC.dateStart as [Fecha_Atencion],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContractee AS Contrato_id,  ENCR.idPrincipalPlan as Plan_id,
+            select distinct PRD.idPharmacyRequestDetail as Id_EntregaFarmacia,EHRE.idEHREvent as Id_Evento,PRD.idGenericProduct as MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,ENC.identifier as Formulación,PRQ.dateRecord as [Fecha_Pedido],PRQ.isAuthorized as [Formulación Autorizada],PRQ.note as Notas,EHRE.idAction as id_accion,GAC.code as Codigo_Accion,GAC.name as [Nombre Acción],GAC.isActive as [Acción Activa],ENC.idUserPatient AS Paciente_id,PRQ.idUserAuthorized as Usuario_Autoriza_Id,ENCR.idActualPractitioner as Medico_Id,ENC.dateStart as [Fecha_Atencion],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContract AS Contrato_id,  ENCR.idPrincipalPlan as Plan_id,
             /*solicitada (RE), cancelada (CA), anulada (AN), atendida total (DT) o parcialmente (DP)*/
             CASE 
             WHEN PRQ.state = 'RE' THEN 'solicitud'

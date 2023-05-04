@@ -19,7 +19,7 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-#fecha_texto = '2023-04-24 00:00:00'
+#fecha_texto = '2023-05-02 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 #last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 #now = now.strftime('%Y-%m-%d %H:%M:%S')
@@ -37,7 +37,7 @@ def func_get_formulation_medicines_stating ():
     print('Fecha fin ', now)
     
     query = f"""
-                    select EHRE.idEHREvent as Id_Evento,EHREF.idProductGeneric AS MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,EHREF.dateRecorded as [Fecha_Formulación_Medicamento],EHREF.isActive as [Formulación_Activa],EHREF.isSuspended as [Formulación_Suspendida],EHREF.dateSuspended as [Fecha_Suspensión_Medicamento],CONCAT(CAST(round(EHREF.doseValue, 0, 0)AS INT), ' ',  EFP.name) as Periodicidad,EHREF.valueAdministrationTime as [Tiempo_Administración], EHREF.formulatedAmount as [Cantidad_Formulada],PAR.name as [Vía_Administración],EHRE.idAction as Id_Accion,GAC.code as Codigo_Accion,GAC.name as [Nombre_Acción],GAC.isActive as [Acción_Activa],ENC.idUserPatient AS Paciente_Id,EHREF.idUserPractitioner as Medico_id, ENC.dateStart as [Fecha_Atención],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContractee AS Contrato_Id,  ENCR.idPrincipalPlan as Plan_Id,ENCR.idFirstDiagnosis as Diagnostico_Id
+                    select EHRE.idEHREvent as Id_Evento,EHREF.idProductGeneric AS MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,EHREF.dateRecorded as [Fecha_Formulación_Medicamento],EHREF.isActive as [Formulación_Activa],EHREF.isSuspended as [Formulación_Suspendida],EHREF.dateSuspended as [Fecha_Suspensión_Medicamento],CONCAT(CAST(round(EHREF.doseValue, 0, 0)AS INT), ' ',  EFP.name) as Periodicidad,EHREF.valueAdministrationTime as [Tiempo_Administración], EHREF.formulatedAmount as [Cantidad_Formulada],PAR.name as [Vía_Administración],EHRE.idAction as Id_Accion,GAC.code as Codigo_Accion,GAC.name as [Nombre_Acción],GAC.isActive as [Acción_Activa],ENC.idUserPatient AS Paciente_Id,EHREF.idUserPractitioner as Medico_id, ENC.dateStart as [Fecha_Atención],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContract AS Contrato_Id,  ENCR.idPrincipalPlan as Plan_Id,ENCR.idFirstDiagnosis as Diagnostico_Id
                     from dbo.encounters ENC
                     inner join dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
                     inner join dbo.EHREvents EHRE on ENC.idEncounter = EHRE.idEncounter

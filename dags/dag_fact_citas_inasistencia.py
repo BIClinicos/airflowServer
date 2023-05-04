@@ -223,7 +223,7 @@ def func_get_appointment_inacistances_stating():
 
 def execute_Sql():
      query = f"""
-     delete from TblHCitasInasistencia where [Fecha Cita] >='{now}'
+     delete from TblHCitasInasistencia where CONVERT(DATE,[Fecha Cita]) >='{now}'
      """
      hook = MsSqlHook(sql_connid)
      hook.run(query)
