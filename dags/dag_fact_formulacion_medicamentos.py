@@ -37,7 +37,28 @@ def func_get_formulation_medicines_stating ():
     print('Fecha fin ', now)
     
     query = f"""
-                    select EHRE.idEHREvent as Id_Evento,EHREF.idProductGeneric AS MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,EHREF.dateRecorded as [Fecha_Formulación_Medicamento],EHREF.isActive as [Formulación_Activa],EHREF.isSuspended as [Formulación_Suspendida],EHREF.dateSuspended as [Fecha_Suspensión_Medicamento],CONCAT(CAST(round(EHREF.doseValue, 0, 0)AS INT), ' ',  EFP.name) as Periodicidad,EHREF.valueAdministrationTime as [Tiempo_Administración], EHREF.formulatedAmount as [Cantidad_Formulada],PAR.name as [Vía_Administración],EHRE.idAction as Id_Accion,GAC.code as Codigo_Accion,GAC.name as [Nombre_Acción],GAC.isActive as [Acción_Activa],ENC.idUserPatient AS Paciente_Id,EHREF.idUserPractitioner as Medico_id, ENC.dateStart as [Fecha_Atención],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContract AS Contrato_Id,  ENCR.idPrincipalPlan as Plan_Id,ENCR.idFirstDiagnosis as Diagnostico_Id
+                    select EHRE.idEHREvent as Id_Evento
+                    ,EHREF.idProductGeneric AS MedicamentoGenerico_Id
+                    ,ENC.idEncounter as Id_Cita
+                    ---,EHREF.idProductType as [Tipo_Producto]                    
+                    ,EHREF.dateRecorded as [Fecha_Formulación_Medicamento]
+                    ,EHREF.isActive as [Formulación_Activa]
+                    ,EHREF.isSuspended as [Formulación_Suspendida]
+                    ,EHREF.dateSuspended as [Fecha_Suspensión_Medicamento]
+                    ,CONCAT(CAST(round(EHREF.doseValue, 0, 0)AS INT), ' ',  EFP.name) as Periodicidad
+                    ,EHREF.valueAdministrationTime as [Tiempo_Administración]
+                    , EHREF.formulatedAmount as [Cantidad_Formulada]
+                    ,PAR.name as [Vía_Administración]
+                    ,EHRE.idAction as Id_Accion
+                    ,GAC.code as Codigo_Accion,GAC.name as [Nombre_Acción]
+                    ,GAC.isActive as [Acción_Activa],ENC.idUserPatient AS Paciente_Id
+                    ,EHREF.idUserPractitioner as Medico_id
+                    , ENC.dateStart as [Fecha_Atención]
+                    ,EHRE.startRecordedDate as [Fecha_Evento]
+                    , ENCR.idPrincipalContract AS Contrato_Id
+                    ,  ENCR.idPrincipalPlan as Plan_Id
+                    ,ENCR.idFirstDiagnosis as Diagnostico_Id
+                    ---, EHREF.idProductType as [Tipo_Producto]
                     from dbo.encounters ENC
                     inner join dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
                     inner join dbo.EHREvents EHRE on ENC.idEncounter = EHRE.idEncounter

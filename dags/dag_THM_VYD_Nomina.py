@@ -80,7 +80,7 @@ def transform_table(path):
     df_retired["organizacion"] = "CLÍNICOS"
     df_retired = norm_col_names(df_retired)
 
-    df_retired_innovar = pd.read_excel(path, header = [0], sheet_name = 3)
+    df_retired_innovar = pd.read_excel(path, header = [1], sheet_name = 3)
     df_retired_innovar["estado"] = "Retirados"
     df_retired_innovar["organizacion"] = "INNOVAR"
 

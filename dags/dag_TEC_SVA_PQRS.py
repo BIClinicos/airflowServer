@@ -45,10 +45,10 @@ def data_correction_pqrs(df):
     cond_2 = (df[age] == 0)
     df.loc[cond_2, age] = nan
     # Correccion gestion farmaceutica
-    cond_3 = df[unit].str.contains('GESTIÓN FARMACEUTICA', na=False)
-    cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
-    df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
-    df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
+    #cond_3 = df[unit].str.contains('GESTIÓN FARMACEUTICA', na=False)
+    #cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
+    #df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
+    #df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
     # Correccion otros
     cond_5 = df[client].str.contains('OTROS', na=False)
     cond_6 = df[unit].str.contains('DOMICILIARIA', na=False)
@@ -96,6 +96,7 @@ def transform_tables (path):
     # df = df.drop(['idpqrs'], axis=1)
     # Eliminar todos los registros que no sean sí o no en la columna de "oportuna"
 
+    df['oportuna'] = df['oportuna'].astype('str')
     df['oportuna'] = df['oportuna'].str.upper()
     df['oportuna'] = df['oportuna'].str.replace('SI','OPORTUNA')
     df_3 = df[df.oportuna == 'OPORTUNA']

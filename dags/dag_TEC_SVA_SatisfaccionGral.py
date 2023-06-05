@@ -32,13 +32,10 @@ def check_connection():
 
 # Función de transformación de los archivos xlsx
 def transform_data (path):
-    # 20230123 Correccion por hoja con tabla dinamica
-    # 20230227 Se quita flujo por nuevo error. Intentar metodo para verificar si primera hoja tiene
-    '''try:
-        df = pd.read_excel(path, sheet_name=1)
-    except ValueError:
-        df = pd.read_excel(path)'''
     df = pd.read_excel(path)
+    # Verificar si la primera hoja tiene el campo solicitado, sino, intentar con la segunda
+    if 'Hora de inicio' not in df.columns:
+        df = pd.read_excel(path, sheet_name=1)
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.replace('\n|\xa0|\t',' ',regex=True)
     df.columns = df.columns.str.replace(':','').str.strip()
@@ -77,7 +74,8 @@ def transform_data (path):
             '¿Cómo calificas nuestra atención medica prestada?',
             '¿El servicio médico prestado suplió tus necesidades?',
             '¿Cómo calificas tu experiencia global respecto a los servicios de salud que has recibido a través de Clínicos?',
-            'Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?'
+            'Basados en tu última atención médica ¿Recomendarías Clínicos con tus conocidos?',
+            'UNIDAD'
         ]]  
 
     """cols_dates = ['Hora de inicio','Hora de finalización']

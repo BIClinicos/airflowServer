@@ -47,7 +47,7 @@ def charge_tables(dates2):
 
     nit='900496641'
     token='148CA3F2-9233-411E-A728-76CE02ABFED5'
-    df_prescripcion = pd.DataFrame(['NoPrescripcion','FPrescripcion','HPrescripcion','CodHabIPS','TipoIDIPS','NroIDIPS','CodDANEMunIPS','DirSedeIPS','TelSedeIPS','TipoIDProf','NumIDProf','PNProfS','SNProfS','PAProfS','SAProfS','RegProfS','TipoIDPaciente','NroIDPaciente','PNPaciente','SNPaciente','PAPaciente','SAPaciente','CodAmbAte','RefAmbAte','PacCovid19','EnfHuerfana','CodEnfHuerfana','EnfHuerfanaDX','CodDxPpal','CodDxRel1','CodDxRel2','SopNutricional','CodEPS','TipoIDMadrePaciente','NroIDMadrePaciente','TipoTransc','TipoIDDonanteVivo','NroIDDonanteVivo','EstPres','FechaProceso'])
+    df_prescripcion = pd.DataFrame(columns=['NoPrescripcion','FPrescripcion','HPrescripcion','CodHabIPS','TipoIDIPS','NroIDIPS','CodDANEMunIPS','DirSedeIPS','TelSedeIPS','TipoIDProf','NumIDProf','PNProfS','SNProfS','PAProfS','SAProfS','RegProfS','TipoIDPaciente','NroIDPaciente','PNPaciente','SNPaciente','PAPaciente','SAPaciente','CodAmbAte','RefAmbAte','PacCovid19','EnfHuerfana','CodEnfHuerfana','EnfHuerfanaDX','CodDxPpal','CodDxRel1','CodDxRel2','SopNutricional','CodEPS','TipoIDMadrePaciente','NroIDMadrePaciente','TipoTransc','TipoIDDonanteVivo','NroIDDonanteVivo','EstPres','FechaProceso'])
     df_servicios_complementarios = pd.DataFrame()
     df_meds = pd.DataFrame()
     df_principios_act = pd.DataFrame()
@@ -59,22 +59,27 @@ def charge_tables(dates2):
             req = requests.get(url, verify=False)
             #if req.status_code == 200:
             res = req.json()
-            for obj in res:    
-                No_prescripcion = obj['prescripcion']['NoPrescripcion']      
-                desc_data = pd.DataFrame([s['prescripcion'] for s in res])
+            for indx in range(len(res)):    
+                No_prescripcion = res[indx]['prescripcion']['NoPrescripcion']      
+                desc_data = pd.json_normalize(res[indx]['prescripcion'])
                 df_prescripcion = df_prescripcion.append(desc_data)
-                serv_data = pd.json_normalize(res, record_path=['serviciosComplementarios'])
+                # Serv compl
+                serv_data = pd.json_normalize(res[indx], record_path=['serviciosComplementarios'])
                 serv_data['NoPrescripcion'] = No_prescripcion
                 df_servicios_complementarios = df_servicios_complementarios.append(serv_data)
-                med_data = pd.json_normalize(res, record_path=['medicamentos'], max_level=1)
+                # Medicamentos
+                med_data = pd.json_normalize(res[indx], record_path=['medicamentos'], max_level=1)
                 med_data['NoPrescripcion'] = No_prescripcion
                 df_meds = df_meds.append(med_data)
-                princip_act_data = pd.json_normalize(res, record_path=['medicamentos','PrincipiosActivos'], max_level=1)
+                ## Principios activos
+                princip_act_data = pd.json_normalize(res[indx], record_path=['medicamentos','PrincipiosActivos'], max_level=1)
                 princip_act_data['NoPrescripcion'] = No_prescripcion
                 df_principios_act = df_principios_act.append(princip_act_data)
-                nutri_data = pd.json_normalize(res, record_path=['productosnutricionales'], max_level=1)
+                # Productos nut
+                nutri_data = pd.json_normalize(res[indx], record_path=['productosnutricionales'], max_level=1)
                 nutri_data['NoPrescripcion'] = No_prescripcion
                 df_principios_nutri = df_principios_nutri.append(nutri_data)
+                # Procedimientos
                 proce_data = pd.DataFrame([s['procedimientos'] for s in res])
                 proce_data['NoPrescripcion'] = No_prescripcion
                 df_procedimientos = df_procedimientos.append(proce_data)
@@ -93,8 +98,8 @@ def func_get_BI_MIPRES_prescripcion():
     # Get date list from the last 5 days
     now = pd.datetime.today()
     days_ago = add_days_to_date(now,-5)
-    now = datetime(2022,12,31)
-    days_ago = datetime(2022,12,1)
+    now = datetime(2023,5,30)
+    days_ago = datetime(2023,4,1)
 
     dates = pd.date_range(start=days_ago, end = now,freq='D')
     print(dates)

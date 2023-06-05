@@ -86,6 +86,7 @@ def transform_data (path):
     df_con = df_con.astype(str)
     df_con['valor'] = df_con['valor'].replace('nan','0')
     df_con['valor_meta'] = df_con['valor_meta'].replace({'nan':'0'}, regex=True)
+    df_con['tipo_meta'] = df_con['tipo_meta'].replace('nan','>=')
     print(df_con.head(30))
     df['cumplimiento'] = df_con.apply(lambda y: eval(y['valor'] + y['tipo_meta'] + y['valor_meta']), axis=1)
     print(df['cumplimiento'].head(30))

@@ -17,7 +17,7 @@ from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_fi
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 container = 'pami-ecopetrol'
 dirname = '/opt/airflow/dags/files_pami/'
-filenames = ['SabanaBulevar.xlsx', 'SabanaSanMartin.xlsx', 'SabanaSanMartin.xlsx']
+filenames = ['SabanaBulevar.xlsx', 'SabanaSanMartin.xlsx', 'SabanaCartagena.xlsx']
 db_tables = ['SAL_PRI_sabanas']
 db_tmp_table = 'TmpTblHSabanasPAMI'
 dag_name = 'dag_TblHSabanasPAMI'
@@ -79,6 +79,9 @@ def transform_table(dir, filenames):
     df['servicio'] = df['servicio'].str.replace('(CONSULTA PRIORITARIA)+','')
     df['servicio'] = df['servicio'].str.replace('TERAPIA DEL LENGUAJE|FONOAUDIOLOGIA','TERAPIA DE LENGUAJE')
     df['servicio'] = df['servicio'].str.replace('FISIOTERAPIA','TERAPIA FÍSICA')
+    # Modificacion solicitada 2023-05-23
+    cond_1 = df['servicio'].str.contains('TERAPIA FÍSICA') & df['tipo_cita'].str.contains('Primera vez')
+    df.loc[cond_1, 'servicio'] = 'TERAPIA FÍSICA 1RA VEZ'
     df['servicio'] = df['servicio'].str.strip()
     print(df['servicio'].unique())
     ## df['servicio'] = df['servicio'].str.replace(r'[^\x00-\x7F]+','')
@@ -91,6 +94,8 @@ def transform_table(dir, filenames):
     df['tipo_id'] = df['tipo_id'].fillna('CC')
     df['tipo_id'] = df['tipo_id'].str.replace(r'[^\x00-\x7F]+','')
     df['tipo_id'] = df['tipo_id'].str[:2]
+    #
+    df['fecha_solicitud'] = df['fecha_solicitud'].fillna(df['fecha_inicio_cita'])
     ### Cambio estado cita
     dict_replace ={
         'Asistió':'ASISTIDO',

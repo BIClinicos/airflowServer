@@ -1068,3 +1068,5 @@ rm -rf ~/.local/share/Trash/*
 df -h
 git branch -l
 git pull origin main
+sudo su
+/usr/bin/python3 /home/airflowclinicos/dags/test_dags.py

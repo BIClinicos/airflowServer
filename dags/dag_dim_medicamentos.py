@@ -19,7 +19,13 @@ dag_name = 'dag_' + db_table
 def get_data_medications():
 
     query = f"""
-        select PGD.idGenericProduct as id_MedicamentoGenerico ,PGD.genericProductChemical as [Producto_Químico_Genérico], PGD.drugConcentration as [Medicamento_Concentración], PGD.contraindications AS Contraindicaciones, PPF.name as [Presentación_Farmacéutica],PGD.posology AS Posología,PGD.adverseEffects as [Efectos_Adversos],PGD.isControlled as Controlado,PGD.isExpensive as Costoso 
+        select PGD.idGenericProduct as id_MedicamentoGenerico 
+        ,PGD.genericProductChemical as [Producto_Químico_Genérico]
+        , PGD.drugConcentration as [Medicamento_Concentración]
+        , PGD.contraindications AS Contraindicaciones
+        , PPF.name as [Presentación_Farmacéutica]
+        ,PGD.posology AS Posología,PGD.adverseEffects as [Efectos_Adversos]
+        ,PGD.isControlled as Controlado,PGD.isExpensive as Costoso 
         FROM  dbo.productGenericDrugs PGD WITH (NOLOCK)
         inner join dbo.productConfPharmaceuticalForm PPF WITH (NOLOCK) on PGD.idPharmaceuticalForm=PPF.idPharmaceuticalForm
         """

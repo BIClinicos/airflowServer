@@ -37,7 +37,26 @@ def func_get_dispensation_medicines_stating ():
     print('Fecha fin ', now)
     
     query = f"""
-            select distinct PRD.idPharmacyRequestDetail as Id_EntregaFarmacia,EHRE.idEHREvent as Id_Evento,PRD.idGenericProduct as MedicamentoGenerico_Id,ENC.idEncounter as Id_Cita,ENC.identifier as Formulación,PRQ.dateRecord as [Fecha_Pedido],PRQ.isAuthorized as [Formulación Autorizada],PRQ.note as Notas,EHRE.idAction as id_accion,GAC.code as Codigo_Accion,GAC.name as [Nombre Acción],GAC.isActive as [Acción Activa],ENC.idUserPatient AS Paciente_id,PRQ.idUserAuthorized as Usuario_Autoriza_Id,ENCR.idActualPractitioner as Medico_Id,ENC.dateStart as [Fecha_Atencion],EHRE.startRecordedDate as [Fecha_Evento], ENCR.idPrincipalContract AS Contrato_id,  ENCR.idPrincipalPlan as Plan_id,
+            select distinct PRD.idPharmacyRequestDetail as Id_EntregaFarmacia
+            ,EHRE.idEHREvent as Id_Evento
+            ,PRD.idGenericProduct as MedicamentoGenerico_Id
+            ,ENC.idEncounter as Id_Cita
+            ,ENC.identifier as Formulación
+            ---,PRD.idProductType as [Tipo_Producto]
+            ,PRQ.dateRecord as [Fecha_Pedido]
+            ,PRQ.isAuthorized as [Formulación Autorizada]
+            ,PRQ.note as Notas
+            ,EHRE.idAction as id_accion
+            ,GAC.code as Codigo_Accion
+            ,GAC.name as [Nombre Acción]
+            ,GAC.isActive as [Acción Activa]
+            ,ENC.idUserPatient AS Paciente_id
+            ,PRQ.idUserAuthorized as Usuario_Autoriza_Id
+            ,ENCR.idActualPractitioner as Medico_Id
+            ,ENC.dateStart as [Fecha_Atencion]
+            ,EHRE.startRecordedDate as [Fecha_Evento]
+            , ENCR.idPrincipalContract AS Contrato_id
+            ,  ENCR.idPrincipalPlan as Plan_id,
             /*solicitada (RE), cancelada (CA), anulada (AN), atendida total (DT) o parcialmente (DP)*/
             CASE 
             WHEN PRQ.state = 'RE' THEN 'solicitud'
@@ -46,7 +65,10 @@ def func_get_dispensation_medicines_stating ():
             WHEN PRQ.state = 'AN' THEN 'anulada'
             WHEN PRQ.state = 'DP' THEN 'parcialmente'
             ELSE '-1'
-            END AS Estado_Solicitud,PRD.requestedQuantity as Cantidad_Solicitada, PRD.authorizedQuantity as Cantidad_Autorizada, PRD.dispensedQuantity as Cantidad_Entregada,ENCR.idFirstDiagnosis as Diagnostico_Id
+            END AS Estado_Solicitud,PRD.requestedQuantity as Cantidad_Solicitada
+            , PRD.authorizedQuantity as Cantidad_Autorizada
+            , PRD.dispensedQuantity as Cantidad_Entregada
+            ,ENCR.idFirstDiagnosis as Diagnostico_Id
             from dbo.encounters ENC
             inner join dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
             inner join dbo.EHREvents EHRE on ENC.idEncounter = EHRE.idEncounter

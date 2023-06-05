@@ -46,7 +46,7 @@ def normalize_str_categorical(df_serie,func_type='upper'):
   elif func_type == 'lower':
     return df_serie.str.lower().str.strip()
 
-def sql_2_df(sql_query, **args):
+def sql_2_df(sql_query, **args) -> pd.DataFrame:
     sql_conn_id = args.get('sql_conn_id',sql_connid)
     print('in utils',sql_conn_id )
     sql_conn = MsSqlHook.get_connection(sql_conn_id)
