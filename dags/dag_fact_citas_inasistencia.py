@@ -18,7 +18,7 @@ db_table = "TblHCitasInasistencia"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-#fecha_texto = '2023-01-01'
+#fecha_texto = '2021-01-01'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d')
 
 
@@ -34,7 +34,19 @@ def func_get_appointment_inacistances_stating():
     
     
     domiConsultas_query = f"""
-                    SELECT DISTINCT appointment.idAppointment AS [Identificador],enc.idEncounter as [idEncuentro], appointment.idEvent as [idEvento],CompanyOff.idOffice as [oficina_id],appstate.itemName AS [Estado Cita],appointment.idContract as [contrato_id],appointment.idPlan as [plan_id],AppS.idUserProfessional as [profesional_id],appointment.idUserPerson AS [paciente_id],HealthR.name AS [Régimen],AppSd.dateAppointment as [Fecha Cita],CONVERT(DATE,AppSd.dateAppointment) as [calendario_id],
+                    SELECT DISTINCT 
+                    appointment.idAppointment AS [Identificador],
+                    enc.idEncounter as [idEncuentro], 
+                    appointment.idEvent as [idEvento],
+                    CompanyOff.idOffice as [oficina_id],
+                    appstate.itemName AS [Estado Cita],
+                    appointment.idContract as [contrato_id],
+                    appointment.idPlan as [plan_id],
+                    AppS.idUserProfessional as [profesional_id],
+                    appointment.idUserPerson AS [paciente_id],
+                    HealthR.name AS [Régimen],
+                    AppSd.dateAppointment as [Fecha Cita],
+                    CONVERT(DATE,AppSd.dateAppointment) as [calendario_id],
                     CONCAT(RIGHT('00' + Ltrim(Rtrim(DATEPART(HOUR,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(MINUTE,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(SECOND,AppSd.dateAppointment))),2)) AS [HORA DE CITA],
                     CASE 
                     WHEN CONVERT(TIME, CONCAT(RIGHT('00' + Ltrim(Rtrim(DATEPART(HOUR,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(MINUTE,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(SECOND,AppSd.dateAppointment))),2))) > CONVERT(TIME,'05:59') AND CONVERT(TIME, CONCAT(RIGHT('00' + Ltrim(Rtrim(DATEPART(HOUR,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(MINUTE,AppSd.dateAppointment))),2),':',RIGHT('00' + Ltrim(Rtrim(DATEPART(SECOND,AppSd.dateAppointment))),2))) < CONVERT(TIME,'09:00') THEN 'A'

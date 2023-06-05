@@ -19,9 +19,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-#fecha_texto = '2023-05-02 00:00:00'
+#fecha_texto = '2023-06-01 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-#last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2021-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 #now = now.strftime('%Y-%m-%d %H:%M:%S')
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -58,7 +58,8 @@ def func_get_formulation_medicines_stating ():
                     , ENCR.idPrincipalContract AS Contrato_Id
                     ,  ENCR.idPrincipalPlan as Plan_Id
                     ,ENCR.idFirstDiagnosis as Diagnostico_Id
-                    ---, EHREF.idProductType as [Tipo_Producto]
+                    , EHREF.idProductType as [Tipo_Producto]
+                    , EHREF.annotations as [Recomendaciones]
                     from dbo.encounters ENC
                     inner join dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
                     inner join dbo.EHREvents EHRE on ENC.idEncounter = EHRE.idEncounter
