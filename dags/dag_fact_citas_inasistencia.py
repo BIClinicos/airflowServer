@@ -18,7 +18,7 @@ db_table = "TblHCitasInasistencia"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-#fecha_texto = '2021-01-01'
+#fecha_texto = '2023-01-01'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d')
 
 
@@ -69,11 +69,15 @@ def func_get_appointment_inacistances_stating():
                     FROM appointmentSchedulers AS AppS WITH (NOLOCK)
                     INNER JOIN appointmentSchedulerSlots AS AppSd WITH (NOLOCK) ON AppS.idAppointmenScheduler = AppSd.idAppointmentScheduler
                     INNER JOIN appointments AS appointment ON appointment.idAppointmentSchedulerSlots = AppSd.idAppointmentSchedulerSlots
+                    ---INNER JOIN appointments AS appointment ON appointment.idAppointmentSchedulerSlots = AppSd.idAppointmentSchedulerSlots
+                    ---AND appointment.idContract = 8 and appointment.idPlan = 10
                     INNER JOIN companyOffices AS CompanyOff WITH (NOLOCK) ON CompanyOff.idOffice = AppS.idOffice
                     LEFT JOIN (select APJ1.idCausalList,APJ1.idAppointment,APJ1.note from appointmentJournals APJ1
                     inner join (select idAppointment,max(dateRecord) as dateRecord  from appointmentJournals group by idAppointment) as APJ2 on APJ1.idAppointment=APJ2.idAppointment and APJ1.dateRecord=APJ2.dateRecord) AS apCan ON  appointment.idAppointment = apCan.idAppointment
                     LEFT JOIN generalCausalLists AS genCau WITH (NOLOCK) ON apCan.idCausalList = genCau.idCausalList
                     INNER JOIN generalInternalLists AS appState WITH(NOLOCK) ON appointment.state = appState.itemValue AND appState.groupCode = 'appState'
+                    ---INNER JOIN generalInternalLists AS appState WITH(NOLOCK) ON appointment.state = appState.itemValue
+                    ---AND appState.groupCode = 'appState' and appState.idGeneralInternalList = 5
                     LEFT OUTER JOIN physicalLocationRooms AS Rooms WITH (NOLOCK) ON Rooms.idRoom = AppS.idRoom
                     INNER JOIN generalInternalLists AS AppT WITH (NOLOCK) ON appointment.idAppointmentExamType = AppT.idGeneralInternalList
                     INNER JOIN appointmentExams CE WITH (NOLOCK) ON appointment.idAppointmentExam = CE.idAppointmentExam
@@ -81,9 +85,10 @@ def func_get_appointment_inacistances_stating():
                     LEFT OUTER JOIN encounters AS enc WITH(NOLOCK) ON appointment.idAdmission = enc.idEncounter
                     LEFT OUTER JOIN encounterConfAdmitSource AS AdmitS WITH(NOLOCK) ON enc.idAdmitSource = AdmitS.idAdmitSource
                     LEFT OUTER JOIN encounterRecords AS EncRecord WITH(NOLOCK) ON enc.idEncounter = EncRecord.idEncounter
+                    ---where CONVERT(DATE, AppSd.dateAppointment) BETWEEN '2022-01-01' AND '2022-12-31'
                     WHERE CONVERT(DATE,AppSd.dateAppointment) BETWEEN '{now}' AND (select  CONVERT(DATE,max(AppSd.dateAppointment)) from appointmentSchedulerSlots AppSd
                     INNER JOIN appointments AS appointment ON appointment.idAppointmentSchedulerSlots = AppSd.idAppointmentSchedulerSlots
-                    inner join appointmentSchedulers AS AppS on AppSd.idAppointmentScheduler=AppS.idAppointmenScheduler) """
+                    inner join appointmentSchedulers AS AppS on AppSd.idAppointmentScheduler=AppS.idAppointmenScheduler)"""
     
     sql3= f"""select CI.paciente_id,[Estado Cita],UltimaAsistida,UltimaCanceladaUsuario,cumAsistida,cumCancelada,cantidadCitas
               from  TblHCitasInasistencia as CI

@@ -32,17 +32,32 @@ last_week = now - timedelta(weeks=1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 
-
-
-
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
 def get_data_events_diagnostics():
 
     query = f"""
-        SELECT Todo.idDiagnostic,Todo.idEncounter,Todo.idUserPatient,Todo.name,Todo.isActive,Todo.isPrincipal,Todo.actionRecordedDate,Todo.recordNoValid 
+        SELECT 
+            Todo.idDiagnostic
+            ,Todo.idEncounter
+            ,Todo.idUserPatient
+            ,Todo.name
+            ,Todo.isActive
+            ,Todo.isPrincipal
+            ,Todo.actionRecordedDate
+            ,Todo.recordNoValid 
+            ,Todo.idDiagnosticType
         FROM (
-        select distinct EVD.idDiagnostic, EVEN.idEncounter,ENC.idUserPatient, dx.name,EVEN.isActive,EVD.isPrincipal,EVEN.actionRecordedDate as actionRecordedDate,EVEN.recordNoValid
-        ,ROW_NUMBER() over( partition by EVD.idDiagnostic,EVEN.idEncounter,ENC.idUserPatient order by EVEN.actionRecordedDate desc) as Indicador
+        select distinct 
+            EVD.idDiagnostic
+            , EVEN.idEncounter
+            ,ENC.idUserPatient
+            , dx.name
+            ,EVEN.isActive
+            ,EVD.isPrincipal
+            ,EVEN.actionRecordedDate as actionRecordedDate
+            ,EVEN.recordNoValid
+            ,EVD.idDiagnosticType
+            ,ROW_NUMBER() over( partition by EVD.idDiagnostic,EVEN.idEncounter,ENC.idUserPatient order by EVEN.actionRecordedDate desc) as Indicador
         FROM dbo.EHREvents AS EVEN WITH(NOLOCK)
         INNER JOIN dbo.EHREventMedicalDiagnostics AS EVD WITH(NOLOCK) ON EVD.idEHREvent = EVEN.idEHREvent
         INNER JOIN dbo.diagnostics AS Dx WITH(NOLOCK) ON EVD.idDiagnostic = Dx.idDiagnostic
@@ -66,7 +81,7 @@ def get_data_events_diagnostics():
     df_cie10['Desc4Car']=df_cie10['Desc4Car'].apply(lambda x :x.upper())
     df_cie10 = df_cie10[["Desc4Car", "NomCap"]]
     resultado=df.merge(df_cie10,left_on='name', right_on='Desc4Car')
-    resultado=resultado[["idDiagnostic","idEncounter","idUserPatient","name","isActive","isPrincipal","NomCap","actionRecordedDate","recordNoValid"]]
+    resultado=resultado[["idDiagnostic","idEncounter","idUserPatient","name","isActive","isPrincipal","NomCap","actionRecordedDate","recordNoValid","idDiagnosticType"]]
     #resultado.loc[resultado.isPrincipal==0,'NomCap']=="NA"    
     for i in range(len(resultado)):
         if(resultado.iloc[i]['isPrincipal']==0):
