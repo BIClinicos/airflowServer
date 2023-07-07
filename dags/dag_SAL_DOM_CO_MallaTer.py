@@ -30,7 +30,13 @@ def check_connection():
 
 # Función de transformación de los archivos xlsx
 def transform_tables (path):
-    df = pd.read_excel(path, header = [0])
+    i = 0 # Hoja inicial
+    while True:
+        df = pd.read_excel(path, sheet_name = i)
+        if df.shape[1] >= 18: # Verificar si la hoja contiene la cantidad de campos necesarios
+            break
+        i =+ 1
+    # Cierre de ciclo con lectura    
     df_col_adi = df.columns[17:]
     df_col_mes_ant = df.columns[8:15:2]
     df = df.drop(df_col_adi ,axis=1)

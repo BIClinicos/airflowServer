@@ -1,17 +1,12 @@
-import os
-import xlrd
 from airflow import DAG
 from airflow.contrib.hooks.wasb_hook import WasbHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.mssql_operator import MsSqlOperator
-from datetime import datetime, timedelta
+from datetime import datetime
 from datetime import date
 import pandas as pd
-import numpy as np
-from pandas import read_excel
 from variables import sql_connid
-from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_contains_name,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get
+from utils import open_xls_as_xlsx,load_df_to_sql,file_get
 
 #  Se nombran las variables a utilizar en el dag
 

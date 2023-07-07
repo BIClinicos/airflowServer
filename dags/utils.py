@@ -134,7 +134,7 @@ def file_get(path,container_name,blob_name, **args):
 def respond():
     return 'Task ended'
 
-def read_excel(dirname,filename,sheet):
+def read_excel(dirname,filename,sheet) -> pd.DataFrame:
     path = os.path.join(dirname, filename)
     excel_to_df = pd.read_excel(path, engine = 'openpyxl',sheet_name=sheet)
     return excel_to_df

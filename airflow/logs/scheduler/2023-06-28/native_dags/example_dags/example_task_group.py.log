@@ -1,0 +1,14 @@
+[2023-06-28 21:12:55,332] {processor.py:163} INFO - Started process (PID=11650) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:12:55,333] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py for tasks to queue
+[2023-06-28 21:12:55,333] {logging_mixin.py:109} INFO - [2023-06-28 21:12:55,333] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:12:55,362] {processor.py:652} INFO - DAG(s) dict_keys(['example_task_group']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:12:55,378] {logging_mixin.py:109} INFO - [2023-06-28 21:12:55,378] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:12:55,396] {logging_mixin.py:109} INFO - [2023-06-28 21:12:55,396] {dag.py:2937} INFO - Setting next_dagrun for example_task_group to 2023-06-27T21:12:55.396055+00:00
+[2023-06-28 21:12:55,433] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py took 0.103 seconds
+[2023-06-28 21:13:30,787] {processor.py:163} INFO - Started process (PID=12174) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:13:30,793] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py for tasks to queue
+[2023-06-28 21:13:30,794] {logging_mixin.py:109} INFO - [2023-06-28 21:13:30,793] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:13:30,812] {processor.py:652} INFO - DAG(s) dict_keys(['example_task_group']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py
+[2023-06-28 21:13:30,833] {logging_mixin.py:109} INFO - [2023-06-28 21:13:30,833] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:13:30,855] {logging_mixin.py:109} INFO - [2023-06-28 21:13:30,855] {dag.py:2937} INFO - Setting next_dagrun for example_task_group to 2023-06-27T21:13:30.855029+00:00
+[2023-06-28 21:13:30,873] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_task_group.py took 0.088 seconds

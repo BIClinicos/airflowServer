@@ -1070,3 +1070,87 @@ git branch -l
 git pull origin main
 sudo su
 /usr/bin/python3 /home/airflowclinicos/dags/test_dags.py
+git add .
+git commit -m "Recargar modelos de farmacia para ajustar campo de contratos"
+git push origin manar_miguel
+clear
+git status
+df -h
+cd /home/airflowclinicos/logs/
+-ls
+ls
+sudo rm -r -f dag*
+ls
+cd /home/airflowclinicos/logs/scheduler/
+ls
+sudo rm -r -f 2023-05*
+exit
+df -h
+cd /home/airflowclinicos/logs/scheduler/
+ls
+reboot
+df -h
+standalone
+help
+airflow standalone
+status
+help
+airflow users list
+pip freeze
+cls
+clear
+ls
+whereis python
+python3.8 dags/dag_fact_honorarios_citas_programadasDomi.py 
+python3 dags/dag_fact_honorarios_citas_programadasDomi.py 
+python38 dags/dag_fact_honorarios_citas_programadasDomi.py 
+whereis python
+python3.8 dags/dag_fact_honorarios_citas_programadasDomi.py 
+/usr/bin/python3 /home/airflowclinicos/dags/dag_fact_honorarios_citas_programadasDomi.py
+ls
+ls c:users
+ls c:
+ls
+ls C:
+pscp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/files_notas_tecnicas_tarifas
+scp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/files_notas_tecnicas_tarifas
+scp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+ssh: Could not resolve hostname c: Temporary failure in name resolution
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:/Users/Manuel Fernandez/Downloads/TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C/Users/Manuel Fernandez/Downloads/TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+exit
+/usr/bin/python3 /home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py
+scp --help
+man scp
+clear
+pwd
+pwd dags
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+tree dags/
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+tree -h
+tree --help
+tree -I __pycache__
+tree dags -I __pycache__
+tree dags -I __pycache__|files
+tree dags -I "__pycache__|files"
+tree dags -I "__pycache__|files_-+"
+tree dags -I "__pycache__|files_.+"
+tree dags -I "__pycache__|files_"
+tree dags -I "(__pycache__|files_)"
+tree dags -I "(__pycache__)|(files_)"
+tree dags -I "__pycache__|(files_)"
+tree dags -I "__pycache__|files_"
+tree dags -I "__pycache__"
+tree dags -I "files_"
+tree dags -I "__pycache__"
+tree dags -I "__pycache__|files_*"
+tree dags -I "__pycache__|files_*|dag_*"
+tree dags -I "__pycache__|files_*"
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 

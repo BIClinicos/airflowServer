@@ -4,13 +4,11 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
 from airflow.hooks.mssql_hook import MsSqlHook
-from datetime import datetime, timedelta
-from datetime import date
+from datetime import datetime, timedelta,date
+
 import pandas as pd
 from variables import sql_connid,sql_connid_gomedisys
-from utils import sql_2_df,load_df_to_sql
-
-
+from utils import load_df_to_sql, sql_2_df
 
 #  Se nombran las variables a utilizar en el dag
 db_tmp_table = 'TmpHonorariosCitasModeloDomiciliaria'
@@ -26,12 +24,10 @@ dag_name = 'dag_' + db_table
 
 # Para correr fechas con delta
 now = datetime.now()
-last_week = now - timedelta(weeks=1)
+# last_week = now - timedelta(weeks=1)
+last_week = datetime(2023,1,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
-
-#year = last_week.year
-#month = last_week.month
 
 def func_get_honorarios_stating ():
 
@@ -39,26 +35,67 @@ def func_get_honorarios_stating ():
     print('Fecha fin ', now)
     
     domiConsultas_query = f"""
-                    SELECT DISTINCT HRE.idEHREvent, HRE.idPractitioner as User_id,HRE.idEncounter,ENC.idOffice,HRE.actionRecordedDate as Fecha_Cita,HRE.isActive as Agenda_Activa,HRE.idAction as action_id,idPatientLocation,ENCR.idPrincipalContract as contract_id,Professional.Tipo_Pago_Gomedisys,Professional.Tarifa_Gomedisys,Professional.Fecha_Tarifa_Gomedisys
-                    FROM dbo.EHREvents HRE WITH (NOLOCK)
-                    LEFT JOIN dbo.encounters  ENC WITH (NOLOCK) on HRE.idEncounter=ENC.idEncounter
-                    LEFT JOIN dbo.encounterRecords ENCR on ENC.idEncounter=ENCR.idEncounter
-                    LEFT JOIN (SELECT idEHREvent,idPractitioner,Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from (
-	                            SELECT HRE.idEHREvent,HRE.idPractitioner,BMFD.dateRecord as Fecha_Tarifa_Gomedisys,
-	                                CASE WHEN BMFD.calculateForm='T' THEN 'Minutos'
-		                            WHEN BMFD.calculateForm='V' THEN 'Valor' 
-		                            WHEN BMFD.calculateForm='P' THEN 'Porcentaje' 
-		                            ELSE '-1'
-	                                END AS Tipo_Pago_Gomedisys,BMFD.value AS Tarifa_Gomedisys, 
-	                                ROW_NUMBER() over( partition by HRE.idEHREvent,HRE.idPractitioner order by BMFD.dateRecord desc) as Indicador
-	                                FROM  dbo.EHREvents HRE WITH (NOLOCK)
-	                                LEFT JOIN dbo.billMedicalFeeUsers BMFU WITH (NOLOCK) ON HRE.idPractitioner=BMFU.idUserMedical 
-	                                INNER JOIN dbo.billMedicalFees BMF WITH (NOLOCK) ON BMFU.idMedicalFee=BMF.idMedicalFee
-	                                INNER JOIN  dbo.billMedicalFeeDetails BMFD WITH (NOLOCK) ON BMF.idMedicalFee=BMFD.idMedicalFee
-	                                WHERE HRE.actionRecordedDate BETWEEN BMFD.dateBegin  and BMFD.dateEnd
-	                                ) AS Todo where Indicador=1) AS  Professional ON HRE.idEHREvent=Professional.idEHREvent AND HRE.idPractitioner=Professional.idPractitioner
-                    where HRE.actionRecordedDate>='{last_week}' AND HRE.actionRecordedDate<'{now}' AND idPatientLocation IN (5,77,79,81) 
-                    """
+        with Todo as (
+            SELECT 
+                HRE.idEHREvent,
+                HRE.idPractitioner,
+                HRE.idPatient,
+                BMFD.dateRecord as Fecha_Tarifa_Gomedisys,
+                CASE 
+                    WHEN BMFD.calculateForm='T' THEN 'Minutos'
+                    WHEN BMFD.calculateForm='V' THEN 'Valor' 
+                    WHEN BMFD.calculateForm='P' THEN 'Porcentaje' 
+                    ELSE '-1'
+                END AS Tipo_Pago_Gomedisys,
+                BMFD.value AS Tarifa_Gomedisys, 
+                ROW_NUMBER() over( partition by HRE.idEHREvent,HRE.idPractitioner order by BMFD.dateRecord desc) as Indicador
+            FROM  dbo.EHREvents HRE WITH (NOLOCK)
+                INNER JOIN dbo.billMedicalFeeUsers BMFU WITH (NOLOCK) ON HRE.idPractitioner=BMFU.idUserMedical 
+                    AND HRE.idPatientLocation IN (5,77,79,81) AND HRE.actionRecordedDate BETWEEN '{last_week}' AND '{now}' 
+                INNER JOIN dbo.billMedicalFees BMF WITH (NOLOCK) ON BMFU.idMedicalFee=BMF.idMedicalFee
+                    AND BMF.isActive = 1
+                INNER JOIN  dbo.billMedicalFeeDetails BMFD WITH (NOLOCK) ON BMF.idMedicalFee=BMFD.idMedicalFee
+                    AND HRE.actionRecordedDate BETWEEN BMFD.dateBegin  and BMFD.dateEnd
+        ),
+        Professional as (
+            SELECT idEHREvent,idPractitioner,idPatient,
+            Tipo_Pago_Gomedisys,Tarifa_Gomedisys,Fecha_Tarifa_Gomedisys from Todo where Indicador=1
+        )
+        SELECT 
+            HRE.idEHREvent, 
+            HRE.idPractitioner as User_id,
+            HRE.idEncounter,
+            ENC.idOffice,
+            HRE.actionRecordedDate as Fecha_Cita,
+            HRE.isActive as Agenda_Activa,
+            HRE.idAction as action_id,
+            HRE.idPatientLocation,
+            ENCR.idPrincipalContract as contract_id,
+            Professional.Tipo_Pago_Gomedisys,
+            Professional.Tarifa_Gomedisys,
+            Professional.Fecha_Tarifa_Gomedisys,
+            HRE.idPatient as Patient_id
+        FROM dbo.EHREvents HRE WITH (NOLOCK)
+        INNER JOIN dbo.encounters  ENC WITH (NOLOCK) on HRE.idEncounter=ENC.idEncounter 
+            AND HRE.idPatientLocation IN (5,77,79,81) AND HRE.actionRecordedDate BETWEEN '{last_week}' AND '{now}' 
+        INNER JOIN dbo.encounterRecords ENCR  WITH (NOLOCK) on ENC.idEncounter=ENCR.idEncounter
+        LEFT JOIN Professional WITH (NOLOCK) ON HRE.idEHREvent=Professional.idEHREvent AND HRE.idPractitioner=Professional.idPractitioner
+            AND HRE.idPatient = Professional.idPatient
+        GROUP BY
+        HRE.idEHREvent, 
+            HRE.idPractitioner,
+            HRE.idPatient,
+            HRE.idEncounter,
+            ENC.idOffice,
+            HRE.actionRecordedDate,
+            HRE.isActive,
+            HRE.idAction ,
+            HRE.idPatientLocation,
+            ENCR.idPrincipalContract,
+            Professional.Tipo_Pago_Gomedisys,
+            Professional.Tarifa_Gomedisys,
+            Professional.Fecha_Tarifa_Gomedisys"""
+            
     # Ejecutar la consulta capturandola en un dataframe
     df = sql_2_df(domiConsultas_query, sql_conn_id=sql_connid_gomedisys)
    
@@ -82,6 +119,7 @@ def func_get_honorarios_stating ():
 
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql(df, db_tmp_table, sql_connid)
+        
 
 
 def execute_Sql():

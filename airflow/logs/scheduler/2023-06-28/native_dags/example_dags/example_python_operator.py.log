@@ -1,0 +1,16 @@
+[2023-06-28 21:12:46,020] {processor.py:163} INFO - Started process (PID=11471) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:12:46,021] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py for tasks to queue
+[2023-06-28 21:12:46,021] {logging_mixin.py:109} INFO - [2023-06-28 21:12:46,021] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:12:46,037] {logging_mixin.py:109} INFO - [2023-06-28 21:12:46,037] {example_python_operator.py:68} WARNING - The virtalenv_python example task requires virtualenv, please install it.
+[2023-06-28 21:12:46,043] {processor.py:652} INFO - DAG(s) dict_keys(['example_python_operator']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:12:46,049] {logging_mixin.py:109} INFO - [2023-06-28 21:12:46,048] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:12:46,060] {logging_mixin.py:109} INFO - [2023-06-28 21:12:46,060] {dag.py:2937} INFO - Setting next_dagrun for example_python_operator to None
+[2023-06-28 21:12:46,085] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py took 0.066 seconds
+[2023-06-28 21:13:20,283] {processor.py:163} INFO - Started process (PID=11916) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:13:20,289] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py for tasks to queue
+[2023-06-28 21:13:20,290] {logging_mixin.py:109} INFO - [2023-06-28 21:13:20,290] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:13:20,306] {logging_mixin.py:109} INFO - [2023-06-28 21:13:20,306] {example_python_operator.py:68} WARNING - The virtalenv_python example task requires virtualenv, please install it.
+[2023-06-28 21:13:20,324] {processor.py:652} INFO - DAG(s) dict_keys(['example_python_operator']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py
+[2023-06-28 21:13:20,343] {logging_mixin.py:109} INFO - [2023-06-28 21:13:20,343] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:13:20,356] {logging_mixin.py:109} INFO - [2023-06-28 21:13:20,356] {dag.py:2937} INFO - Setting next_dagrun for example_python_operator to None
+[2023-06-28 21:13:20,377] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_python_operator.py took 0.096 seconds
