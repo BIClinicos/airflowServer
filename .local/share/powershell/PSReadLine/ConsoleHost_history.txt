@@ -12,3 +12,4 @@ git add .
 git checkout main
 git add .
 git add .
+git add .
