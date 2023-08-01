@@ -1,15 +1,8 @@
-import os
-import xlrd
 from airflow import DAG
-from airflow.contrib.hooks.wasb_hook import WasbHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
-from airflow.operators import email_operator
 from datetime import datetime, timedelta
-from datetime import date
-import pandas as pd
-from pandas import read_excel
 from variables import sql_connid,sql_connid_gomedisys 
 from utils import sql_2_df, load_df_to_sql 
 
@@ -22,6 +15,7 @@ dag_name = 'dag_' + db_table
 #Se halla las fechas de cargue de la data 
 now = datetime.now()
 last_week = now - timedelta(weeks=1)
+# last_week = datetime(2023,6,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 ###### Mod problema mipres
@@ -132,7 +126,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
     
     WHERE 
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
+        AND ENCR.idPrincipalContract IN (57,76, 92) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')

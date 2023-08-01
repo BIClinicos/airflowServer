@@ -17,13 +17,13 @@ db_table = "TblHActividadesPersonalizadas"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-#fecha_texto = '2021-01-01'
-#last_week = datetime.strptime(fecha_texto, '%Y-%m-%d')
+fecha_texto = '2021-01-01'
+last_week = datetime.strptime(fecha_texto, '%Y-%m-%d')
 
 # Para correr fechas con delta
-now = datetime.now()
-last_week = now - timedelta(weeks=1)
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+#now = datetime.now()
+#last_week = now - timedelta(weeks=1)
+#last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 # Rezago de una semana
 
@@ -45,7 +45,8 @@ def func_get_custom_activities():
 		,EVEN.idPatient	[idPaciente]
 	from EHREventCustomActivities CUAC
 	inner join EHREvents EVEN on CUAC.idEvent = EVEN.idEHREvent
-	where CUAC.idConfigActivity = 179 and
+	where CUAC.idConfigActivity = 179 or
+	(CUAC.idConfigActivity = 168 and CUAC.idElement = 7) and
 	EVEN.actionRecordedDate >= '{last_week}'
     """
     # Ejecutar la consulta capturandola en un dataframe

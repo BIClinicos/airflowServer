@@ -1154,3 +1154,9 @@ tree dags -I "__pycache__|files_*"
 tree dags -I "__pycache__|files_*|dag_*"
 tree dags -I "__pycache__|files_*"
 python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+/usr/bin/python3
+cls
+clear
+tree dags -I "__pycache__|files_*"
+cls
+clear

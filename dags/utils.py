@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import csv
 # from posixpath import dirname
 # from dateutil.parser import parse
@@ -69,6 +69,24 @@ def load_df_to_sql(df, sql_table, sql_connid):
     sql_conn = MsSqlHook(sql_connid)
     sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
     sql_conn.insert_rows(sql_table, row_list2)
+    
+def load_df_to_sql_pandas(df:pd.DataFrame, sql_table, sql_connid, pk:list=None):
+    """Function to upload excel file to SQL table"""
+    sql_conn = MsSqlHook(sql_connid)
+    sql_conn.insert_rows(sql_table, df.values.tolist(), df.columns.to_list(),0)
+    
+def update_to_sql(data:list, sql_connid, query_update:str):
+    """Function to upload excel file to SQL table"""
+    sql_conn = MsSqlHook(sql_connid)
+    conn = sql_conn.get_conn()
+    cursor = conn.cursor()
+    # Ejecuta el update con executemany
+    cursor.executemany(query_update, data)
+    conn.commit()
+
+    # Cierra el cursor y la conexión
+    cursor.close()
+    conn.close()
 
 #Función creada por FMGUTIERREZ
 def load_df_to_sql_2(df, sql_table, sql_connid):
@@ -83,8 +101,10 @@ def load_df_to_sql_2(df, sql_table, sql_connid):
     #sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
     sql_conn.insert_rows(sql_table, row_list2)
 
+
 def remove_accents_cols(df_cols):
     return df_cols.str.replace('ñ','ni').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
+
 
 def replace_accents_cols(df_col):
     replacements = (
@@ -98,8 +118,10 @@ def replace_accents_cols(df_col):
         df_col = df_col.replace(a, b).replace(a.upper(), b.upper())
     return df_col
 
+
 def remove_special_chars(df_cols):
     return df_cols.str.replace(r'[$@&/.:-]',' ', regex=True)
+
 
 def regular_camel_case(snake_str):
     components = snake_str.split('_')
@@ -111,6 +133,7 @@ def regular_snake_case(df_cols):
     cols = cols.str.replace(r'\s+',' ',regex=True)
     cols = cols.str.replace(' ','_')
     return cols
+
 
 def drop_from_sql_table(sql_table, sql_connid,condition):
     sql_conn = MsSqlHook(sql_connid)
@@ -131,13 +154,16 @@ def file_get(path,container_name,blob_name, **args):
     print ('Archivo halado con python operator')
     return('Blob gotten sucessfully')
 
+
 def respond():
     return 'Task ended'
+
 
 def read_excel(dirname,filename,sheet) -> pd.DataFrame:
     path = os.path.join(dirname, filename)
     excel_to_df = pd.read_excel(path, engine = 'openpyxl',sheet_name=sheet)
     return excel_to_df
+
 
 def read_excel_args(**args):
 
@@ -157,10 +183,12 @@ def read_excel_args(**args):
     excel_to_df = pd.read_excel(path,sheet_name=sheet, engine=engine, header=header,usecols=usecols, skiprows=skiprows)
     return excel_to_df
 
+
 def read_excel_usecols(dirname,filename,sheet,usecols):
     path = os.path.join(dirname, filename)
     excel_to_df = pd.read_excel(path, engine = 'openpyxl',sheet_name=sheet,usecols=usecols)
     return excel_to_df
+
 
 def read_csv(dirname,filename,separador, encoding='utf-8',header=0):
     path = os.path.join(dirname, filename)
@@ -169,6 +197,7 @@ def read_csv(dirname,filename,separador, encoding='utf-8',header=0):
     #     csv_to_df = pd.read_csv(path, sep=separador)
     # else:
     return csv_to_df
+
 
 def read_csv_args(dirname,filename, **args):
 
@@ -183,6 +212,7 @@ def read_csv_args(dirname,filename, **args):
     #csv_to_df = pd.read_csv(path, sep=sep, low_memory=False, encoding=encoding, warn_bad_lines=True, err_bad_lines=None, decimal=decimal, usecols=usecols)
     csv_to_df = pd.read_csv(path, sep=sep, low_memory=False, encoding=encoding, warn_bad_lines=True, error_bad_lines=False, decimal=decimal, usecols=usecols,skiprows=skiprows)
     return csv_to_df
+
 
 def get_files_xlsx_with_prefix(dirname, name_container,blob_prefix, sheet):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
@@ -202,6 +232,7 @@ def get_files_xlsx_with_prefix(dirname, name_container,blob_prefix, sheet):
                 df_acumulated = df
 
     return df_acumulated
+
 
 def get_files_xlsx_with_prefix_args(dirname,name_container,blob_prefix,sheet,**args):
 
@@ -234,6 +265,7 @@ def get_files_xlsx_with_prefix_args(dirname,name_container,blob_prefix,sheet,**a
 
     return df_acumulated
 
+
 def get_files_xlsx_contains_name(dirname, name_container,blob_prefix, sheet):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
     blob_list = container.list_blobs()
@@ -252,6 +284,7 @@ def get_files_xlsx_contains_name(dirname, name_container,blob_prefix, sheet):
                 df_acumulated = df
 
     return df_acumulated 
+
 
 def get_files_xlsx_contains_name_args(dirname, name_container,blob_prefix, sheet,**args):
 
@@ -280,6 +313,7 @@ def get_files_xlsx_contains_name_args(dirname, name_container,blob_prefix, sheet
 
     return df_acumulated    
 
+
 def get_files_xlsx_with_prefix_usecols(dirname, name_container,blob_prefix, sheet,usecols):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
     blob_list = container.list_blobs()
@@ -298,6 +332,7 @@ def get_files_xlsx_with_prefix_usecols(dirname, name_container,blob_prefix, shee
                 df_acumulated = df
 
     return df_acumulated
+
 
 def get_files_xlsx_for_ending(dirname, name_container,blob_ending, sheet):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
@@ -341,6 +376,7 @@ def get_files_with_prefix(dirname, name_container,blob_prefix, separador,encodin
 
     return df_acumulated
 
+
 def get_files_blob_with_prefix_args(dirname,name_container,blob_prefix,wasb_hook,**args):
     sep = args.get('sep',None)
     encoding = args.get('encoding','utf-8')
@@ -362,6 +398,7 @@ def get_files_blob_with_prefix_args(dirname,name_container,blob_prefix,wasb_hook
             df = pd.DataFrame(data=d)
 
     return df
+
 
 def get_files_with_prefix_args(dirname,name_container,blob_prefix,**args):
 
@@ -397,6 +434,7 @@ def get_files_with_prefix_args(dirname,name_container,blob_prefix,**args):
                 df_acumulated = df
     return df_acumulated
 
+
 def get_files_with_ending_args(dirname,name_container,blob_ending,**args):
 
     sep = args.get('sep',None)
@@ -424,6 +462,7 @@ def get_files_with_ending_args(dirname,name_container,blob_ending,**args):
 
     return df_acumulated
 
+
 def get_files_for_ending(dirname, name_container,blob_ending, separador):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
     blob_list = container.list_blobs()
@@ -445,6 +484,7 @@ def get_files_for_ending(dirname, name_container,blob_ending, separador):
         # df_acumulated.info()
     return df_acumulated
 
+
 def clean_container_for_prefix(name_container,prefix):
    container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
    blob_list = container.list_blobs()
@@ -452,6 +492,7 @@ def clean_container_for_prefix(name_container,prefix):
         cadena = blob.name
         if cadena.startswith(prefix):
             wb.delete_file(name_container,cadena, is_prefix=False, ignore_if_missing=True)
+
 
 def clean_container_for_ending(name_container,ending):
    container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
@@ -475,6 +516,7 @@ def move_to_history_folder_ending(dirname, name_container, ending,container_to='
             wb.load_file(path, container_to, save_as)
             wb.delete_file(name_container,cadena, is_prefix=False, ignore_if_missing=True)
 
+
 def move_to_history_for_prefix(dirname, name_container, prefix, container_to='history'):
    container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
    blob_list = container.list_blobs()
@@ -487,6 +529,7 @@ def move_to_history_for_prefix(dirname, name_container, prefix, container_to='hi
             save_as = cadena + time
             wb.load_file(path, container_to, save_as)
             wb.delete_file(name_container,cadena, is_prefix=False, ignore_if_missing=True)
+
 
 def move_to_history_contains_name(dirname, name_container, file_name, container_to='historicos',**args):
    connection_str = args.get('connection_str', connection_string)
@@ -510,6 +553,7 @@ def get_table_from_db(sql):
     hook = conn.get_hook()
     return hook.get_pandas_df(sql=sql)
 
+
 def search_for_file_prefix(file_name,name_container, connection_str=connection_string):
     print('search_for_file_prefix', file_name, name_container)
     container = ContainerClient.from_connection_string(conn_str=connection_str, container_name=name_container)
@@ -521,6 +565,7 @@ def search_for_file_prefix(file_name,name_container, connection_str=connection_s
             return True
     return False
 
+
 def search_for_file_contains(file_name,name_container):
     container = ContainerClient.from_connection_string(conn_str=connection_string, container_name=name_container)
     blob_list = container.list_blobs()
@@ -528,6 +573,7 @@ def search_for_file_contains(file_name,name_container):
         if file_name in blob.name:
             return True
     return False
+
 
 def get_files_xlsx_add_column_from_filename(dirname, name_container, blobname_contains, sheet, **args ):
 
@@ -561,9 +607,11 @@ def get_files_xlsx_add_column_from_filename(dirname, name_container, blobname_co
                 df_acumulated = df
     return [df_acumulated,filename]
 
+
 def extract_from_filename(filename, name_separator='_', name_position=0):
     text_splited = filename.split(name_separator)
     return text_splited[name_position]
+
 
 def open_xls_as_xlsx(filename):
     # first open using xlrd
@@ -585,3 +633,34 @@ def open_xls_as_xlsx(filename):
             sheet1.cell(row=row, column=col).value = sheet.cell_value(row-1, col-1) #bm added -1's
 
     return book1
+
+
+def identify_updated_data (df, col_date, last_day, process, audit_table = "biDataUpdatesAudit", con = 'db_clinicos_bi'):
+    """ Auditoria de actualizacion de datos de cargue manual
+
+        Para procesos donde se dependa del cargue de archivos a la bodega de datos y se tenga un
+        campo de fechas que pueda ser usado para establecer si la informacion esta actualizada, 
+        se puede hacer uso de este metodo en compagnia de los correctos operadores en el DAG.
+
+    Arg:
+        df: data frame sobre el cual se realiza el ETL
+        col_date: nombre de la columna que contiene las fechas para usar la comparacion
+        last_day: fecha tomada como referecia para decir si la informacion esta desactualizada
+        process: nombre del proceso o DAG involucrado
+        audit_tabe: nombre de la tabla usada
+    Retorno:
+        caracter (string): indicador de branch, puede ser retrasd
+    """
+    m_date = df[col_date].max()
+    data = {
+        'data_date' : m_date, 
+        'event' : 'Data retrasada', 
+        'description' : f'La informacion del {process} cargada no está al día',
+        'dateTime' : date.today()
+    }
+    df_load = pd.DataFrame([data])
+    if m_date < last_day:
+        load_df_to_sql_2(df_load, audit_table, con)
+        return 'retrasada'
+    else: 
+        return 'al_dia'

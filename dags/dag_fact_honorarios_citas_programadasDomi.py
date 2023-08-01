@@ -7,11 +7,12 @@ from airflow.hooks.mssql_hook import MsSqlHook
 from datetime import datetime, timedelta,date
 
 import pandas as pd
-from variables import sql_connid,sql_connid_gomedisys
+from variables import sql_connid,sql_connid_gomedisys, sql_connid_domi
 from utils import load_df_to_sql, sql_2_df
 
 #  Se nombran las variables a utilizar en el dag
 db_tmp_table = 'TmpHonorariosCitasModeloDomiciliaria'
+db_tmp_table_domi = 'TmpCitasModeloDomiciliaria'
 db_table = "TblHHonorariosCitasModeloDomiciliaria"
 dag_name = 'dag_' + db_table
 
@@ -24,8 +25,8 @@ dag_name = 'dag_' + db_table
 
 # Para correr fechas con delta
 now = datetime.now()
-# last_week = now - timedelta(weeks=1)
-last_week = datetime(2023,1,1)
+#last_week = now - timedelta(weeks=1)
+last_week = datetime(2023,6,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -119,7 +120,14 @@ def func_get_honorarios_stating ():
 
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql(df, db_tmp_table, sql_connid)
-        
+
+    ###Fuente de informacion alterna que se almacena en BD de DOMI
+    #Filtro de contrato y actividades
+    #act_list = [124,126,127,256,271,367,373,419,429,611,613,614,666,681,770,776,813,822,1001,1009,1014,1015]
+    #df2 = df.loc[df['contract_id'] == 57 and df['action_id'].isin(act_list)]
+
+    #if ~df2.empty and len(df2.columns) >0:
+    #    load_df_to_sql(df2, db_tmp_table, sql_connid_domi)    
 
 
 def execute_Sql():
@@ -128,6 +136,26 @@ def execute_Sql():
      """
      hook = MsSqlHook(sql_connid)
      hook.run(query)
+
+
+def load_copy_domi():
+    query = f"""
+    select * 
+    from TblHHonorariosCitasModeloDomiciliaria 
+    where Fecha_Cita >='{last_week}' AND Fecha_Cita <'{now}'
+    and action_id in (124,126,127,256,271,367,373,419,429,611,613,614,666,681,770,776,813,822,1001,1009,1014,1015,1066,1067,1068,1069,1087,1088,1089,1090,1092,1093,1094,1095)
+    and contract_id = 57
+    """
+    df = sql_2_df(query, sql_conn_id = sql_connid)
+
+    #Convertir a str los campos de tipo fecha 
+    cols_dates = ['Fecha_Cita','Fecha_Tarifa_Gomedisys','created_at','calendario_id']
+    for col in cols_dates:
+        df[col] = df[col].astype(str)
+
+    if ~df.empty and len(df.columns) >0:
+        load_df_to_sql(df, db_tmp_table_domi, sql_connid_domi)    
+
 
 
 # Se declara un objeto con los parámetros del DAG
@@ -177,8 +205,27 @@ with DAG(dag_name,
                                           email='BI@clinicos.com.co',
                                           dag=dag
                                          )
+    
+    # Se declara y se llama la función encargada de subir copia de la información a la base db-domi-001
+    copy_honoraries_domi = PythonOperator(
+                                     task_id = "copy_honoraries_domi",
+                                     python_callable = load_copy_domi,
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
+                                     dag=dag
+                                     )
+    
+    # Se declara la función encargada de ejecutar el "Stored Procedure" de copia a la base db-domi-001
+    load_copy_honoraries_domi = MsSqlOperator(task_id='load_copy_honoraries_domi',
+                                          mssql_conn_id=sql_connid_domi,
+                                          autocommit=True,
+                                          sql="EXECUTE uspCarga_TblHCitasModeloDomiciliaria",
+                                          email_on_failure=True, 
+                                          email='BI@clinicos.com.co',
+                                          dag=dag
+                                         )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> extract_honoraries_stating >>get_honoraries_stating>> load_fact_honoraries_scheduled_appointments>>task_end
+start_task >> extract_honoraries_stating >>get_honoraries_stating>> load_fact_honoraries_scheduled_appointments>>copy_honoraries_domi>>load_copy_honoraries_domi>>task_end

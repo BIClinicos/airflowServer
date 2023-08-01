@@ -44,6 +44,10 @@ def transform_tables (df):
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
 
+    # Mod 2023-07-19
+    if 'anio' in df.columns or 'annio' in df.columns:
+        df = df.iloc[: , 1:]
+
     df['anio_mes'] = pd.to_datetime('today') + pd.DateOffset(months=-1)
     df['anio_mes'] = df['anio_mes'].apply(lambda x: x.strftime('%Y-%m'))
     df['anio_mes'] = pd.to_datetime(df['anio_mes'], format="%Y-%m")
