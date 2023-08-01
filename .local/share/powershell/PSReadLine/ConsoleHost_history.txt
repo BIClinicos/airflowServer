@@ -9,3 +9,5 @@ git push origin Manar
 git checkout main
 git status
 git add .
+git checkout main
+git add .
