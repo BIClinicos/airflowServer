@@ -4,3 +4,8 @@ ls
 dir
 git checkout main
 git add .
+git commit -m "changes:.gitignore"
+git push origin Manar
+git checkout main
+git status
+git add .

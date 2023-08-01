@@ -22,3 +22,4 @@
 /dags/__pycache__/*.*
 .gitconfig
 .bash_history
+.local/share/powershell/*
