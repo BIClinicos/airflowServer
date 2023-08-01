@@ -1,0 +1,6 @@
+exit
+cls
+ls
+dir
+git checkout main
+git add .
