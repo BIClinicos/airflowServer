@@ -27,6 +27,7 @@ def func_get_TEC_PYR_GEFDispensacion ():
     now = datetime.now()
     last_week = now - timedelta(weeks=1)
     last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+    #last_week=datetime.strptime('2023-03-01 04:00:00', '%Y-%m-%d %H:%M:%S')
     print(now)
     print(last_week)
 
@@ -38,7 +39,37 @@ def func_get_TEC_PYR_GEFDispensacion ():
 
 
     dispensing_query = f"""
-        SELECT A.*, CONCAT(USR_B.firstGivenName, ' ', USR_B.secondGiveName, ' ', USR_B.firstFamilyName, ' ', USR_B.secondFamilyName) AS namePractitioner, USR_B.documentNumber AS idPractitioner
+        SELECT A.[idUser]
+        ,A.[firstGivenName]
+        ,A.[secondGiveName]
+        ,A.[firstFamilyName]
+        ,A.[secondFamilyName]
+        ,A.[idType]
+        ,A.[identificationNumber]
+        ,A.[gender]
+        ,A.[homeAddress]
+        ,A.[city]
+        ,A.[departament]
+        ,A.[telecom]
+        ,A.[formulation]
+        ,A.[idActualPractitioner]
+        ,A.[diagnostic]
+        ,A.[idPatient]
+        ,A.[idEHREvent]
+        ,A.[actionRecordedDate]
+        ,A.[dateRecord]
+        ,A.[pharmacy]
+        ,A.[requestedQuantity]
+        ,A.[authorizedQuantity]
+        ,A.[dispensedQuantity]
+        ,A.[drugConcentration]
+        ,A.[genericProductChemical]
+        ,A.[idGenericProduct]
+        ,A.[idEncounter]
+        ,A.[pharmaceuticalForm]
+        , CONCAT(USR_B.firstGivenName, ' ', USR_B.secondGiveName, ' ', USR_B.firstFamilyName, ' ', USR_B.secondFamilyName) AS namePractitioner, USR_B.documentNumber AS idPractitioner
+        ,NULL [unitPrice]
+        ,A.[dispensationLocation]
         FROM (
         SELECT
             USR.idUser, USR.firstGivenName, USR.secondGiveName, USR.firstFamilyName, USR.secondFamilyName
@@ -62,6 +93,7 @@ def func_get_TEC_PYR_GEFDispensacion ():
             , PGD.drugConcentration, PGD.genericProductChemical, PGD.idGenericProduct
             , ENC.idEncounter
             , PPF.name AS 'pharmaceuticalForm'
+            , LEFT(PRQ.note,20) AS 'dispensationLocation'
         FROM 
             dbo.encounters ENC
             , dbo.encounterRecords ENR
@@ -120,7 +152,7 @@ def func_get_TEC_PYR_GEFDispensacion ():
 
     """
     df = sql_2_df(dispensing_query, sql_conn_id=sql_connid_gomedisys)
-    df['unitPrice'] = ""
+    #df['unitPrice'] = ""
     print(df.columns)
     print(df.dtypes)
     print(df)

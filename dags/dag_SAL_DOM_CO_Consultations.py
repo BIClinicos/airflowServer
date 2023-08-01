@@ -1,15 +1,8 @@
-import os
-import xlrd
 from airflow import DAG
-from airflow.contrib.hooks.wasb_hook import WasbHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
-from airflow.operators import email_operator
 from datetime import datetime, timedelta
-from datetime import date
-import pandas as pd
-from pandas import read_excel
 from variables import sql_connid,sql_connid_gomedisys 
 from utils import sql_2_df, load_df_to_sql 
 
@@ -22,8 +15,13 @@ dag_name = 'dag_' + db_table
 #Se halla las fechas de cargue de la data 
 now = datetime.now()
 last_week = now - timedelta(weeks=1)
+# last_week = datetime(2023,6,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
+###### Mod problema mipres
+#now=datetime.strptime('2022-08-31 23:59:00', '%Y-%m-%d %H:%M:%S')
+#last_week=datetime.strptime('2022-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+
 
 #year = last_week.year
 #month = last_week.month
@@ -80,7 +78,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         OR GS.name like '%Neurolog_a%'OR GS.name like '%Neumolog_a%' OR GS.name like '%Fisiatr_a%'
         OR GS.name like '%Cardiolog_a%' OR GS.name like '%Medicina Interna%' OR GS.name like '%Medicina Familiar%' OR GS.name like '%Pediatr_a%' 
         OR GS.name like '%Trabajo%Social%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}'
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00'
@@ -128,7 +126,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
     
     WHERE 
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract=57 --Código del contrato de Compensar-Domiciliaria
+        AND ENCR.idPrincipalContract IN (57,76, 92) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')

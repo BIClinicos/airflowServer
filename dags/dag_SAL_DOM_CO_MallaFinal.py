@@ -763,7 +763,7 @@ def query_SAL_DOM_CO_MallaFinal (start_date, end_date):
                             INNER JOIN dbo.EHREventCustomActivities AS EVCAct WITH(NOLOCK) ON V.idEHREvent = EVCAct.idEvent
                                 AND EVCAct.idConfigActivity IN (52, 54)
                                 AND EVCAct.idElement = 1
-                                AND EVCAct.valueNumeric IN (1759,1760,2006,2007,2009)
+                                AND EVCAct.valueNumeric IN (1759,1760,2006,2007,2009,2005,2008)
                         WHERE V.idPatient = Enc.idUserPatient --	Por Paciente
                             AND V.actionRecordedDate < DATEADD(DAY,1,@endDate)
                             AND idAction = 83)

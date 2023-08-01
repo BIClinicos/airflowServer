@@ -48,32 +48,68 @@ def norm_excel_date_gen(date_gen):
         res = date_gen 
     return res 
 
+# Normalizar de nombres de columnas
+def norm_col_names(df):
+    # Estandarización de los nombres de columnas del dataframe
+    df.columns = df.columns.str.lower()
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.replace(' ','_')
+    df.columns = df.columns.str.replace('á','a')
+    df.columns = df.columns.str.replace('é','e')
+    df.columns = df.columns.str.replace('í','i')
+    df.columns = df.columns.str.replace('ó','o')
+    df.columns = df.columns.str.replace('ú','u')
+    df.columns = df.columns.str.replace('ñ','ni')
+    return df
+
 # Función de transformación de los archivos xlsx
 def transform_table(path):
 
     # dataframe activos
 
+<<<<<<< HEAD
     df_active = pd.read_excel(path, header = [4], sheet_name = 0)
     df_active["estado"] = "Activos"
     df_active["organizacion"] = "CLÍNICOS"
 
     df_active_innovar = pd.read_excel(path, header = [4], sheet_name = 2)
+=======
+    df_active = pd.read_excel(path, header = [0], sheet_name = 0)
+    df_active["estado"] = "Activos"
+    df_active["organizacion"] = "CLÍNICOS"
+    df_active = norm_col_names(df_active)
+
+    df_active_innovar = pd.read_excel(path, header = [0], sheet_name = 2)
+>>>>>>> Manar
     df_active_innovar["estado"] = "Activos"
     df_active_innovar["organizacion"] = "INNOVAR"
 
     # dataframe de la hoja de retirados
 
+<<<<<<< HEAD
     df_retired = pd.read_excel(path, header = [3], sheet_name = 1)
     df_retired["estado"] = "Retirados"
     df_retired["organizacion"] = "CLÍNICOS"
 
     df_retired_innovar = pd.read_excel(path, header = [4], sheet_name = 3)
+=======
+    df_retired = pd.read_excel(path, header = [0], sheet_name = 1)
+    df_retired["estado"] = "Retirados"
+    df_retired["organizacion"] = "CLÍNICOS"
+    df_retired = norm_col_names(df_retired)
+
+    df_retired_innovar = pd.read_excel(path, header = [1], sheet_name = 3)
+>>>>>>> Manar
     df_retired_innovar["estado"] = "Retirados"
     df_retired_innovar["organizacion"] = "INNOVAR"
 
     # Remplazo de campos innovar
     assign_innovar = {
+<<<<<<< HEAD
         " CEDULA ":"Identific.",
+=======
+        "DOCUMENTO":"Identific.",
+>>>>>>> Manar
         "FECHA DE INGRESO  MDA":"Fecha Ingreso",
         "NOMBRE":"Empleado",
         "TIPO DE CONTRATO":"Tipo Contrato",
@@ -89,6 +125,7 @@ def transform_table(path):
     }
     df_active_innovar.rename(columns = assign_innovar, inplace = True)
     df_retired_innovar.rename(columns = assign_innovar, inplace = True) 
+<<<<<<< HEAD
 
     # Arreglo de los cargos con "-" en innovar
     df_active_innovar['Cargo'] = df_active_innovar['Cargo'].str.replace('-','')
@@ -112,6 +149,17 @@ def transform_table(path):
     df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(DOMICILIARIA)+.*$)','Unidad Domiciliaria', case = False)
     df['UNIDAD'] = df['UNIDAD'].str.upper()
     df['UNIDAD'].fillna(df['Nombre CCosto'])
+=======
+    df_active_innovar = norm_col_names(df_active_innovar)
+    df_retired_innovar = norm_col_names(df_retired_innovar)
+
+    ## Corregir Cargo INNOVAR
+    df_active_innovar['cargo'] = df_active_innovar['cargo'].str.replace('-','') 
+    df_retired_innovar['cargo'] = df_retired_innovar['cargo'].str.replace('-','')
+
+    # Append entre las hojas de activos y retirados
+    df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
+>>>>>>> Manar
 
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.lower()
@@ -123,8 +171,28 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ó','o')
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
+<<<<<<< HEAD
     print(df['cargo'].dtype)
 
+=======
+
+    ## Quitar Nombre CCosto de ingesta - 20230321
+    # Reemplazo de valores mal escritos en la columna nombre_ccosto
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Administrativa','Unidad administrativa')
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Unidades Domiciliaria','unidad domiciliaria')
+    # df['Nombre CCosto'] = df['Nombre CCosto'].str.upper()
+
+    # Reemplazo de valores para estandarizar la columna UNIDAD
+    df['unidad'] = df['unidad'].str.replace('GERENCIA  GENERAL','Unidad administrativa')
+    df['unidad'] = df['unidad'].str.replace('MERK','Unidad administrativa')
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
+    df['unidad'] = df['unidad'].str.upper()
+    ## Quitar Nombre CCosto de ingesta - 20230321
+    # df['Unidad'].fillna(df['Nombre CCosto'])
+    
+>>>>>>> Manar
     # Separación del cargo y nivel_cargo en dos columnas dentro del dataframe
     df_cargo = df['cargo'].str.split('-', n=1, expand = True)
     
@@ -144,6 +212,27 @@ def transform_table(path):
     df['fecha_ingreso_clinicos'] = df['fecha_ingreso_pilar']
 
     # Reordenar columnas del dataframe
+    ## Ingresar nulos
+    null_cols = [
+        'e-mail'
+        ,'tipo_contrato'
+        ,'fecha_nacim'
+        ,'direccion'
+        ,'tel1'
+        ,'estado_civil'
+        ,'ciudad_nacim'
+        ,'%_tiempo_trabajado'
+        ,'nombre_ccosto'
+        ,'ciud.ubic'
+        ,'entidad_eps'
+        ,'entidad_afp'
+        ,'entidad_caja'
+        ,'entidad_arp'
+    ]
+    df = df.reindex(columns=[*[*df.columns.tolist(), *null_cols]])
+    df['fecha_nacim'] = datetime.strptime('1900-01-01', '%Y-%m-%d')
+
+    ##
     df = df[['identific.'
       ,'tipo_id'
       ,'empleado'
@@ -174,7 +263,11 @@ def transform_table(path):
 
     df['fecha_retiro'] = pd.to_datetime(df['fecha_retiro'], format='%Y/%m/%d')
 
-    df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
+    ## Quitar de ingesta - 20230321
+    # df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
+
+    ## Fill tipo_id
+    df['tipo_id'] = df['tipo_id'].fillna('CC')
 
     df['sucursal'] = df['sucursal'].str.strip()
 

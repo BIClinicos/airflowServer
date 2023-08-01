@@ -1,0 +1,14 @@
+[2023-06-28 21:13:01,158] {processor.py:163} INFO - Started process (PID=11731) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:01,159] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py for tasks to queue
+[2023-06-28 21:13:01,159] {logging_mixin.py:109} INFO - [2023-06-28 21:13:01,159] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:01,180] {processor.py:652} INFO - DAG(s) dict_keys(['example_branch_labels']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:01,200] {logging_mixin.py:109} INFO - [2023-06-28 21:13:01,199] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:13:01,234] {logging_mixin.py:109} INFO - [2023-06-28 21:13:01,234] {dag.py:2937} INFO - Setting next_dagrun for example_branch_labels to 2023-06-27 00:00:00+00:00
+[2023-06-28 21:13:01,260] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py took 0.103 seconds
+[2023-06-28 21:13:37,118] {processor.py:163} INFO - Started process (PID=12320) to work on /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:37,124] {processor.py:642} INFO - Processing file /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py for tasks to queue
+[2023-06-28 21:13:37,124] {logging_mixin.py:109} INFO - [2023-06-28 21:13:37,124] {dagbag.py:500} INFO - Filling up the DagBag from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:37,147] {processor.py:652} INFO - DAG(s) dict_keys(['example_branch_labels']) retrieved from /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py
+[2023-06-28 21:13:37,163] {logging_mixin.py:109} INFO - [2023-06-28 21:13:37,163] {dag.py:2398} INFO - Sync 1 DAGs
+[2023-06-28 21:13:37,182] {logging_mixin.py:109} INFO - [2023-06-28 21:13:37,182] {dag.py:2937} INFO - Setting next_dagrun for example_branch_labels to 2023-06-27 00:00:00+00:00
+[2023-06-28 21:13:37,208] {processor.py:171} INFO - Processing /home/airflowclinicos/.local/lib/python3.6/site-packages/airflow/example_dags/example_branch_labels.py took 0.092 seconds

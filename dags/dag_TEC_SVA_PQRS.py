@@ -45,10 +45,15 @@ def data_correction_pqrs(df):
     cond_2 = (df[age] == 0)
     df.loc[cond_2, age] = nan
     # Correccion gestion farmaceutica
-    cond_3 = df[unit].str.contains('GESTIÓN FARMACEUTICA', na=False)
-    cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
-    df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
-    df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
+    #cond_3 = df[unit].str.contains('GESTIÓN FARMACEUTICA', na=False)
+    #cond_4 = df[client].str.contains(r'.*DOMICILIARIO$', regex = True, na=False)
+    #df.loc[cond_3 & cond_4, unit] = 'DOMICILIARIA'
+    #df.loc[cond_3 & ~cond_4, unit] = 'ESPECIALIZADA'
+    # Correccion otros
+    cond_5 = df[client].str.contains('OTROS', na=False)
+    cond_6 = df[unit].str.contains('DOMICILIARIA', na=False)
+    df.loc[cond_5 & cond_6, client] = 'OTROS DOMICILIARIA'
+    df.loc[cond_5 & ~cond_6, unit] = 'OTROS ESPECIALIZADA'
     # Retorno de df
     return df
 
@@ -91,6 +96,7 @@ def transform_tables (path):
     # df = df.drop(['idpqrs'], axis=1)
     # Eliminar todos los registros que no sean sí o no en la columna de "oportuna"
 
+    df['oportuna'] = df['oportuna'].astype('str')
     df['oportuna'] = df['oportuna'].str.upper()
     df['oportuna'] = df['oportuna'].str.replace('SI','OPORTUNA')
     df_3 = df[df.oportuna == 'OPORTUNA']
@@ -178,7 +184,10 @@ def transform_tables (path):
 
     # df.loc[df['edad'].str.lower().str.contains('mes') == True, 'edad'] = 0
 
-
+    # Remplazo de columnas 2023-04
+    dict_replace = {'eps':'peticionario'}
+    df.rename(columns = dict_replace, inplace = True)
+    print(df.columns)
     df = df[['canal_de_recepcion', 'peticionario', 'oys',
        'nombres_y_apellidos_paciente', 'cc', 'no_documento',
        'edad', 'telefonos', 'correo', 'eps_paciente', 'unidad', 'ciudad',
@@ -244,8 +253,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_TEC_SVA_PQRS_python_task = PythonOperator(task_id = "get_TEC_SVA_PQRS",
                                                   python_callable = func_get_TEC_SVA_PQRS,
-                                                  #email_on_failure=True, 
-                                                  #email='BI@clinicos.com.co',
+                                                  email_on_failure=True, 
+                                                  email='BI@clinicos.com.co',
                                                   dag=dag,
                                                   )
     
@@ -254,8 +263,8 @@ with DAG(dag_name,
                                        mssql_conn_id=sql_connid,
                                        autocommit=True,
                                        sql="EXECUTE sp_load_TEC_SVA_PQRS",
-                                       #email_on_failure=True, 
-                                       #email='BI@clinicos.com.co',
+                                       email_on_failure=True, 
+                                       email='BI@clinicos.com.co',
                                        dag=dag,
                                        )
 

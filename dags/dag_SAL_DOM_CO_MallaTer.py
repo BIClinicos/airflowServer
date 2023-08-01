@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from datetime import date
 import pandas as pd
 from pandas import read_excel
-from variables import sql_connid
-from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get
+from variables import sql_connid, sql_connid_domi
+from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get,sql_2_df
 
 #  Se nombran las variables a utilizar en el dag
 
@@ -20,6 +20,7 @@ dirname = '/opt/airflow/dags/files_malla_terapias/'
 filename = 'SAL_DOM_CO_MallaTer.xlsx'
 db_table = "SAL_DOM_CO_MallaTer"
 db_tmp_table = "tmp_SAL_DOM_CO_MallaTer"
+db_tmp_table_domi = 'TmpMallaTerapiasOrdenadasDomi'
 dag_name = 'dag_' + db_table
 
 
@@ -30,7 +31,13 @@ def check_connection():
 
 # Función de transformación de los archivos xlsx
 def transform_tables (path):
-    df = pd.read_excel(path, header = [0])
+    i = 0 # Hoja inicial
+    while True:
+        df = pd.read_excel(path, sheet_name = i)
+        if df.shape[1] >= 18: # Verificar si la hoja contiene la cantidad de campos necesarios
+            break
+        i =+ 1
+    # Cierre de ciclo con lectura    
     df_col_adi = df.columns[17:]
     df_col_mes_ant = df.columns[8:15:2]
     df = df.drop(df_col_adi ,axis=1)
@@ -67,6 +74,50 @@ def func_get_SAL_DOM_CO_MallaTer ():
 
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql(df, db_tmp_table, sql_connid)
+
+# Función de copia a BD domi
+def load_copy_domi():
+    query = f"""
+    SELECT 
+        [MES]
+        ,[IPS DOMICILIO]
+        ,[NOMBRES COMPLETOS]
+        ,[TIPO DOCUMENTO]
+        ,CASE 
+            WHEN [NUMERO DOCUMENTO DE IDENTIFICACION] LIKE '%.0' THEN REPLACE([NUMERO DOCUMENTO DE IDENTIFICACION], '.0', '')
+            ELSE [NUMERO DOCUMENTO DE IDENTIFICACION]
+        END AS [NUMERO DOCUMENTO DE IDENTIFICACION]
+        ,[VISITA MEDICA]
+        ,[ESPECIALIDAD]
+        ,[ORDENES]
+    FROM dbo.[tmp_SAL_DOM_CO_MallaTer] 
+    GROUP BY 
+        [MES]
+        ,[IPS DOMICILIO]
+        ,[NOMBRES COMPLETOS]
+        ,[TIPO DOCUMENTO]
+        ,CASE 
+            WHEN [NUMERO DOCUMENTO DE IDENTIFICACION] LIKE '%.0' THEN REPLACE([NUMERO DOCUMENTO DE IDENTIFICACION], '.0', '')
+            ELSE [NUMERO DOCUMENTO DE IDENTIFICACION]
+        END
+        ,[VISITA MEDICA]
+        ,[ESPECIALIDAD]
+        ,[ORDENES]
+    """
+    df = sql_2_df(query, sql_conn_id = sql_connid)
+
+    #Convertir a str los campos de tipo fecha 
+    cols_dates = ['VISITA MEDICA']
+    for col in cols_dates:
+        df[col] = df[col].astype(str)
+    
+    #Convertir en int los campos num
+    cols_num = ['ORDENES']
+    for col in cols_num:
+        df[col] = df[col].astype(int)   
+
+    if ~df.empty and len(df.columns) >0:
+        load_df_to_sql(df, db_tmp_table_domi, sql_connid_domi) 
 
 
 # Se declara un objeto con los parámetros del DAG
@@ -108,7 +159,26 @@ with DAG(dag_name,
                                        dag=dag,
                                        )
 
+    # Se declara y se llama la función encargada de subir copia de la información a la base db-domi-001
+    copy_mallater_domi = PythonOperator(
+                                     task_id = "copy_mallater_domi",
+                                     python_callable = load_copy_domi,
+                                     email_on_failure=True, 
+                                     email='BI@clinicos.com.co',
+                                     dag=dag
+                                     )
+    
+    # Se declara la función encargada de ejecutar el "Stored Procedure" de copia a la base db-domi-001
+    load_copy_mallater_domi = MsSqlOperator(task_id='load_copy_mallater_domi',
+                                          mssql_conn_id=sql_connid_domi,
+                                          autocommit=True,
+                                          sql="EXECUTE uspCarga_TblHMallaTerapiasOrdenadasDomi",
+                                          email_on_failure=True, 
+                                          email='BI@clinicos.com.co',
+                                          dag=dag
+                                         )
+    
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >>check_connection_task >> get_SAL_DOM_CO_MallaTer_python_task >> load_SAL_DOM_CO_MallaTer >> task_end
+start_task >>check_connection_task >> get_SAL_DOM_CO_MallaTer_python_task >> load_SAL_DOM_CO_MallaTer >> copy_mallater_domi >> load_copy_mallater_domi >> task_end

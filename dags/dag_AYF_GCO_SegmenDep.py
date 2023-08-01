@@ -15,6 +15,7 @@ from utils import get_files_blob_with_prefix_args,open_xls_as_xlsx,load_df_to_sq
 
 # Fecha de ejecución del dag
 today = date.today()
+today = datetime.strptime('2023-06-01', '%Y-%m-%d')
 format_month = today.strftime('%Y-%m')
 
 #  Se nombran las variables a utilizar en el dag
@@ -47,7 +48,7 @@ def transform_tables (df):
     df.columns = df.columns.str.replace('ñ','ni')
 
     df = df.drop(['tipo_identificacion'], axis=1)
-
+    print("Como queda",df.dtypes)
     df['numero_mes'] = ''
 
     df.loc[df['mes'] == 'Enero', 'numero_mes'] = '1'

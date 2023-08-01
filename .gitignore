@@ -19,6 +19,7 @@
 /dags/files_satisfacciongral/*.*
 /dags/files_segmentacion/*.*
 /dags/generated_files/*.*
-/dags/__pycache__/
+/dags/__pycache__/*.*
+__pycache__
 .gitconfig
 .bash_history

@@ -34,7 +34,7 @@ def transform_tables (path):
     # se añaden las columnas "sede" y "entidad"
     df['sede'] = 'SAN MARTIN'
     df['entidad'] = 'ECOPETROL S.A.'
-
+    df['Cita Asignada en E-Salud'] = '1'
 
     # cambio de nombres de columnas
     
@@ -79,7 +79,7 @@ def transform_tables (path):
             'II Diagnóstico Secundario' : 'tertiary_dx',
             'CIE10 II Secundario' : 'tertiary_cie10',
             'Tipo de Diagnóstico II Sec' : 'tertiary_dx_type',
-            ' III Diagnóstico Secundario' : 'quaternary_dx',
+            'III Diagnóstico Secundario' : 'quaternary_dx',
             'CIE10 III Secundario' : 'quaternary_cie10',
             'Tipo de Diagnóstico III Sec' : 'quaternary_dx_type',
             'Seguimiento' : 'tracing',
@@ -99,6 +99,64 @@ def transform_tables (path):
         }
     )
 
+    # df seleccionados
+    df = df[['id',
+            'service',
+            'appointment_request_date',
+            'desired_date',
+            'pertinence',
+            'appointment_start_date',
+            'appointment_end_date',
+            'professional',
+            'consultation_type',
+            'document_type',
+            'document_number',
+            'full_name',
+            'mail',
+            'home_address',
+            'status',
+            'membership_type',
+            'mega',
+            'gender',
+            'age',
+            'unit_measure',
+            'phone_number',
+            'contact_name',
+            'relationship',
+            'phone_contact',
+            'consultation_modality',
+            'telehealth_type',
+            'appointment_status',
+            'external_cause',
+            'consultation_purpose',
+            'cups',
+            'dx',
+            'cie10',
+            'dx_type',
+            'secondary_dx',
+            'secondary_cie10',
+            'secondary_dx_type',
+            'tertiary_dx',
+            'tertiary_cie10',
+            'tertiary_dx_type',
+            'quaternary_dx',
+            'quaternary_cie10',
+            'quaternary_dx_type',
+            'tracing',
+            'tracing_result',
+            'covid_associate_symptoms',
+            'assigning_person',
+            'procedures',
+            'notes',
+            'sender',
+            'modified',
+            'esalud_assigned_appoinment',
+            'eventID',
+            'element_type',
+            'path',
+            'headquarter',
+            'entity'
+    ]]
 
     # normalización de columnas categóricas
 
@@ -256,7 +314,7 @@ def transform_tables (path):
     print(df['document_type'].unique())
 
     # Columna 'document_number'
-
+    df['document_number'] = df['document_number'].astype(str)
     df['document_number'] = normalize_str_categorical(df['document_number'])
     cond1 = df['document_type'].isin(['CC', 'TI', 'RC', 'NV', 'CE'])
     cond2 = pd.to_numeric(df['document_number'], errors='coerce').isna()
@@ -325,7 +383,7 @@ def transform_tables (path):
 
     # Columna 'age'
 
-    df['age'] = df['age'].str.extract(r'(^\d*\d)')
+    #df['age'] = df['age'].str.extract(r'(^\d*\d)')
     df['age'] = pd.to_numeric(df['age'], errors='coerce', downcast="integer")
     df['age'] = df['age'].fillna('0')
     df['age'] = df['age'].astype(int)
@@ -353,6 +411,9 @@ def transform_tables (path):
     # Se añade la columna birth_date vacía
 
     df['birth_date'] = ''
+
+    # 202307 Truncamiento de mail
+    df['mail'] = df['mail'].str.slice(0,55)
 
     return df
 

@@ -47,7 +47,7 @@ def charge_tables(dates2):
 
     nit='900496641'
     token='148CA3F2-9233-411E-A728-76CE02ABFED5'
-    df_prescripcion = pd.DataFrame(['NoPrescripcion','FPrescripcion','HPrescripcion','CodHabIPS','TipoIDIPS','NroIDIPS','CodDANEMunIPS','DirSedeIPS','TelSedeIPS','TipoIDProf','NumIDProf','PNProfS','SNProfS','PAProfS','SAProfS','RegProfS','TipoIDPaciente','NroIDPaciente','PNPaciente','SNPaciente','PAPaciente','SAPaciente','CodAmbAte','RefAmbAte','PacCovid19','EnfHuerfana','CodEnfHuerfana','EnfHuerfanaDX','CodDxPpal','CodDxRel1','CodDxRel2','SopNutricional','CodEPS','TipoIDMadrePaciente','NroIDMadrePaciente','TipoTransc','TipoIDDonanteVivo','NroIDDonanteVivo','EstPres','FechaProceso'])
+    df_prescripcion = pd.DataFrame(columns=['NoPrescripcion','FPrescripcion','HPrescripcion','CodHabIPS','TipoIDIPS','NroIDIPS','CodDANEMunIPS','DirSedeIPS','TelSedeIPS','TipoIDProf','NumIDProf','PNProfS','SNProfS','PAProfS','SAProfS','RegProfS','TipoIDPaciente','NroIDPaciente','PNPaciente','SNPaciente','PAPaciente','SAPaciente','CodAmbAte','RefAmbAte','PacCovid19','EnfHuerfana','CodEnfHuerfana','EnfHuerfanaDX','CodDxPpal','CodDxRel1','CodDxRel2','SopNutricional','CodEPS','TipoIDMadrePaciente','NroIDMadrePaciente','TipoTransc','TipoIDDonanteVivo','NroIDDonanteVivo','EstPres','FechaProceso'])
     df_servicios_complementarios = pd.DataFrame()
     df_meds = pd.DataFrame()
     df_principios_act = pd.DataFrame()
@@ -59,22 +59,27 @@ def charge_tables(dates2):
             req = requests.get(url, verify=False)
             #if req.status_code == 200:
             res = req.json()
-            for obj in res:    
-                No_prescripcion = obj['prescripcion']['NoPrescripcion']      
-                desc_data = pd.DataFrame([s['prescripcion'] for s in res])
+            for indx in range(len(res)):    
+                No_prescripcion = res[indx]['prescripcion']['NoPrescripcion']      
+                desc_data = pd.json_normalize(res[indx]['prescripcion'])
                 df_prescripcion = df_prescripcion.append(desc_data)
-                serv_data = pd.json_normalize(res, record_path=['serviciosComplementarios'])
+                # Serv compl
+                serv_data = pd.json_normalize(res[indx], record_path=['serviciosComplementarios'])
                 serv_data['NoPrescripcion'] = No_prescripcion
                 df_servicios_complementarios = df_servicios_complementarios.append(serv_data)
-                med_data = pd.json_normalize(res, record_path=['medicamentos'], max_level=1)
+                # Medicamentos
+                med_data = pd.json_normalize(res[indx], record_path=['medicamentos'], max_level=1)
                 med_data['NoPrescripcion'] = No_prescripcion
                 df_meds = df_meds.append(med_data)
-                princip_act_data = pd.json_normalize(res, record_path=['medicamentos','PrincipiosActivos'], max_level=1)
+                ## Principios activos
+                princip_act_data = pd.json_normalize(res[indx], record_path=['medicamentos','PrincipiosActivos'], max_level=1)
                 princip_act_data['NoPrescripcion'] = No_prescripcion
                 df_principios_act = df_principios_act.append(princip_act_data)
-                nutri_data = pd.json_normalize(res, record_path=['productosnutricionales'], max_level=1)
+                # Productos nut
+                nutri_data = pd.json_normalize(res[indx], record_path=['productosnutricionales'], max_level=1)
                 nutri_data['NoPrescripcion'] = No_prescripcion
                 df_principios_nutri = df_principios_nutri.append(nutri_data)
+                # Procedimientos
                 proce_data = pd.DataFrame([s['procedimientos'] for s in res])
                 proce_data['NoPrescripcion'] = No_prescripcion
                 df_procedimientos = df_procedimientos.append(proce_data)
@@ -93,10 +98,11 @@ def func_get_BI_MIPRES_prescripcion():
     # Get date list from the last 5 days
     now = pd.datetime.today()
     days_ago = add_days_to_date(now,-5)
-    #now = datetime(2022,7,17)
-    #days_ago = datetime(2022,7,14)
+    now = datetime(2023,5,30)
+    days_ago = datetime(2023,4,1)
 
     dates = pd.date_range(start=days_ago, end = now,freq='D')
+    print(dates)
 
     dates = dates.tolist()
 
@@ -128,6 +134,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_pres = ['CodAmbAte', 'PacCovid19', 'EnfHuerfana', 'EstPres']
 
     for i in int_col_pres:
+        df_prescripcion[i] = df_prescripcion[i].fillna(0)
+        df_prescripcion[i] = df_prescripcion[i].astype(int)
         df_prescripcion[i] = df_prescripcion[i].astype(str)
         df_prescripcion[i] = df_prescripcion[i].str.replace('.0','', regex=False)
     
@@ -147,6 +155,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_med = ['ConOrden', 'DosisUM', 'CanTrat', 'DurTrat', 'CantTotalF', 'UFCantTotal', 'EstJM']
 
     for i in int_col_med:
+        df_meds[i] = df_meds[i].fillna(0)
+        df_meds[i] = df_meds[i].astype(int)
         df_meds[i] = df_meds[i].astype(str)
         df_meds[i] = df_meds[i].str.replace('.0','', regex=False)
     
@@ -175,29 +185,33 @@ def func_get_BI_MIPRES_prescripcion():
 
     # Processing dataframes: servicios complementarios
     int_col_servcom = ['ConOrden', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat', 'EstJM']
+    if ~df_servicios_complementarios.empty and len(df_servicios_complementarios.columns) >0:
+        for i in int_col_servcom:
+            df_servicios_complementarios[i] = df_servicios_complementarios[i].fillna(0)
+            df_servicios_complementarios[i] = df_servicios_complementarios[i].astype(int)
+            df_servicios_complementarios[i] = df_servicios_complementarios[i].astype(str)
+            df_servicios_complementarios[i] = df_servicios_complementarios[i].str.replace('.0','', regex=False)
 
-    for i in int_col_servcom:
-        df_servicios_complementarios[i] = df_servicios_complementarios[i].astype(str)
-        df_servicios_complementarios[i] = df_servicios_complementarios[i].str.replace('.0','', regex=False)
+        df_servicios_complementarios = df_servicios_complementarios[['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
+        'DescCausaS4', 'CausaS5', 'CodSerComp', 'DescSerComp', 'CanForm',
+        'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat',
+        'TipoTrans', 'ReqAcom', 'TipoIDAcomAlb', 'NroIDAcomAlb',
+        'ParentAcomAlb', 'NombAlb', 'CodMunOriAlb', 'CodMunDesAlb', 'JustNoPBS',
+        'IndRec', 'EstJM','NoPrescripcion']]
+        
+        toint_cols = ['CanForm','CadaFreUso','Cant','CantTotal']
+        for i in toint_cols:
+            df_servicios_complementarios[i] = df_servicios_complementarios[i].str.replace(",",'.')
+            df_servicios_complementarios[i] = pd.to_numeric(df_servicios_complementarios[i], errors='coerce')
 
-    df_servicios_complementarios = df_servicios_complementarios[['ConOrden', 'TipoPrest', 'CausaS1', 'CausaS2', 'CausaS3', 'CausaS4',
-      'DescCausaS4', 'CausaS5', 'CodSerComp', 'DescSerComp', 'CanForm',
-      'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat',
-      'TipoTrans', 'ReqAcom', 'TipoIDAcomAlb', 'NroIDAcomAlb',
-      'ParentAcomAlb', 'NombAlb', 'CodMunOriAlb', 'CodMunDesAlb', 'JustNoPBS',
-      'IndRec', 'EstJM','NoPrescripcion']]
-    
-    toint_cols = ['CanForm','CadaFreUso','Cant','CantTotal']
-    for i in toint_cols:
-        df_servicios_complementarios[i] = df_servicios_complementarios[i].str.replace(",",'.')
-        df_servicios_complementarios[i] = pd.to_numeric(df_servicios_complementarios[i], errors='coerce')
-
-    df_servicios_complementarios = df_servicios_complementarios.drop_duplicates(subset=['ConOrden','CodSerComp','NoPrescripcion'])
+        df_servicios_complementarios = df_servicios_complementarios.drop_duplicates(subset=['ConOrden','CodSerComp','NoPrescripcion'])
 
     # Processing dataframes: principios activos
     int_col_seract = ['ConOrden', 'UMedCantCont']
 
     for i in int_col_seract:
+        df_principios_act[i] = df_principios_act[i].fillna(0)
+        df_principios_act[i] = df_principios_act[i].astype(int)
         df_principios_act[i] = df_principios_act[i].astype(str)
         df_principios_act[i] = df_principios_act[i].str.replace('.0','', regex=False)
     
@@ -216,6 +230,8 @@ def func_get_BI_MIPRES_prescripcion():
     int_col_prodnut = ['ConOrden', 'CanTrat','DurTrat', 'CantTotalF', 'UFCantTotal', 'EstJM']
 
     for i in int_col_prodnut:
+        df_principios_nutri[i] = df_principios_nutri[i].fillna(0)
+        df_principios_nutri[i] = df_principios_nutri[i].astype(int)
         df_principios_nutri[i] = df_principios_nutri[i].astype(str)
         df_principios_nutri[i] = df_principios_nutri[i].str.replace('.0','', regex=False)
 
@@ -236,14 +252,16 @@ def func_get_BI_MIPRES_prescripcion():
     
     # Processing dataframes: procedimientos
     int_col_proc = ['ConOrden', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'EstJM']
+    if ~df_procedimientos.empty and len(df_procedimientos.columns) >0:
+        for i in int_col_proc:
+            df_procedimientos[i] = df_procedimientos[i].fillna(0)
+            df_procedimientos[i] = df_procedimientos[i].astype(int)
+            df_procedimientos[i] = df_procedimientos[i].astype(str)
+            df_procedimientos[i] = df_procedimientos[i].str.replace('.0','', regex=False)
 
-    for i in int_col_proc:
-        df_procedimientos[i] = df_procedimientos[i].astype(str)
-        df_procedimientos[i] = df_procedimientos[i].str.replace('.0','', regex=False)
 
-
-    df_procedimientos = df_procedimientos.dropna(subset=['ConOrden', 'TipoPrest', 'CausaS11', 'CausaS12', 'CausaS2', 'CausaS3', 'CausaS4', 'ProPBSUtilizado', 'CausaS5', 'ProPBSDescartado', 'RznCausaS51', 'DescRzn51', 'RznCausaS52', 'DescRzn52', 'CausaS6', 'CausaS7', 'CodCUPS', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat', 'JustNoPBS', 'IndRec', 'EstJM'])
-    df_procedimientos = df_procedimientos.drop_duplicates(subset=['ConOrden', 'CodCUPS', 'NoPrescripcion'])
+        df_procedimientos = df_procedimientos.dropna(subset=['ConOrden', 'TipoPrest', 'CausaS11', 'CausaS12', 'CausaS2', 'CausaS3', 'CausaS4', 'ProPBSUtilizado', 'CausaS5', 'ProPBSDescartado', 'RznCausaS51', 'DescRzn51', 'RznCausaS52', 'DescRzn52', 'CausaS6', 'CausaS7', 'CodCUPS', 'CanForm', 'CadaFreUso', 'CodFreUso', 'Cant', 'CantTotal', 'CodPerDurTrat', 'JustNoPBS', 'IndRec', 'EstJM'])
+        df_procedimientos = df_procedimientos.drop_duplicates(subset=['ConOrden', 'CodCUPS', 'NoPrescripcion'])
 
     # Load data to tmp tables
     if ~df_prescripcion.empty and len(df_prescripcion.columns) >0:
