@@ -27,3 +27,6 @@ __pycache__
 /.local/share/powershell/PSReadLine/ConsoleHost_history.txt
 .local/share/powershell/PSReadLine/ConsoleHost_history.txt
 .local/share/powershell/PSReadLine/ConsoleHost_history.txt
+dags/__pycache__/*.*
+.local
+/.local
