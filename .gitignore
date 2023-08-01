@@ -22,4 +22,15 @@
 /dags/__pycache__/*.*
 __pycache__
 .gitconfig
+<<<<<<< HEAD
 .bash_history
+=======
+.bash_history
+/.local/share/powershell/*.*
+/.local/share/powershell/PSReadLine/ConsoleHost_history.txt
+.local/share/powershell/PSReadLine/ConsoleHost_history.txt
+.local/share/powershell/PSReadLine/ConsoleHost_history.txt
+dags/__pycache__/*.*
+.local
+/.local
+>>>>>>> Manar

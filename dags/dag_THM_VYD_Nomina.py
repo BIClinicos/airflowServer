@@ -68,24 +68,31 @@ def transform_table(path):
     # dataframe activos
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     df_active = pd.read_excel(path, header = [4], sheet_name = 0)
     df_active["estado"] = "Activos"
     df_active["organizacion"] = "CLÍNICOS"
 
     df_active_innovar = pd.read_excel(path, header = [4], sheet_name = 2)
 =======
+=======
+>>>>>>> Manar
     df_active = pd.read_excel(path, header = [0], sheet_name = 0)
     df_active["estado"] = "Activos"
     df_active["organizacion"] = "CLÍNICOS"
     df_active = norm_col_names(df_active)
 
     df_active_innovar = pd.read_excel(path, header = [0], sheet_name = 2)
+<<<<<<< HEAD
+>>>>>>> Manar
+=======
 >>>>>>> Manar
     df_active_innovar["estado"] = "Activos"
     df_active_innovar["organizacion"] = "INNOVAR"
 
     # dataframe de la hoja de retirados
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     df_retired = pd.read_excel(path, header = [3], sheet_name = 1)
     df_retired["estado"] = "Retirados"
@@ -100,13 +107,25 @@ def transform_table(path):
 
     df_retired_innovar = pd.read_excel(path, header = [1], sheet_name = 3)
 >>>>>>> Manar
+=======
+    df_retired = pd.read_excel(path, header = [0], sheet_name = 1)
+    df_retired["estado"] = "Retirados"
+    df_retired["organizacion"] = "CLÍNICOS"
+    df_retired = norm_col_names(df_retired)
+
+    df_retired_innovar = pd.read_excel(path, header = [1], sheet_name = 3)
+>>>>>>> Manar
     df_retired_innovar["estado"] = "Retirados"
     df_retired_innovar["organizacion"] = "INNOVAR"
 
     # Remplazo de campos innovar
     assign_innovar = {
 <<<<<<< HEAD
+<<<<<<< HEAD
         " CEDULA ":"Identific.",
+=======
+        "DOCUMENTO":"Identific.",
+>>>>>>> Manar
 =======
         "DOCUMENTO":"Identific.",
 >>>>>>> Manar
@@ -125,6 +144,7 @@ def transform_table(path):
     }
     df_active_innovar.rename(columns = assign_innovar, inplace = True)
     df_retired_innovar.rename(columns = assign_innovar, inplace = True) 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     # Arreglo de los cargos con "-" en innovar
@@ -160,6 +180,17 @@ def transform_table(path):
     # Append entre las hojas de activos y retirados
     df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
 >>>>>>> Manar
+=======
+    df_active_innovar = norm_col_names(df_active_innovar)
+    df_retired_innovar = norm_col_names(df_retired_innovar)
+
+    ## Corregir Cargo INNOVAR
+    df_active_innovar['cargo'] = df_active_innovar['cargo'].str.replace('-','') 
+    df_retired_innovar['cargo'] = df_retired_innovar['cargo'].str.replace('-','')
+
+    # Append entre las hojas de activos y retirados
+    df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
+>>>>>>> Manar
 
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.lower()
@@ -172,9 +203,12 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
 <<<<<<< HEAD
+<<<<<<< HEAD
     print(df['cargo'].dtype)
 
 =======
+=======
+>>>>>>> Manar
 
     ## Quitar Nombre CCosto de ingesta - 20230321
     # Reemplazo de valores mal escritos en la columna nombre_ccosto

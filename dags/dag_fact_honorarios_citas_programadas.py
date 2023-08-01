@@ -102,7 +102,7 @@ def func_get_honoraries_stating ():
         load_df_to_sql(df, db_tmp_table, sql_connid)
 
 
-def execute_Sql():
+def execute_Sql(): # Se utiliza para elilminar registros duplicados en cargas adicionales.
      query = f"""
      delete from TmpHonorariosCitasModeloEspecializada where Fecha_Inicio >='{last_week}' AND Fecha_Inicio <'{now}'
      """

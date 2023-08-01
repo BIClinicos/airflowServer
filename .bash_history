@@ -942,6 +942,7 @@ git push origin manar_miguel
 git config --global user.name MVelandia29
 git config --global user.email miguel.velandia@manar.com.co
 git config -l
+<<<<<<< HEAD
 >>>>>>> manar_miguel
 git status
 git checkout main
@@ -1059,3 +1060,260 @@ cd 2022-09-12
 sudo rm -r -f
 sudo rm -r -f *files
 exit
+=======
+git pull origin main
+git push origin manar_miguel
+git branch -l
+git checkout manar_miguel
+git status
+git checkout manar_miguel
+git add .
+git commit -m "Change gitignore"
+git push origin main
+git checkout manar_miguel
+git pull origin main
+git checkout main
+git checkout origin main
+git branch -l
+git add .
+git commit -m "change git ignore"
+git push origin manar_miguel
+git config -l
+git status
+git init
+git status
+git branch -l
+git commit -m "Paso a producción add contrato nueva eps consultas y notas"
+git add .
+git commit -m "Paso a producción add contrato nueva eps consultas y notas"
+git push origin manar_miguel
+git status
+sudo su
+git branch -l
+git pull
+git checkout manar_miguel
+git branch -l
+git add .
+git commit -m "archivos pycache"
+git checkout manar_miguel
+git branch -l
+git pull origin main
+git branch -l
+git status
+git commit -m "archivos pycache"
+git add .
+git commit -m "archivos pycache"
+git status
+git add.
+git branch -l
+git add .
+git commit -m "Add DAG oficinas, profesionales medicos y examenes"
+git push origin manar_miguel
+git push
+git status
+git push origin manar_miguel
+git branch /l
+git branch -l
+clear
+git branch -l
+git remote -v
+git push origin manar_miguel
+git push 
+git push origin/manar_miguel
+git push origin manar_miguel
+git push -u origen manar_miguel
+git add .
+git commit -m "Add dag Examenes"
+git push origin manar_miguel
+sudo git push
+git push origin manar_miguel
+clear
+git add .
+git commit -m "Creación de dag Fac examenes detalle"
+git push origin manar_miguel
+git status
+/usr/bin/python3
+git brand main
+git add .
+git commit -m 'Guardado 20230321'
+git checkout mian
+git checkout main
+git checkout miguel_manar1
+git checkout manar_miguel
+git add .
+git commit -m 'Cambios 20230321'
+git checkout manar_miguel
+git branch -l
+/usr/bin/python3 /home/airflowclinicos/dags/dag_dim_cita.py
+git branch -l
+git add .
+git commit -m 'Modificacioens archivo de OPS y Nomina'
+git status
+git
+git status
+clear
+git add .
+git commit -m "Add ETL Honotarios domiciliaria"
+git push origin manar_miguel
+git push origin miguel_manar
+git push origin manar_miguel
+git branch -l
+git push origin manar_miguel
+git push manar_miguel
+clear
+git push
+sudo git push origin manar_miguel
+clear
+git branch -l
+/usr/bin/python3 /home/airflowclinicos/dags/dag_fact_honorarios_citas_programadas.py
+sudo su
+cd home/usr/local/bin
+cd usr/local/bin
+sudo su
+crontab -e
+crontab -e
+find /home/airflowclinicos/logs/scheduler/ -mtime +20 -delete
+find /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+sudo su find /home/airflowclinicos/logs/scheduler/ -mtime +20 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +20 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+sudo rm -r find /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+rm -r find /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ rm -r -mtime +14 -delete
+rm -r /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+rm /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 rm -r
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 rm
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 rm -rf
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 -rm -rf
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 -rmdir -r
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 rmdir -r
+rm -r find /home/airflowclinicos/logs/scheduler/ -mtime +14
+cd /home/airflowclinicos/logs/scheduler/
+-mtime +14 -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +14 -type ** -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +13 -type * -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +13 -type d -delete
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +13 -type d -exec rm -r
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +13 -type d -exec rm -r {} \;
+sudo find /home/airflowclinicos/logs/scheduler/ -mtime +10 -type d -exec rm -r {} \;
+crontab -e
+echo eliminar-scheduler-last-month.sh
+ls
+cd ..
+cd /usr/local/bin/
+ls
+nano eliminar-scheduler-last-month.sh
+ls
+sudo
+sudo -su
+sudo su
+git branch -l
+git branch -l
+git add .
+git commit -m "Add dag etl acciones_generales"
+git push origin manar_miguel
+sudo service sshd reload
+sudo passwd root
+ls -l
+-dh
+-h
+df -h
+rm -rf ~/.local/share/Trash/*
+df -h
+git branch -l
+git pull origin main
+sudo su
+/usr/bin/python3 /home/airflowclinicos/dags/test_dags.py
+git add .
+git commit -m "Recargar modelos de farmacia para ajustar campo de contratos"
+git push origin manar_miguel
+clear
+git status
+df -h
+cd /home/airflowclinicos/logs/
+-ls
+ls
+sudo rm -r -f dag*
+ls
+cd /home/airflowclinicos/logs/scheduler/
+ls
+sudo rm -r -f 2023-05*
+exit
+df -h
+cd /home/airflowclinicos/logs/scheduler/
+ls
+reboot
+df -h
+standalone
+help
+airflow standalone
+status
+help
+airflow users list
+pip freeze
+cls
+clear
+ls
+whereis python
+python3.8 dags/dag_fact_honorarios_citas_programadasDomi.py 
+python3 dags/dag_fact_honorarios_citas_programadasDomi.py 
+python38 dags/dag_fact_honorarios_citas_programadasDomi.py 
+whereis python
+python3.8 dags/dag_fact_honorarios_citas_programadasDomi.py 
+/usr/bin/python3 /home/airflowclinicos/dags/dag_fact_honorarios_citas_programadasDomi.py
+ls
+ls c:users
+ls c:
+ls
+ls C:
+pscp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/files_notas_tecnicas_tarifas
+scp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/files_notas_tecnicas_tarifas
+scp C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+ssh: Could not resolve hostname c: Temporary failure in name resolution
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas
+scp "c:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:\Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:Users\Manuel Fernandez\Downloads\TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C:/Users/Manuel Fernandez/Downloads/TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+scp "C/Users/Manuel Fernandez/Downloads/TblHTarifarioConsultas.xlsx" airflowclinicos@20.51.187.220:/home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/files_notas_tecnicas_tarifas/
+exit
+/usr/bin/python3 /home/airflowclinicos/dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py
+scp --help
+man scp
+clear
+pwd
+pwd dags
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+tree dags/
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+tree -h
+tree --help
+tree -I __pycache__
+tree dags -I __pycache__
+tree dags -I __pycache__|files
+tree dags -I "__pycache__|files"
+tree dags -I "__pycache__|files_-+"
+tree dags -I "__pycache__|files_.+"
+tree dags -I "__pycache__|files_"
+tree dags -I "(__pycache__|files_)"
+tree dags -I "(__pycache__)|(files_)"
+tree dags -I "__pycache__|(files_)"
+tree dags -I "__pycache__|files_"
+tree dags -I "__pycache__"
+tree dags -I "files_"
+tree dags -I "__pycache__"
+tree dags -I "__pycache__|files_*"
+tree dags -I "__pycache__|files_*|dag_*"
+tree dags -I "__pycache__|files_*"
+python3 dags/dags_notas_tecnicas_tarifas/dag_dim_notas_tecnicas_tarifas.py 
+/usr/bin/python3
+cls
+clear
+tree dags -I "__pycache__|files_*"
+cls
+clear
+>>>>>>> Manar
