@@ -1,0 +1,6 @@
+# Para comprobar que docker engine está instalado
+>> sudo docker run hello-world
+
+# Para comprobar que docker compose está instalado
+>> docker compose version
+

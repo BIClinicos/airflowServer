@@ -1317,3 +1317,20 @@ tree dags -I "__pycache__|files_*"
 cls
 clear
 >>>>>>> Manar
+ls
+ls -a
+dir
+cd /home/airflowclinicos/dags/folder_testing/
+ls
+cls
+clear
+ls
+clear
+py --version
+python --version
+python -m venv venv
+python virtualenv venv
+docker version
+sudo docker run hello-world
+clear
+docker compose version
