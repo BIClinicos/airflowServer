@@ -22,3 +22,6 @@
 /dags/__pycache__/*.*
 .gitconfig
 .bash_history
+/.local/
+.local/
+__pycache__
