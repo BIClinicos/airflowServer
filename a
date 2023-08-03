@@ -1,0 +1,325 @@
+[33mcommit 2af12fbcae67f30f740e85fa9147eb3ef8284e19[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Wed Aug 2 02:15:33 2023 +0000
+
+    others: no important
+
+[33mcommit 1ff33de34aa5ce81608f35ef3013c0b149948798[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 22:07:24 2023 +0000
+
+    Elminar .local __pycache__
+
+[33mcommit e648e9745c4fbb99a304a7fd2f86f7a760dcc692[m
+Merge: 19a2b3ab 1a4710be
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 21:23:54 2023 +0000
+
+    update:last update
+
+[33mcommit 1a4710be87de4da6279c78a8a504705b869119f5[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 16:31:40 2023 +0000
+
+    fix:.gitignore
+
+[33mcommit 900223fc8f15b5d1dc822e1b9d6a64ebf2bb15e3[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 16:17:55 2023 +0000
+
+    fix:.gitignore
+
+[33mcommit 19a2b3abbb54bed0dc661a964243cb13d27345a3[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 16:16:47 2023 +0000
+
+    fix:.gitignore
+
+[33mcommit 0d99bc3037c239058acd4d5ac1c29e2de04c5f94[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:51:18 2023 +0000
+
+    update:.gitignore
+
+[33mcommit 9bb2dde940285e011f2e3b439631acf52b41fda4[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:46:08 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit 22c01606c7ee0a91e4b76e02fdec1c9a7b906cc2[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:43:42 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit 0e9ea58b9e0ed422d45027965004bceb8e0940e8[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:42:02 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit a2cc27c3b65d7f055376040f067117907a5d68c2[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:41:28 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit a8b46246358d37e66275dff3d85dfb726e5fdc23[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:41:14 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit 3207347af62fcb49b839455a7cd406ffab484943[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:40:46 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit b9ece4155d15e733d7bc2368612a49783c655a43[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:39:18 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit abb2de231d2c08f7bc85183990a2ed08a307f7d0[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:36:50 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit fbbd531ee5d3a5ab20458cdd456579ba9f216667[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Aug 1 15:34:00 2023 +0000
+
+    changes:.gitignore
+
+[33mcommit 92514c4de7e178a0ac9a64fd6cc0c3a95fa32423[m[33m ([m[1;32mmanar_miguel[m[33m)[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Aug 1 14:48:28 2023 +0000
+
+    update:All dags/create: Dags
+
+[33mcommit 40f235bde80ebf00bb5f5c7df239c44ecb2ccbf4[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Fri Jul 7 20:07:45 2023 +0000
+
+    Cambios en domiciliaria y PAMI
+
+[33mcommit adad6be7e9f6611c9fae4bb8c9929297700b41fa[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Jun 20 15:15:05 2023 +0000
+
+    Desarrollo Neps
+
+[33mcommit 65d10c63ab8b84eed151de7b1958f400d85a320f[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Mon Jun 5 02:40:03 2023 +0000
+
+    Cambios de mayo
+
+[33mcommit 0879e2101e7790b82e17519832ceca568e379875[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Mon Jun 5 02:39:26 2023 +0000
+
+    Carga completa de mayo
+
+[33mcommit 5d77e2d76daf5d0c4569ab4ae44dc1bbb1ce396c[m[33m ([m[1;31morigin/manar_miguel[m[33m)[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Thu May 4 12:38:45 2023 +0000
+
+    Recargar modelos de farmacia para ajustar campo de contratos
+
+[33mcommit d1ca27ea9781628b95d532f46a01635fecb0452b[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Wed Apr 26 22:20:21 2023 +0000
+
+    Desarrollo del dag gestión farmaceutica
+
+[33mcommit 14b64f0b80958913bae818777a7f3f58eb881607[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Apr 18 19:55:13 2023 +0000
+
+    Implentación de modelo de inasistencia
+
+[33mcommit 20abee8671954533df1d9aa56be27331b771d542[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Apr 4 21:52:52 2023 +0000
+
+    Cambios generales: honorarios y PAMI (parte 1)
+
+[33mcommit 69715db4bef2566bcddea300272e28fb4f016be4[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Wed Mar 29 20:21:51 2023 +0000
+
+    Add ETL Honotarios domiciliaria
+
+[33mcommit 94a68ccb1814a142d7c8cb5d8bd9ae4a4fcc9c72[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Fri Mar 24 21:17:30 2023 +0000
+
+    Add dag etl acciones_generales
+
+[33mcommit 333a47e08f728ba075ed4536f4de210064ad7439[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Thu Mar 23 21:54:02 2023 +0000
+
+    Modificacioens archivo de OPS y Nomina
+
+[33mcommit d0a5dd5a4fe90654ff81db0a815acd1dba613c8a[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Mar 21 15:56:27 2023 +0000
+
+    Cambios 20230321
+
+[33mcommit 628a8604061ace05a2889e8c9a01e05a00de406b[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 21 15:54:09 2023 +0000
+
+    Guardado 20230321
+
+[33mcommit 073ad4d4ad7e4d54dd22661d9115c3c36d440623[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 14 23:38:57 2023 +0000
+
+    Creación de dag Fac examenes detalle
+
+[33mcommit ff2ee5d21ad62efecb40c3d3be05e8f68bc5e804[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 14 21:10:53 2023 +0000
+
+    Add dag Examenes
+
+[33mcommit 29737ab57b47c9e82df1851ba571c7acc1553745[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 14 21:04:24 2023 +0000
+
+    Add DAG oficinas, profesionales medicos y examenes
+
+[33mcommit 998b3df0827a93bb8ad4291c1340cacd629ac5eb[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 14 14:19:32 2023 +0000
+
+    archivos pycache
+
+[33mcommit a333506b2ab05020336bf7df46eb48d599acb054[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Mar 14 14:18:40 2023 +0000
+
+    archivos pycache
+
+[33mcommit 5d8e69f97f34aa4e4541b6f6f29b4a6c0cda1924[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Wed Mar 8 12:21:11 2023 +0000
+
+    Cambios locales Miguel
+
+[33mcommit 27a59593784b433149527207254864d5d40ef699[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 7 22:22:33 2023 +0000
+
+    Paso a producción add contrato nueva eps consultas y notas
+
+[33mcommit f2d04acd4d6ef69d953d62d36f34427e35fecc44[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 7 20:43:22 2023 +0000
+
+    change git ignore
+
+[33mcommit c768860f10f5b0be4941abcedf1135642bcad535[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Mar 7 20:40:00 2023 +0000
+
+    Change gitignore
+
+[33mcommit d77fea3b95aa2d770c59f7f3ce428ccaa76e6753[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Tue Mar 7 20:27:39 2023 +0000
+
+    Exclusion de gitconfig
+
+[33mcommit 1f9724d8c7061d702a62e330e87d879f94d84d42[m
+Merge: 370e4d87 c5eecb8b
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Tue Mar 7 20:24:23 2023 +0000
+
+    Exclusion de binarios pycache
+
+[33mcommit c5eecb8be280ab02e1146f766cef8ba09c1af70f[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Mon Mar 6 22:08:45 2023 +0000
+
+    Add contrado nueva EPS a reporte de consultas y notas
+
+[33mcommit 2d173e0291610ed96cd0c80bcdcfe6744e1a548b[m
+Author: MVelandia29 <miguel.velandia@manar.com.co>
+Date:   Mon Mar 6 19:20:43 2023 +0000
+
+    Config profile
+
+[33mcommit ceb954319575b5aa36bc25329a017f31eaa18f89[m
+Author: MVelandia29 <bi@clinicos.com.co>
+Date:   Mon Mar 6 19:06:44 2023 +0000
+
+    C -mambios en dag/pycache
+
+[33mcommit 370e4d872b15d3016613a90361c133b99ee5112a[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Mon Mar 6 16:59:30 2023 +0000
+
+    Cambios en nomina
+
+[33mcommit a21b91fa46231c1f7d4aa87358a04e5f07763eb3[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Mon Mar 6 14:34:58 2023 +0000
+
+    202303 v1 modficaciones consultas y notas
+
+[33mcommit e5003aa734246dbcaca299e8fa44f3018d1430e1[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Thu Mar 2 22:23:34 2023 +0000
+
+    Corrección bugs ETL dag_SAL_DOM_CO_Notes
+
+[33mcommit c34ed35357fc9803c4912581c85ccb7aedc5b0c9[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Thu Mar 2 19:18:48 2023 +0000
+
+    Correción de DAG_CO_Consultatios
+
+[33mcommit a58c0ed78ee82d504e2cb1345e44ed114dc7e03b[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Tue Feb 28 19:23:37 2023 +0000
+
+    Inicial commit entorno 28-02-2023
+
+[33mcommit 2abab0c1042ac9f9c8e5bafed075c35bcd5133ea[m[33m ([m[1;31morigin/dev[m[33m)[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Tue Feb 21 01:30:17 2023 +0000
+
+    Changes Fabian 20230220
+
+[33mcommit c5f4ea78a1a493247a47b12db8d8693d8f8925c6[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Mon Jan 30 21:03:15 2023 +0000
+
+    Changes 20230130
+
+[33mcommit c3376078d362eb7ccbeaff67c6686a1b6049447f[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Fri Dec 16 00:28:28 2022 +0000
+
+    Last IA Aplicada changes
+
+[33mcommit 4ecb311b3cdfb9363857c0c454c3d31ed3579e2b[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Tue Nov 29 19:33:59 2022 +0000
+
+    Git config test
+
+[33mcommit 4c5f5202571287a6a7abd4ebce79000f86cdccdd[m
+Author: BIClinicos <bi@clinicos.com.co>
+Date:   Tue Nov 29 19:30:58 2022 +0000
+
+    first commit
