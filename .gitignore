@@ -31,3 +31,5 @@ __pycache__
 dags/__pycache__/*.*
 .local
 /.local
+./.bash_history
+./.wget-hsts 

@@ -119,6 +119,7 @@ def transform_table(path):
     df['unidad_para_informe_mensual'] = df['unidad_de_negocio_principal']
 
     df['unidad_para_informe_mensual'] = df['unidad_para_informe_mensual'].fillna('')
+    df['unidad_para_informe_mensual'] = df['unidad_para_informe_mensual'].str.replace('[^\x00-\x7F]','')
     df.loc[df['unidad_para_informe_mensual'].str.contains('(Administrativa)+'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
     df.loc[df['unidad_para_informe_mensual'].str.contains('Gerencia'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
     df.loc[df['unidad_para_informe_mensual'].str.contains('Proyecto Merk'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
@@ -161,6 +162,9 @@ def transform_table(path):
     df['estado'] = df['estado'].str.split(',').str[0]
     df['estado_activo_inactivo_retirado'] = df['estado']
     df['tipo_id'] = df['tipo_id'].fillna('CC') 
+    df['id'] = df['id'].astype(str)
+    df['id'] = df['id'].str.slice(0,20)
+    df['id'] = df['id'].str.replace('\..*','')
 
     df = df[['tipo_id','id','nombre_completo','especialidad','sede','inicio_contrato',
         'valor_contrato','unidad_de_negocio','unidad_para_informe_mensual',
