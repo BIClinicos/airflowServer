@@ -33,3 +33,6 @@ dags/__pycache__/*.*
 /.local
 ./.bash_history
 ./.wget-hsts 
+.dotnet
+.vscode/
+.wget*

@@ -133,8 +133,9 @@ def transform_table(path):
     df['unidad'] = df['unidad'].str.replace('GERENCIA  GENERAL','Unidad administrativa')
     df['unidad'] = df['unidad'].str.replace('MERK','Unidad administrativa')
     df['unidad'] = df['unidad'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
-    df['unidad'] = df['unidad'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Financier)+.*$)','Vicepresidencia financiera', case = False)
     df['unidad'] = df['unidad'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
+    df['unidad'] = df['unidad'].str.replace(r'(^.*(Comercial)+.*$)','Vicepresidencia de negocios', case = False)
     df['unidad'] = df['unidad'].str.upper()
     ## Quitar Nombre CCosto de ingesta - 20230321
     # df['Unidad'].fillna(df['Nombre CCosto'])

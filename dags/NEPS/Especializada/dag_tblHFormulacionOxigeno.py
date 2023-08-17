@@ -5,7 +5,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
 from airflow.hooks.mssql_hook import MsSqlHook
 from datetime import datetime, timedelta
-from NEPS.utils.utils import generar_rango_fechas, get_hours, other_hours
+from NEPS.utils.utils import generar_rango_fechas, get_dispositivo, get_hours, other_hours, get_cpap_bpap
 from variables import sql_connid,sql_connid_gomedisys
 from utils import sql_2_df,load_df_to_sql,update_to_sql
 
@@ -17,7 +17,7 @@ dag_name = 'dag_' + db_table
 
 now = datetime.now()
 # last_week_date = now - timedelta(weeks=1)
-last_week_date = datetime(2023,6,1)
+last_week_date = datetime(2021,1,1)
 last_week = last_week_date.strftime('%Y-%m-%d %H:%M:%S')
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -26,14 +26,12 @@ def func_get_FormulacionOxigeno ():
     with open("dags/NEPS/queries/OxigenoNEPS.sql") as fp:
         query = fp.read().replace("{last_week}", f"{last_week_date.strftime('%Y-%m-%d')!r}")
     df:pd.DataFrame = sql_2_df(query, sql_conn_id=sql_connid)
-
     return df
 
-def func_get_FormulacionOxigenoPlan(pacientes):
+def func_get_FormulacionOxigenoPlan():
     # LECTURA DE DATOS  
     with open("dags/NEPS/queries/OxigenoNEPSPlan.sql") as fp:
         query = fp.read().replace("{last_week}", f"{last_week_date.strftime('%Y-%m-%d')!r}")
-        query = query.replace("{pacientes}",",".join(map(str,pacientes)))
     df:pd.DataFrame = sql_2_df(query, sql_conn_id=sql_connid)
     df.rename(columns={"PlanTratamiento":"Recomendaciones"}, inplace=True)
 
@@ -51,12 +49,11 @@ def func_get_FormulacionOxigenoFinal():
     # LECTURA DE DATOS  
     df_main = func_get_FormulacionOxigeno()
     df_gom = func_get_FormulacionOxigenoGom()
-    df_main = pd.merge(df_main, df_gom,'outer', ["idUser", "Documento", "date_control"] )
+    df_main = pd.merge(df_gom, df_main,'outer', ["idUser", "Documento", "date_control"] )
     
     #PlanTratamiento
-    df_plan = func_get_FormulacionOxigenoPlan(df_main["idUser"].unique())
+    df_plan = func_get_FormulacionOxigenoPlan()
     df_plan.replace('"',"", inplace=True)
-    df_plan.rename(columns={"PlanTratamiento":"Recomendaciones"}, inplace=True)
     
     df_main['date_control'] = pd.to_datetime(df_main['date_control'])
     df_plan['date_control'] = pd.to_datetime(df_plan['date_control'])
@@ -67,13 +64,20 @@ def func_get_FormulacionOxigenoFinal():
     df_plan = df_plan.sort_values(by=['idUser', 'date_control'])
     df_plan = df_plan.groupby('idUser').apply(generar_rango_fechas)
     
-    df_last = pd.concat([df_main.reindex(),df_plan.reindex()],ignore_index=True)
-
-    df_last[pd.isna(df_last["Horas_Oxigeno"])]["Horas_Oxigeno"] = df_last[pd.isna(df_last["Horas_Oxigeno"])].apply(get_hours, axis = 1)
-    if df_last[pd.isna(df_last["Horas_Oxigeno"])].size != 0:
+    df_last = df_main.reindex().combine_first(df_plan.reindex())
+    
+    # df_last = pd.concat([df_main.reindex(),df_plan.reindex()],ignore_index=True)
+    mask = pd.isna(df_last["Horas_Oxigeno"])
+    df_last.loc[mask,"Horas_Oxigeno"] = df_last[mask].apply(get_hours, axis = 1)
+    if df_last[pd.isna(df_last["Horas_Oxigeno"])].shape[0] != 0:
         mask = pd.isna(df_last["Horas_Oxigeno"])
         if mask.any():
             df_last.loc[mask, "Horas_Oxigeno"] = df_last.loc[mask, "Recomendaciones"].apply(other_hours)
+            
+    mask = pd.isna(df_last["Dispositivo"])
+    df_last.loc[mask, "Dispositivo"] = df_last.loc[mask, "Recomendaciones"].apply(get_dispositivo)
+    
+    df_last["CPAP_BPAP"] = df_last["Recomendaciones"].apply(get_cpap_bpap)
     
     # CARGA A BASE DE DATOS
     if ~df_last.empty and len(df_last.columns) >0:
@@ -82,8 +86,10 @@ def func_get_FormulacionOxigenoFinal():
                 df_last[column] = df_last[column].astype(str)
         df_last.drop_duplicates(["idUser","date_control"], keep='last', inplace=True)
         df_last["date_control"] = df_last["date_control"].astype(str)
-        print(df_last.info())
-        load_df_to_sql(df_last, db_tmp_table, sql_connid)
+        datetime_columns = df_last.select_dtypes(include=['float64']).columns
+        for column in datetime_columns:
+            df_last[column] = df_last[column].apply(lambda x: int(x) if (not pd.isna(x) or x) else None)
+        load_df_to_sql(df_last, db_tmp_table, sql_connid, False)
         
         
 def update_FormulacionOxigenoFinal():
@@ -101,8 +107,16 @@ def update_FormulacionOxigenoFinal():
             other_hours, pather=(r"(?:^| )(?:(?:o2|ox)i?g?e?n?o?)[^\d\n]*(\d+\s*(?:hrs?|h))\b"
         ))
         
-    query = "UPDATE tmpFormulacionOxigeno SET Horas_Oxigeno = %s WHERE idUser = %s AND date_control = %s;"
-    params = [(row["Horas_Oxigeno"], row["idUser"], row["date_control"].strftime('%Y-%m-%d')) 
+    mask = pd.isna(data["Dispositivo"])
+    data.loc[mask, "Dispositivo"] = data.loc[mask, "Recomendaciones"].apply(get_dispositivo)
+    
+    mask = pd.isna(data["CPAP_BPAP"])
+    data.loc[mask, "CPAP_BPAP"] = data.loc[mask, "Recomendaciones"].apply(get_cpap_bpap)
+    
+    query = "UPDATE tmpFormulacionOxigeno SET Horas_Oxigeno = %s, Dispositivo = %s,CPAP_BPAP = %s  WHERE idUser = %s AND date_control = %s;"
+    params = [(row["Horas_Oxigeno"],row["Dispositivo"] if row["Dispositivo"] else 'NULL', 
+               row["CPAP_BPAP"] if row["CPAP_BPAP"] else 'NULL'
+               ,row["idUser"], row["date_control"].strftime('%Y-%m-%d')) 
                     for _, row in data.iterrows() if pd.notnull(row["Horas_Oxigeno"])]
     update_to_sql(params,sql_connid, query)
     
@@ -147,8 +161,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_FormulacionOxigeno_python_task = PythonOperator(task_id = "get_FormulacionOxigeno",
                                                         python_callable = func_get_FormulacionOxigenoFinal,
-                                                        email_on_failure=True, 
-                                                        email='BI@clinicos.com.co',
+                                                        # email_on_failure=True, 
+                                                        # email='BI@clinicos.com.co',
                                                         dag=dag
                                                         )
     

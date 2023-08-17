@@ -43,6 +43,7 @@ def func_get_custom_activities():
 		,CUAC.valueText	[valorTexto]
 		,EVEN.actionRecordedDate  [fechaRegistro]
 		,EVEN.idPatient	[idPaciente]
+        ,EVEN.idEncounter [idEncuentro]
 	from EHREventCustomActivities CUAC
 	inner join EHREvents EVEN on CUAC.idEvent = EVEN.idEHREvent
 	where CUAC.idConfigActivity = 179 or

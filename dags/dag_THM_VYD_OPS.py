@@ -123,9 +123,10 @@ def transform_table(path):
     df.loc[df['unidad_para_informe_mensual'].str.contains('(Administrativa)+'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
     df.loc[df['unidad_para_informe_mensual'].str.contains('Gerencia'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
     df.loc[df['unidad_para_informe_mensual'].str.contains('Proyecto Merk'), 'unidad_para_informe_mensual'] = 'Unidad Administrativa'
-    df.loc[df['unidad_para_informe_mensual'].str.contains('(Domiciliaria)+'), 'unidad_para_informe_mensual'] = 'Unidad Domiciliaria'
+    df.loc[df['unidad_para_informe_mensual'].str.contains('(Domiciliaria)+', case = False), 'unidad_para_informe_mensual'] = 'Unidad Domiciliaria'
     df.loc[df['unidad_para_informe_mensual'].str.contains('(Primaria)+'), 'unidad_para_informe_mensual'] = 'Unidad Primaria'
     df.loc[df['unidad_para_informe_mensual'].str.contains('(Especializada)+'), 'unidad_para_informe_mensual'] = 'Unidad Especializada'
+    df.loc[df['unidad_para_informe_mensual'].str.contains('(Cientf)+'), 'unidad_para_informe_mensual'] = 'VICEPRESIDENCIA CIENTIFICA'
     # df['unidad_para_informe_mensual'] = df.apply(lambda x: x['unidad_de_negocio'] if (x['unidad_para_informe_mensual'] == '') else x['unidad_para_informe_mensual'], axis = 1)
 
     df['unidad_de_negocio'] = df['unidad_para_informe_mensual']

@@ -3,6 +3,7 @@ import csv
 # from posixpath import dirname
 # from dateutil.parser import parse
 from airflow.hooks.mssql_hook import MsSqlHook
+import numpy as np
 from variables import sql_connid
 from variables import connection_string
 import pandas as pd
@@ -54,26 +55,48 @@ def sql_2_df(sql_query, **args) -> pd.DataFrame:
     return hook.get_pandas_df(sql=sql_query)
 
 
-def load_df_to_sql(df, sql_table, sql_connid):
+def load_df_to_sql(df:pd.DataFrame, sql_table, sql_connid, truncate=True):
     """Function to upload excel file to SQL table"""
+    # Convertir el DataFrame limpio a registros
     rows = df.to_records(index=False)
     rows_list = list(rows)
-    # Try Catch planteado por errores por comparacion de pd.NA (David Cardenas 2023-01-20)
+    
     try:
         row_list2 = [ tuple(None if item == 'None' or item == 'nan' or item == 'NAN' or pd.isnull(item) or pd.isna(item) or item == 'NaT' else item for item in row) for row in rows_list ]
     except TypeError:
-        row_list2 = [ tuple(None if pd.isnull(item) or pd.isna(item) else item for item in row) for row in rows_list ]    
-    # print(row_list2)
-
+        row_list2 = [ tuple(None if pd.isnull(item) or pd.isna(item) else item for item in row) for row in rows_list ]  
+    
     # Upload data to SQL Server
     sql_conn = MsSqlHook(sql_connid)
-    sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
-    sql_conn.insert_rows(sql_table, row_list2)
+    if truncate:
+        sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
+    sql_conn.insert_rows(sql_table, row_list2, [f'[{val}]' for val in df.columns.to_list()])
     
 def load_df_to_sql_pandas(df:pd.DataFrame, sql_table, sql_connid, pk:list=None):
     """Function to upload excel file to SQL table"""
+    # df_cleaned = df.replace([np.nan,pd.NaT, pd.NA,'nan', 'NaT'], None)
     sql_conn = MsSqlHook(sql_connid)
-    sql_conn.insert_rows(sql_table, df.values.tolist(), df.columns.to_list(),0)
+    # Convierte los valores NaN a None
+    df = df.where(pd.notnull(df), None)
+    sql_conn.insert_rows(sql_table, df.values.tolist(), df.columns.to_list())
+    
+    
+def load_df_to_sql_query(df:pd.DataFrame, sql_connid, query):
+    """Function to upload excel file to SQL table"""
+    # df_cleaned = df.replace([np.nan,pd.NaT, pd.NA,'nan', 'NaT'], None)
+    sql_conn = MsSqlHook(sql_connid)
+    # Convierte los valores NaN a None
+    df = df.where(pd.notnull(df), None)
+    conn = sql_conn.get_conn()
+    cursor = conn.cursor()
+    # Ejecuta el update con executemany
+    cursor.executemany(query, df.to_records(index=False))
+    conn.commit()
+
+    # Cierra el cursor y la conexión
+    cursor.close()
+    conn.close()
+    
     
 def update_to_sql(data:list, sql_connid, query_update:str):
     """Function to upload excel file to SQL table"""

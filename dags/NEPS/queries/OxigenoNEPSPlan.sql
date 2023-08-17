@@ -6,7 +6,7 @@ select
         from 
             TblDusuarios u 
             inner join tblHcitasinasistencia ci on u.idUser = ci.Paciente_id AND ci.contrato_id = 8 and ci.plan_id = 10 AND
-            paciente_id not in ({pacientes}) AND convert(date, ci.[Fecha Cita]) between {last_week} AND convert(date, GETDATE())
+             convert(date, ci.[Fecha Cita]) between {last_week} AND convert(date, GETDATE())
             INNER JOIN tblDeventosDiagnosticos ed on ci.idEncuentro = ed.idEncounter 
             INNER JOIN dimDiagnostics d on d.idDiagnostic = ed.idDiagnostic 
             INNER JOIN TblHGomedisysConsultation cg on ci.idEncuentro = cg.idEncounter AND 
