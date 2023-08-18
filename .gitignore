@@ -36,3 +36,5 @@ dags/__pycache__/*.*
 .dotnet
 .vscode/
 .wget*
+.fonts/
+.poshthemes/
