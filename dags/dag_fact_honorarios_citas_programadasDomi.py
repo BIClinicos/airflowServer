@@ -25,8 +25,8 @@ dag_name = 'dag_' + db_table
 
 # Para correr fechas con delta
 now = datetime.now()
-#last_week = now - timedelta(weeks=1)
-last_week = datetime(2023,6,1)
+last_week = now - timedelta(weeks=1)
+#last_week = datetime(2023,6,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 

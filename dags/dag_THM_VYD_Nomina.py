@@ -218,6 +218,8 @@ def transform_table(path):
 
     df['sucursal'] = df['sucursal'].str.strip()
 
+    ## Documento a int
+    df['identific.'] = df['identific.'].astype(int)
 
     print(df[['nivel_cargo', 'cargo']].head(46))
     print(df_1.head(46))

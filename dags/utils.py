@@ -11,6 +11,7 @@ from airflow.contrib.hooks.wasb_hook import WasbHook
 import os
 from azure.storage.blob import ContainerClient
 import xlrd
+import pymssql
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -69,8 +70,32 @@ def load_df_to_sql(df:pd.DataFrame, sql_table, sql_connid, truncate=True):
     # Upload data to SQL Server
     sql_conn = MsSqlHook(sql_connid)
     if truncate:
-        sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
-    sql_conn.insert_rows(sql_table, row_list2, [f'[{val}]' for val in df.columns.to_list()])
+        try:
+           sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
+        except (pymssql._pymssql.OperationalError,pymssql._mssql.MSSQLDatabaseException):
+            insert_new_table(sql_table,df,sql_connid)
+            return
+        
+    try:
+        sql_conn.insert_rows(sql_table, row_list2, [f'[{val}]' for val in df.columns.to_list()])
+    except (pymssql._mssql.MSSQLDatabaseException, pymssql._pymssql.ProgrammingError):
+        sql_conn.insert_rows(sql_table, row_list2)
+        
+        
+def insert_new_table(table, data:pd.DataFrame,sql_connid):
+    query = f"INSET INTO {table} ({','.join([f'[{val}]' for val in data.columns])}) VALUES ({','.join(['%s'*len(data.columns)])})"
+    print(query)
+    params = data.to_dict('records')
+    sql_conn = MsSqlHook(sql_connid)
+    conn = sql_conn.get_conn()
+    cursor = conn.cursor()
+    # Ejecuta el update con executemany
+    cursor.executemany(query, params)
+    conn.commit()
+
+    # Cierra el cursor y la conexión
+    cursor.close()
+    conn.close()
     
 def load_df_to_sql_pandas(df:pd.DataFrame, sql_table, sql_connid, pk:list=None):
     """Function to upload excel file to SQL table"""

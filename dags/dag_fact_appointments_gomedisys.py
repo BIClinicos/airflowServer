@@ -162,6 +162,15 @@ def func_get_fact_appointments_gomedisys ():
     for i in str_columns:
         df[i] = normalize_str_categorical(df[i].astype(str))
 
+    # Tratamiento de fechas
+
+    date_columns = ['atendido','fecha_cita','fecha_asignacion_cita','fecha_deseada']
+
+    for i in date_columns:
+        df[i] = df[i].astype(str)
+        df[i] = df[i].str.strip()
+        df[i] = pd.to_datetime(df[i], format="%Y-%m-%d", errors = 'coerce')
+    df['fecha_deseada'] = df['fecha_deseada'].fillna(df['fecha_cita'])
 
     #se calcula la columna de oportunidad real
     df['oportunidad'] = (df['fecha_cita'] -df['fecha_asignacion_cita']).dt.days
@@ -171,14 +180,6 @@ def func_get_fact_appointments_gomedisys ():
 
     df['codigo_cups'] = normalize_str_categorical(df['codigo_cups'])
     df['codigo_cups'] = df['codigo_cups'].str.extract(r'(^\d+\w)')
-
-
-    date_columns = ['atendido','fecha_cita','fecha_asignacion_cita','fecha_deseada']
-
-    for i in date_columns:
-        df[i] = df[i].astype(str)
-        df[i] = df[i].str.strip()
-        df[i] = pd.to_datetime(df[i], format="%Y-%m-%d", errors = 'coerce')
         
     missing_columns = ['id_cups']
     for i in missing_columns:
@@ -249,11 +250,11 @@ def func_get_fact_appointments_gomedisys ():
 
     for i in date_columns:
         df[i] = df[i].astype(str)
+        df[i] = df[i].fillna(df['appointment_date'])
 
     print(df.dtypes)
     print(df.columns)
     print(df)
-
     # # CARGA A BASE DE DATOS
     if ~df.empty and len(df.columns) >0:
         load_df_to_sql(df, db_tmp_table, sql_connid)

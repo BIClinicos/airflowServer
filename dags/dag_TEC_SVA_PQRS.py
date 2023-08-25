@@ -89,7 +89,7 @@ def transform_tables (path):
     df.columns = df.columns.str.replace('\n.*','')
     df.columns = df.columns.str.replace('#','no')
     df.columns = df.columns.str.replace('_\([^)]*\)','')
-
+    print(df.columns)
     # 20221020 Campo canal_de_recepcion nunca tiene nulos, se usa para eliminar entradas vacias
     df = df.dropna(subset=['canal_de_recepcion'])
 
@@ -169,8 +169,10 @@ def transform_tables (path):
 
     if 'alerta' in df.columns:
         df['alerta'] = df['alerta'].str.upper()
-    else:
+    elif 'alerta_de_vencimiento' in df.columns:
         df['alerta'] = df['alerta_de_vencimiento'].str.upper()
+    else:
+        df['alerta'] = ''
 
     # Reemplazo de INCAPACIDAD en INCAPACIDADES y TRATO INADECUADO DEL APCIENTE por TRATO INADECUADO DEL PACIENTE en la columna especialidad_area_proceso
 
@@ -181,7 +183,9 @@ def transform_tables (path):
     df['fecha_operacion'] = pd.to_datetime(date.today())
     df['contrato'] = ''
     df['cruce'] = ''
-
+    df['observacion'] = df['observacion'].replace({r'[^\x00-\x7F]+':''}, regex=True, inplace=True)
+    df['observacion'] = df['observacion'].str.slice(0,255)
+    df['telefonos'] = df['telefonos'].str.slice(0,20)
     # df.loc[df['edad'].str.lower().str.contains('mes') == True, 'edad'] = 0
 
     # Remplazo de columnas 2023-04

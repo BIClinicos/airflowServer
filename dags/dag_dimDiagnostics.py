@@ -61,7 +61,7 @@ with DAG(dag_name,
     # Se declara la función que sirve para denotar el inicio del DAG a través de DummyOperator
     start_task = DummyOperator(task_id='dummy_start')
 
-    #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
+    # Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_dimDiagnostics_python_task = PythonOperator(task_id = "get_dimDiagnostics",
                                                     python_callable = func_get_dimDiagnostics,
                                                     email_on_failure=True, 
