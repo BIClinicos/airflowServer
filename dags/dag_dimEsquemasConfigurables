@@ -2,7 +2,7 @@
 Proyecto: Masiva NEPS
 
 author dag: Luis Esteban Santamaría. Ingeniero de Datos.
-Fecha creación: 28/08/2023
+Fecha creación: 29/08/2023
 
 """
 
@@ -24,8 +24,8 @@ from utils import sql_2_df,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefi
 
 #  Creación de variables
 
-db_table = "TblDMedicionesDeMonitoria"
-db_tmp_table = "TmpMedicionesDeMonitoria"
+db_table = "TblDEsquemasConfigurables"
+db_tmp_table = "TmpEsquemasConfigurables"
 dag_name = 'dag_' + db_table
 
 
@@ -38,56 +38,51 @@ now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 
-
-# Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
-def func_get_dimMedicionesDeMonitoria ():
+def func_get_dimEsquemasConfigurables ():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
     query = f"""
         SELECT
-            Todo.idEventoEHR,
-            Todo.idUsuarioPaciente,
+            Todo.idEvento,
             Todo.idIngreso,
-            Todo.idMonitoreo,
-            Todo.idMedicion,
-            Todo.fechaEvento, 
-            Todo.ValorARegistrar,
-            Todo.nombreDelElemento,
-            Todo.esNumerico,
+            Todo.idUsuarioPaciente,
+            Todo.idEsquemaActividad,
+            Todo.idElementoAGuardar,
+            Todo.nombreElemento, 
+            Todo.valorTextoARegistrar,
+            Todo.valorNumARegistrar,
             Todo.isActive,
-            Todo.tieneNotasMedicas,
-            Todo.esParaTelemedicina
+            Todo.fechaEvento,
         FROM (
             SELECT DISTINCT
-                EHREvCust.idEHREvent as idEventoEHR,
-                Enc.idUserPatient as idUsuarioPaciente,
+                EHREvCust.idEvent as idEvento,
                 Eve.idEncounter as idIngreso,
-                EHREvCust.idMonitoring as idMonitoreo,
-                EHREvCust.idMedition as idMedicion,
-                EHREvCust.value as ValorARegistrar,
-                EHREvCUsM.name as nombreDelElemento,
-                EHREvCUsM.isNumeric as esNumerico,
-                EHREvCUsM.isActive as isActive,
-                Eve.haveMedicalNotes as tieneNotasMedicas,
-                Eve.isForTelemedicine as esParaTelemedicina,
+                Enc.idUserPatient as idUsuarioPaciente,
+                EHREvCust.idConfigActivity as idEsquemaActividad,
+                EHREvCust.idElement as idElementoAGuardar,
+                EHRConfCust.nameElement as nombreElemento,
+                EHREvCust.valueText as valorTextoARegistrar,
+                EHREvCust.valueNumeric as valorNumARegistrar,
+                Eve.isActive,
                 Eve.actionRecordedDate as fechaEvento,
-                ROW_NUMBER() over( partition by EHREvCust.idEHREvent,
-                                                Enc.idUserPatient,
+                ROW_NUMBER() over( partition by EHREvCust.idEvent,
                                                 Eve.idEncounter,
-                                                EHREvCust.idMonitoring,
-                                                EHREvCust.idMedition ORDER BY Eve.actionRecordedDate DESC) as Indicador
-            FROM EHREventICUMonitoringMeditions AS EHREvCust
-            INNER JOIN EHRConfUCIMonitoringMeditions AS EHREvCUsM WITH(NOLOCK)
-                ON EHREvCust.idMonitoring = EHREvCUsM.idMonitoring
-            INNER JOIN EHREvents AS Eve WITH(NOLOCK)
-                ON EHREvCust.idEHREvent = Eve.idEHREvent
-            INNER JOIN encounters as Enc WITH(NOLOCK)
-                ON Eve.idEncounter = Enc.idEncounter
-        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
-        WHERE Indicador=1
+                                                Enc.idUserPatient,
+                                                EHREvCust.idConfigActivity,
+                                                EHREvCust.idElement ORDER BY Eve.actionRecordedDate DESC) as Indicador
+            FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
+            INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
+            INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
+            LEFT JOIN EHRConfCustomActivityElements AS EHRConfCust
+            ON EHREvCust.idConfigActivity = EHRConfCust.idConfigActivity
+            AND EHREvCust.idElement = EHRConfCust.idElement
+            WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
+            WHERE Indicador=1
     """
+
+
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
     # conversión de campos
@@ -108,6 +103,8 @@ default_args = {
     'depends_on_past': False,
     'start_date': datetime(2015, 6, 1),
 }
+
+
 # Se declara el DAG con sus respectivos parámetros
 with DAG(dag_name,
     catchup=False,
@@ -121,8 +118,8 @@ with DAG(dag_name,
     start_task = DummyOperator(task_id='dummy_start')
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
-    get_dimMedicionesDeMonitoria = PythonOperator(task_id = "get_dimMedicionesDeMonitoria",
-                                                                python_callable = func_get_dimMedicionesDeMonitoria,
+    get_dimEsquemasConfigurables = PythonOperator(task_id = "get_dimEsquemasConfigurables",
+                                                                python_callable = func_get_dimEsquemasConfigurables,
                                                                 #email_on_failure=False, 
                                                                 # email='BI@clinicos.com.co',
                                                                 dag=dag
@@ -132,4 +129,4 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimMedicionesDeMonitoria >> task_end
+start_task >> get_dimEsquemasConfigurables >> task_end
