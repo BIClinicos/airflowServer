@@ -66,30 +66,32 @@ def func_get_dimMedicionesSignosVitales ():
 
     query = f"""
         SELECT
-            Todo.id_Medicion_Registrada,
-            Todo.id_Usuario_Paciente,
-            Todo.Fecha_de_Evento,
-            Todo.Nombre_Signo_Vital,
-            Todo.Aplica_para_Hombres,
-            Todo.Aplica_para_Mujeres,
-            Todo.Edad_Minima_en_Meses,
-            Todo.Edad_Maxima_en_Meses,
-            Todo.Requiere_Especialidad_Profesional,
-            Todo.Requiere_Actividad_de_EHR,
-            Todo.Posicion_en_Pantalla
+            Todo.idMedicionRegistrada,
+            Todo.idUsuarioPaciente,
+            Todo.fechaEvento,
+            Todo.nombreSignoVital,
+            Todo.valorRegistradoSigno,
+            Todo.aplicaParaHombres,
+            Todo.aplicaParaMujeres,
+            Todo.edadMinimaEnMeses,
+            Todo.edadMaximaEnMeses,
+            Todo.requiereEspecialidadProfesional,
+            Todo.requiereActividadDeEHR,
+            Todo.posicionEnPantalla
         FROM (
             SELECT DISTINCT
-                EHRCM.idMeasurement as [id_Medicion_Registrada],
-                EHRPM.idUserPatient as [id_Usuario_Paciente],
-                EHRPM.recordedDate as [Fecha_de_Evento],
-                EHRCM.name as [Nombre_Signo_Vital],
-                EHRCM.isForMale as [Aplica_para_Hombres],
-                EHRCM.isForFemale as [Aplica_para_Mujeres],
-                EHRCM.minimumAgeMonths as [Edad_Minima_en_Meses],
-                EHRCM.maximumAgeMonths as [Edad_Maxima_en_Meses],
-                EHRCM.requireSpeciality as [Requiere_Especialidad_Profesional],
-                EHRCM.requiereCDA as [Requiere_Actividad_de_EHR],
-                EHRCM.sortPosition as [Posicion_en_Pantalla],
+                EHRCM.idMeasurement     as idMedicionRegistrada,
+                EHRPM.idUserPatient     as idUsuarioPaciente,
+                EHRPM.recordedDate      as fechaEvento,
+                EHRCM.name              as nombreSignoVital,
+                EHRPM.recordedValue     as valorRegistradoSigno,
+                EHRCM.isForMale         as aplicaParaHombres,
+                EHRCM.isForFemale       as aplicaParaMujeres,
+                EHRCM.minimumAgeMonths  as edadMinimaEnMeses,
+                EHRCM.maximumAgeMonths  as edadMaximaEnMeses,
+                EHRCM.requireSpeciality as requiereEspecialidadProfesional,
+                EHRCM.requiereCDA       as requiereActividadDeEHR,
+                EHRCM.sortPosition      as posicionEnPantalla,
                 ROW_NUMBER() over( partition by EHRCM.idMeasurement, EHRPM.idUserPatient ORDER BY EHRPM.recordedDate DESC) as Indicador
             FROM EHRConfMeasurements EHRCM
             INNER JOIN EHRPatientMeasurements EHRPM ON EHRCM.idMeasurement=EHRPM.idMeasurement
@@ -99,11 +101,9 @@ def func_get_dimMedicionesSignosVitales ():
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
-    #Convertir a str el campo de tipo fecha 
-    cols_dates = ['Fecha_de_Evento']
-    # df["id_Ingreso"] = df["id_Ingreso"].astype(int)
-    for col in cols_dates:
-        df[col] = df[col].astype(str)
+    # conversión de campos
+    df['fechaEvento'] = df['fechaEvento'].astype(str)
+    df['valorRegistradoSigno'] = df['valorRegistradoSigno'].astype(int)
 
 
     print(df.columns)

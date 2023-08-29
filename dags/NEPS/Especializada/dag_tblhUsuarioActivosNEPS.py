@@ -33,7 +33,7 @@ def func_get_UsuariosActivosNEPS():
             if isinstance(dtype,datetime):
                 df[column] = df[column].astype(str)
 
-        load_df_to_sql(df, db_tmp_table, sql_connid, False)
+        load_df_to_sql(df, db_tmp_table, sql_connid)
     
 
 

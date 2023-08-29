@@ -32,7 +32,7 @@ def func_get_Diagnostico():
     if ~df.empty and len(df.columns) >0:
         df.drop_duplicates(["idUser","date_control"], keep='last', inplace=True)
         df["date_control"] = df["date_control"].astype(str)
-        load_df_to_sql(df, db_tmp_table, sql_connid, False)
+        load_df_to_sql(df, db_tmp_table, sql_connid)
     
 
 

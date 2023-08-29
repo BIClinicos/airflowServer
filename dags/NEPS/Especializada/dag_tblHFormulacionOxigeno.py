@@ -88,8 +88,8 @@ def func_get_FormulacionOxigenoFinal():
         df_last["date_control"] = df_last["date_control"].astype(str)
         datetime_columns = df_last.select_dtypes(include=['float64']).columns
         for column in datetime_columns:
-            df_last[column] = df_last[column].apply(lambda x: int(x) if (not pd.isna(x) or x) else None)
-        load_df_to_sql(df_last, db_tmp_table, sql_connid, False)
+            df_last[column] = df_last[column].apply(lambda x: int(x) if (not pd.isna(x)) else None)
+        load_df_to_sql(df_last, db_tmp_table, sql_connid)
         
         
 def update_FormulacionOxigenoFinal():

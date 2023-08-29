@@ -64,7 +64,7 @@ def func_get_tblhEspecializadaNEPS():
         data_guardada["total_diagnosticos"] = data_guardada["total_diagnosticos"].astype(int)
         # data_guardada = data_guardada[['idUser','Documento','fecha_nacimiento','Edad','Género','date_control','fecha_registro','Indice_Comorbilidad','Diagnostico','total_diagnosticos','Horas_Oxigeno','Dispositivo','EpocGOLD']]
         data_guardada = data_guardada.drop_duplicates(["idUser","date_control"], keep='last')
-        load_df_to_sql(data_guardada,db_tmp_table, sql_connid, False)
+        load_df_to_sql(data_guardada,db_tmp_table, sql_connid)
     
 
 
