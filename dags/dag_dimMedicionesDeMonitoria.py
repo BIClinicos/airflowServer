@@ -45,7 +45,6 @@ def func_get_dimMedicionesDeMonitoria ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    """"""
     query = f"""
         SELECT
             Todo.idEventoEHR,
