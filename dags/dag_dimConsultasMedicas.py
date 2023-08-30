@@ -24,8 +24,8 @@ from utils import sql_2_df,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefi
 
 #  Creación de variables
 
-db_table = "TblDEsquemasConfigurables"
-db_tmp_table = "TmpEsquemasConfigurables"
+db_table = "TblDConsultasMedicas"
+db_tmp_table = "TmpConsultasMedicas"
 dag_name = 'dag_' + db_table
 
 
@@ -38,45 +38,72 @@ now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
 
-def func_get_dimEsquemasConfigurables ():
+
+def func_get_dimConsultasMedicas ():
 
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
     query = f"""
         SELECT
-            Todo.idEvento,
+            Todo.idEventoEHR,
             Todo.idIngreso,
             Todo.idUsuarioPaciente,
-            Todo.idEsquemaActividad,
-            Todo.idElementoAGuardar,
-            Todo.nombreElemento, 
-            Todo.valorTextoARegistrar,
-            Todo.isActive,
-            Todo.fechaEvento
+            Todo.idEscala,
+            Todo.idPregunta,
+            Todo.idRespuesta,
+            Todo.fechaEvento,
+            Todo.aplicaParaHombres,
+            Todo.aplicaParaMujeres,
+            Todo.descripcionRespuesta,
+            Todo.valorAnalizado,
+            Todo.idResultadoEvaluacion,
+            Todo.idRegistro,
+            Todo.interpretacionEscala
         FROM (
             SELECT DISTINCT
-                EHREvCust.idEvent as idEvento,
-                Eve.idEncounter as idIngreso,
+                EventMSC.idEHREvent as idEventoEHR,
+                Enc.idEncounter as idIngreso,
                 Enc.idUserPatient as idUsuarioPaciente,
-                EHREvCust.idConfigActivity as idEsquemaActividad,
-                EHREvCust.idElement as idElementoAGuardar,
-                EHRConfCust.nameElement as nombreElemento,
-                EHREvCust.valueText as valorTextoARegistrar,
-                Eve.isActive,
-                Eve.actionRecordedDate as fechaEvento,
-                ROW_NUMBER() over( partition by EHREvCust.idEvent,
-                                                Eve.idEncounter,
+
+                EventMSC.idScale as idEscala,
+                EventMSC.idQuestion as idPregunta,
+                EventMSC.idAnswer as idRespuesta,
+                ConfSQA.isForMale as aplicaParaHombres,
+                ConfSQA.isForFemale as aplicaParaMujeres,
+                ConfSQA.description as descripcionRespuesta,
+                ConfSQA.value as valorAnalizado,
+
+                EventMS.idEvaluation as idResultadoEvaluacion,
+                ConfgSV.idRecord as idRegistro,
+                ConfgSV.name as interpretacionEscala,
+
+                Ev.actionRecordedDate as fechaEvento,
+
+                ROW_NUMBER() over( partition by EventMSC.idEHREvent,
+                                                Enc.idEncounter,
                                                 Enc.idUserPatient,
-                                                EHREvCust.idConfigActivity,
-                                                EHREvCust.idElement ORDER BY Eve.actionRecordedDate DESC) as Indicador
-            FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
-            INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
-            INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
-            LEFT JOIN EHRConfCustomActivityElements AS EHRConfCust
-            ON EHREvCust.idConfigActivity = EHRConfCust.idConfigActivity
-            AND EHREvCust.idElement = EHRConfCust.idElement
-            WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
+                                                EventMSC.idScale,
+                                                EventMSC.idQuestion,
+                                                EventMSC.idAnswer,
+                                                EventMS.idEvaluation,
+                                                ConfgSV.idRecord ORDER BY Ev.actionRecordedDate DESC) as Indicador
+            FROM EHREventMedicalScaleQuestions AS EventMSC WITH(NOLOCK)
+            INNER JOIN EHRConfScaleQuestionAnswers AS ConfSQA WITH(NOLOCK)
+                ON EventMSC.idScale = ConfSQA.idScale
+                    AND ConfSQA.idQuestion = EventMSC.idQuestion
+                    AND ConfSQA.idAnswer = EventMSC.idAnswer
+            INNER JOIN EHREventMedicalScales AS EventMS WITH(NOLOCK) 
+                ON EventMSC.idEHREvent = EventMS.idEHREvent
+                    AND EventMSC.idScale = EventMS.idScale
+            INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) 
+                ON EventMS.idScale = ConfgSV.idScale
+                    AND ConfgSV.idRecord = EventMS.idEvaluation
+            INNER JOIN EHREvents AS Ev WITH(NOLOCK) 
+                ON EventMSC.idEHREvent = Ev.idEHREvent
+            INNER JOIN Encounters AS Enc WITH(NOLOCK) 
+                ON Ev.idEncounter = Enc.idEncounter
+            WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}') AS Todo
             WHERE Indicador=1
     """
 
@@ -85,6 +112,7 @@ def func_get_dimEsquemasConfigurables ():
 
     # conversión de campos
     df['fechaEvento'] = df['fechaEvento'].astype(str)
+    df['valorAnalizado'] = df['valorAnalizado'].astype(int)
 
     print(df.columns)
     print(df.dtypes)
@@ -116,8 +144,8 @@ with DAG(dag_name,
     start_task = DummyOperator(task_id='dummy_start')
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
-    get_dimEsquemasConfigurables = PythonOperator(task_id = "get_dimEsquemasConfigurables",
-                                                                python_callable = func_get_dimEsquemasConfigurables,
+    get_dimConsultasMedicas = PythonOperator(task_id = "get_dimConsultasMedicas",
+                                                                python_callable = func_get_dimConsultasMedicas,
                                                                 #email_on_failure=False, 
                                                                 # email='BI@clinicos.com.co',
                                                                 dag=dag
@@ -127,4 +155,4 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimEsquemasConfigurables >> task_end
+start_task >> get_dimConsultasMedicas >> task_end
