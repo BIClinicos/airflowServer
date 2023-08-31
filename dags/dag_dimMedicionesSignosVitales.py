@@ -140,13 +140,23 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"  
     get_dimMedicionesSignosVitales = PythonOperator(task_id = "get_dimMedicionesSignosVitales",
                                                                 python_callable = func_get_dimMedicionesSignosVitales,
-                                                                #email_on_failure=False, 
+                                                                # email_on_failure=False, 
                                                                 # email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )
 
 
+    # Se declara la función encargada de ejecutar el "Stored Procedure"
+    load_dimMedicionesSignosVitales = MsSqlOperator(task_id='Load_dimMedicionesSignosVitales',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblDMedicionesSignosVitales",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
+
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimMedicionesSignosVitales >> task_end
+start_task >> get_dimMedicionesSignosVitales >> load_dimMedicionesSignosVitales >> task_end

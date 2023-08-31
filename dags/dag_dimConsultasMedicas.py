@@ -151,8 +151,18 @@ with DAG(dag_name,
                                                                 dag=dag
                                                                 )
 
+    # Se declara la función encargada de ejecutar el "Stored Procedure"
+    load_dimConsultasMedicas = MsSqlOperator(task_id='Load_dimConsultasMedicas',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblDConsultasMedicas",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
+
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimConsultasMedicas >> task_end
+start_task >> get_dimConsultasMedicas >> load_dimConsultasMedicas >> task_end

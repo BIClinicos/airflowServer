@@ -1,9 +1,10 @@
 
+
 	DECLARE 
 		@idUserCompany INT= 1,
 		@dateStart DATETIME = {last_week},
 		@dateEnd DATETIME = convert(date,getdate()),
-		@OfficeFilter VARCHAR(MAX) = '1',--(SELECT STRING_AGG(idOffice,',') FROM companyOffices WHERE idUserCompany = 352666),
+		@OfficeFilter VARCHAR(MAX) = '1,17',--(SELECT STRING_AGG(idOffice,',') FROM companyOffices WHERE idUserCompany = 352666),
 		@idIns VARCHAR(MAX) = '16,33,285991,20,266465,422816,289134,17,150579,358811,39,88813,4,24,22,25,150571,302708,26,289154,365849,266467,7,28,23,420,32,421',
 		@idCont VARCHAR(MAX) = '83,81,79,76,84,77,88,82,78,80,92'
 
@@ -83,6 +84,7 @@ CREATE TABLE #tbResult(
 	 [TIPO DE IDENTIFICACIÓN] VARCHAR(120),
 	 [NÚMERO DE IDENTIFICACIÓN] VARCHAR(120),
 	 [INGRESO] INT,
+	 [NOMBRES COMPLETOS] VARCHAR(120),
 	 [CÓDIGO HABILITACIÓN] VARCHAR(120),
 	 [NIT IPS] VARCHAR(120),
 	 [CÓDIGO SUCURSAL] INT,
@@ -129,8 +131,10 @@ CREATE TABLE #tbResult(
 	 [DIAGNÓSTICO PRINCIPAL CIE 10] VARCHAR(120),
 	 [DIAGNÓSTICO NO.02 COMORBILIDAD PRINCIPAL CIE 10] VARCHAR(120),
 	 [DIAGNÓSTICO NO.03 OTRAS COMORBILIDADES CIE 10] VARCHAR(120),
-	 [CANTIDAD DE SERVICIOS SOLICITADOS] VARCHAR(120),
+	 [CANTIDAD DE SERVICIOS SOLICITADOS] INT,
 	 [CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO] VARCHAR(120),
+	 [idHCRecordEncounter]INT,
+	 [idHCRecordencounterHCActivities]INT,
 	 [MEDICINA GENERAL] VARCHAR(120),
 	 [MEDICINA ESPECIALIZADA] VARCHAR(120),
 	 [ESPECIALIDAD MÉDICA DE INTERVENCIÓN] VARCHAR(120),
@@ -233,10 +237,12 @@ SELECT
 	Doc.code + ' | ' + Doc.name AS [TIPO DE IDENTIFICACIÓN],
 	Pat.documentNumber AS [NÚMERO DE IDENTIFICACIÓN],
 	Enc.identifier AS [INGRESO],
+	(Pat.firstGivenName+' '+Pat.SecondGiveName+' '+Pat.firstFamilyName+' '+Pat.secondFamilyName) AS [NOMBRES COMPLETOS],
 	Office.legalCode AS [CÓDIGO HABILITACIÓN],
 	Ucom.documentNumber AS [NIT IPS],
-	Ucom.idUser AS [CÓDIGO SUCURSAL],
-	Enc.dateStart AS [FECHA DE INGRESO DEL USUARIO A LA IPS PAD],
+	RIGHT(Office.legalCode,1) AS [CÓDIGO SUCURSAL],
+	--Enc.dateStart
+	'' AS [FECHA DE INGRESO DEL USUARIO A LA IPS PAD],
 	CityD.codeConcatenate AS [MUNICIPIO DE RESIDENCIA],
 	PatU.telecom AS [NÚMERO TELEFÓNICO NO.1 DEL PACIENTE],
 	PatU.phoneHome AS [NÚMERO TELEFÓNICO NO.2 DEL PACIENTE],
@@ -275,12 +281,14 @@ SELECT
 	'' AS [PLAN DE INTERVENCIÓN- EVENTOS ADVERSOS],
 	'' AS [PLAN DE INTERVENCIÓN- FALLAS DE CALIDAD],
 	'' AS [OBSERVACIÓN],
-	Enc.dateStart AS [FECHA DE INGRESO AL PROGRAMA PAD],
+	'' AS [FECHA DE INGRESO AL PROGRAMA PAD],
 	'' AS [DIAGNÓSTICO PRINCIPAL CIE 10],
 	'' AS [DIAGNÓSTICO NO.02 COMORBILIDAD PRINCIPAL CIE 10],
 	'' AS [DIAGNÓSTICO NO.03 OTRAS COMORBILIDADES CIE 10],
-	1 AS [CANTIDAD DE SERVICIOS SOLICITADOS],
+	'1'  AS [CANTIDAD DE SERVICIOS SOLICITADOS],
 	EHRconfAct.codeActivity AS [CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO],
+	EncHc.idHCRecord AS [idHCRecordEncounter],
+	EncHc.idHCRecord AS [idHCRecordencounterHCActivities],
 	'' AS [MEDICINA GENERAL],
 	'' AS [MEDICINA ESPECIALIZADA],
 	'' AS [ESPECIALIDAD MÉDICA DE INTERVENCIÓN],
@@ -310,21 +318,21 @@ SELECT
 	'' AS [EQUIPO PARA PRESIÓN POSITIVA],
 	'' AS [TIEMPO REQUERIDO DE TRATAMIENTO],
 	'' AS [FECHA INICIO VENTILACIÓN MÉCANICA CRÓNICA],
-	'Seleccione' AS [MODO DE VENTILACIÓN MÉCANICA],
-	'Seleccione' AS [DESCRIPCIÓN OTRO MODO DE VENTILACIÓN MÉCANICA],
+	'' AS [MODO DE VENTILACIÓN MÉCANICA],
+	'' AS [DESCRIPCIÓN OTRO MODO DE VENTILACIÓN MÉCANICA],
 	'Seleccione' AS [MODO VENTILATORIO],
 	'Seleccione' AS [MODALIDAD VENTILATORIA],
-	'Seleccione' AS [DESCRIPCION MODALIDAD VENTILATORIA],
-	'Seleccione' AS [PEEP],
-	'Seleccione' AS [PEEP ALTO],
-	'Seleccione' AS [PEEP BAJO],
-	'Seleccione' AS [TIEMPO BAJO],
-	'Seleccione' AS [TIEMPO ALTO],
-	'Seleccione' AS [FRECUENCIA RESPIRATORIA TOTAL],
-	'Seleccione' AS [FRECUENCIA RESPIRATORIA PROGRAMADA],
-	'Seleccione' AS [FIO2],
+	'' AS [DESCRIPCION MODALIDAD VENTILATORIA],
+	'' AS [PEEP],
+	'' AS [PEEP ALTO],
+	'' AS [PEEP BAJO],
+	'' AS [TIEMPO BAJO],
+	'' AS [TIEMPO ALTO],
+	'' AS [FRECUENCIA RESPIRATORIA TOTAL],
+	'' AS [FRECUENCIA RESPIRATORIA PROGRAMADA],
+	'' AS [FIO2],
 	'Seleccione' AS [TIPO DE VENTILADOR EN USO POR EL PACIENTE],
-	'Seleccione' AS [DESCRIPCIÓN OTRO TIPO DE VENTILADOR EN USO POR EL PACIENTE],
+	'' AS [DESCRIPCIÓN OTRO TIPO DE VENTILADOR EN USO POR EL PACIENTE],
 	'' AS [OBSERVACIONES],
 	'' AS [FECHA DE CONTROL MÉDICO],
 	'' AS [HTA],
@@ -382,51 +390,85 @@ FROM encounters AS Enc WITH(NOLOCK)
 	AND EHRconfAct.idCompany = @idUserCompany
 	INNER JOIN encounterRecords AS EncR WITH(NOLOCK) ON Enc.idEncounter = EncR.idEncounter 
 WHERE Enc.idUserCompany = @idUserCompany
-	AND Enc.dateStart BETWEEN @dateStart AND (@dateEnd + '23:59:59')
+	--AND Enc.dateStart BETWEEN @dateStart AND (@dateEnd + '23:59:59')
+	AND EncHc.dateStart BETWEEN @dateStart AND (@dateEnd + '23:59:59')
 	AND Enc.idOffice IN (SELECT Value FROM dbo.FnSplit (@OfficeFilter))
 	AND EncR.idPrincipalContractee IN (SELECT Value FROM dbo.FnSplit (@idIns))
 	AND EncR.idPrincipalContract IN (SELECT Value FROM dbo.FnSplit (@idCont))
+	AND EncHc.isActive=1
+
+
+UPDATE #tbResult SET
+	[FECHA DE INGRESO DEL USUARIO A LA IPS PAD]= (SELECT TOP 1
+							EHREvCust.valueText
+						FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
+							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
+						WHERE EHREvCust.idConfigActivity = 375
+							AND EHREvCust.idElement = 1
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
+							order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
-	TALLA = (SELECT TOP 1 EHRPatM.recordedValue
+	TALLA = (SELECT TOP 1 CONVERT(VARCHAR,CONVERT(INT,EHRPatM.recordedValue)) AS TALLA
 				FROM EHRPatientMeasurements AS EHRPatM WITH(NOLOCK)
 					INNER JOIN EHRConfMeasurements AS EHRCM WITH(NOLOCK) ON EHRCM.idMeasurement = EHRPatM.idMeasurement
-				WHERE EHRPatM.idUserPatient = idPatient
+					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHRPatM.idEHREvent = Eve.idEHREvent
+				WHERE EHRPatM.idUserPatient = #tbResult.idPatient
 					AND EHRCM.name LIKE '%Talla%'
-				ORDER BY EHRPatM.idRecord DESC)
+					AND (Eve.idAction = 1013
+								OR Eve.idAction= 1004
+								OR Eve.idAction= 1023)
+				ORDER BY EHRPatM.recordedDate DESC)
 
 UPDATE #tbResult SET	
-	PESO = (SELECT TOP 1 EHRPatM.recordedValue
+	PESO = (SELECT TOP 1 CONVERT(VARCHAR,CONVERT(INT,EHRPatM.recordedValue)) AS PESO
 				FROM EHRPatientMeasurements AS EHRPatM WITH(NOLOCK)
 					INNER JOIN EHRConfMeasurements AS EHRCM WITH(NOLOCK) ON EHRCM.idMeasurement = EHRPatM.idMeasurement
-				WHERE EHRPatM.idUserPatient = idPatient
+					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHRPatM.idEHREvent = Eve.idEHREvent
+				WHERE EHRPatM.idUserPatient = #tbResult.idPatient
 					AND EHRCM.name LIKE '%peso%'
-				ORDER BY EHRPatM.idRecord DESC)
+					AND (Eve.idAction = 1013
+								OR Eve.idAction= 1004
+								OR Eve.idAction= 1023)
+				ORDER BY EHRPatM.recordedDate DESC)
 
 UPDATE #tbResult SET	
-	[TENSIÓN ARTERIAL SISTÓLICA] = (SELECT TOP 1 EHRPatM.recordedValue
+	[TENSIÓN ARTERIAL SISTÓLICA] = (SELECT TOP 1 CONVERT(VARCHAR,CONVERT(INT,EHRPatM.recordedValue)) AS [TENSIÓN ARTERIAL SISTÓLICA]
 				FROM EHRPatientMeasurements AS EHRPatM WITH(NOLOCK)
 					INNER JOIN EHRConfMeasurements AS EHRCM WITH(NOLOCK) ON EHRCM.idMeasurement = EHRPatM.idMeasurement
-				WHERE EHRPatM.idUserPatient = idPatient
+					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHRPatM.idEHREvent = Eve.idEHREvent
+				WHERE EHRPatM.idUserPatient = #tbResult.idPatient
 					AND EHRCM.name LIKE '%P.A.%Sist_lica%'
-				ORDER BY EHRPatM.idRecord DESC)
+					AND (Eve.idAction = 1013
+								OR Eve.idAction= 1004
+								OR Eve.idAction= 1023)
+				ORDER BY EHRPatM.recordedDate DESC)
 
 UPDATE #tbResult SET	
-	[TENSIÓN ARTERIAL DIASTÓLICA] = (SELECT TOP 1 EHRPatM.recordedValue
+	[TENSIÓN ARTERIAL DIASTÓLICA] = (SELECT TOP 1 CONVERT(VARCHAR,CONVERT(INT,EHRPatM.recordedValue)) AS [TENSIÓN ARTERIAL DIASTÓLICA]
 				FROM EHRPatientMeasurements AS EHRPatM WITH(NOLOCK)
 					INNER JOIN EHRConfMeasurements AS EHRCM WITH(NOLOCK) ON EHRCM.idMeasurement = EHRPatM.idMeasurement
-				WHERE EHRPatM.idUserPatient = idPatient
+					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHRPatM.idEHREvent = Eve.idEHREvent
+				WHERE EHRPatM.idUserPatient = #tbResult.idPatient
 					AND EHRCM.name LIKE '%P.A.%Diast_lica%'
-				ORDER BY EHRPatM.idRecord DESC)
+					AND (Eve.idAction = 1013
+								OR Eve.idAction= 1004
+								OR Eve.idAction= 1023)
+				ORDER BY EHRPatM.recordedDate DESC)
 
 
 UPDATE #tbResult SET	
-	[CIRCUNFERENCIA ABDOMINAL] = (SELECT TOP 1 EHRPatM.recordedValue
+	[CIRCUNFERENCIA ABDOMINAL] = (SELECT TOP 1 CONVERT(VARCHAR,CONVERT(INT,EHRPatM.recordedValue)) AS [CIRCUNFERENCIA ABDOMINAL]
 				FROM EHRPatientMeasurements AS EHRPatM WITH(NOLOCK)
 					INNER JOIN EHRConfMeasurements AS EHRCM WITH(NOLOCK) ON EHRCM.idMeasurement = EHRPatM.idMeasurement
-				WHERE EHRPatM.idUserPatient = idPatient
+					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHRPatM.idEHREvent = Eve.idEHREvent
+				WHERE EHRPatM.idUserPatient = #tbResult.idPatient
 					AND EHRCM.name LIKE '%Circunferencia%Abdominal%'
-				ORDER BY EHRPatM.idRecord DESC)
+					AND (Eve.idAction = 1013
+								OR Eve.idAction= 1004
+								OR Eve.idAction= 1023)
+				ORDER BY EHRPatM.recordedDate DESC)
 
 
 SET @idAct = ''
@@ -443,7 +485,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = 301
 							AND EHREvCust.idElement = 1
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 
 
@@ -463,7 +506,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = 302
 							AND EHREvCust.idElement = 1
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -481,7 +525,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = @idAct
 							AND EHREvCust.idElement = @idActEl
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -498,7 +543,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = @idAct
 							AND EHREvCust.idElement = @idActEl
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -517,7 +563,8 @@ UPDATE #tbResult SET
 												AND EHRconfS.idRecord = EHREVMS.idEvaluation
 											INNER JOIN EHREvents AS EV	WITH(NOLOCK) ON EHREVMS.idEHREvent = EV.idEHREvent
 										WHERE EHREVMS.idScale = 11
-											AND EV.idEncounter = #tbResult.idEncounter
+											AND Ev.idPatient = #tbResult.idPatient
+											--AND EV.idEncounter = #tbResult.idEncounter
 											order by EV.actionRecordedDate DESC )
 
 
@@ -531,7 +578,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 1
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC )
 
 UPDATE #tbResult SET	
@@ -544,7 +592,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 2
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC )
 
 UPDATE #tbResult SET	
@@ -557,7 +606,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 3
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC )
 
 UPDATE #tbResult SET	
@@ -570,7 +620,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 4
-		AND Eve.idEncounter = #tbResult.idEncounter
+	    AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -583,7 +634,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 6
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -596,7 +648,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 5
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -609,7 +662,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 7
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -622,7 +676,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 8
-		AND Eve.idEncounter = #tbResult.idEncounter
+	    AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -635,7 +690,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 9
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -648,7 +704,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11 
 		AND EHRCQA.idQuestion = 10
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 --CAMPO OK
@@ -661,8 +718,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 1
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 1
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	)
 	+
@@ -674,8 +732,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 2
-	AND Eve.idEncounter = #tbResult.idEncounter
+	    AND EHRCQA.idQuestion = 2
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	
 	+
@@ -687,8 +746,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 3
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 3
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	
 	+
@@ -700,8 +760,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 4
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 4
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -712,8 +773,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 5
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 5
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -724,8 +786,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 6
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 6
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -736,8 +799,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 7
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 7
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -748,8 +812,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 8
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 8
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -760,8 +825,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 9
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 9
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	+
 		(SELECT TOP 1
@@ -772,8 +838,9 @@ UPDATE #tbResult SET
 			AND EHRCQA.idAnswer = EHREvMS.idAnswer
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 11
-	AND EHRCQA.idQuestion = 10
-	AND Eve.idEncounter = #tbResult.idEncounter
+		AND EHRCQA.idQuestion = 10
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 	
 	
@@ -789,7 +856,8 @@ UPDATE #tbResult SET
 		INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 	WHERE EHRCQA.idScale = 12
 		AND EHRCQA.idQuestion = 1
-		AND Eve.idEncounter = #tbResult.idEncounter
+		AND Eve.idPatient = #tbResult.idPatient
+		--AND Eve.idEncounter = #tbResult.idEncounter
 		order by Eve.actionRecordedDate DESC)
 
 
@@ -800,7 +868,9 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 293
 									AND EHREvCust.idElement = 3
-									AND Eve.idEncounter = #tbResult.idEncounter)
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
+									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
 	[FASE DE LA ENFERMEDAD DE INGRESO EN LA QUE PRESENTA EL USUARIO(A)] = (SELECT TOP 1
@@ -809,7 +879,9 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 293
 									AND EHREvCust.idElement = 4
-									AND Eve.idEncounter = #tbResult.idEncounter)
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
+									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult
 SET [ACCIONES INSEGURAS] = ( SELECT TOP 1 EHREvCust.valueText
@@ -817,7 +889,8 @@ SET [ACCIONES INSEGURAS] = ( SELECT TOP 1 EHREvCust.valueText
                                 INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
                                 WHERE EHREvCust.idConfigActivity = 374
                                     AND EHREvCust.idElement = 1
-                                    AND Eve.idEncounter = #tbResult.idEncounter
+                                    AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
                                 ORDER BY Eve.actionRecordedDate DESC)
                        
 
@@ -828,7 +901,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 2
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 
@@ -839,7 +913,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 3
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 
@@ -852,7 +927,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 4
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -862,7 +938,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 5
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -872,7 +949,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 6
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET
@@ -882,7 +960,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 9
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -892,7 +971,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 7
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -902,10 +982,18 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 374
 									AND EHREvCust.idElement = 8
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
-	--[FECHA DE INGRESO AL PROGRAMA PAD] 
+UPDATE #tbResult SET 
+     [FECHA DE INGRESO AL PROGRAMA PAD] =(Select TOP 1 pro.datestart 
+											FROM EHRPatientTimeEvents AS PRO
+													INNER JOIN EHRConfPrograms AS CONFPRO ON CONFPRO.idProgram = PRO.idProgram
+													INNER JOIN EHRConfHCActivity AS CONFI WITH(NOLOCK) ON CONFPRO.code = RIGHT(CONFI.codeactivity,5)
+											where PRO.idPatient = #tbResult.idPatient
+												AND  CONFPRO.code= RIGHT(#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO],5)
+												AND pro.dateend IS NULL)
 
 UPDATE #tbResult SET	
 	[DIAGNÓSTICO PRINCIPAL CIE 10] = (SELECT  TOP 1
@@ -913,8 +1001,12 @@ UPDATE #tbResult SET
 									FROM EHREventMedicalDiagnostics AS EHREMDiag WITH(NOLOCK)
 										INNER JOIN EHREvents AS EV WITH(NOLOCK) ON EHREMDiag.idEHREvent = EV.idEHREvent
 										INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON Diag.idDiagnostic = EHREMDiag.idDiagnostic
-									WHERE EV.idEncounter = #tbResult.idEncounter
-										AND EHREMDiag.isPrincipal = 1)
+									WHERE  EV.idPatient = #tbResult.idPatient
+									--EV.idEncounter = #tbResult.idEncounter
+										AND EHREMDiag.isPrincipal = 1
+										AND (EV.idAction = 1013
+								OR EV.idAction= 1004
+								OR EV.idAction= 1023))
 
 UPDATE #tbResult SET	
 	[DIAGNÓSTICO NO.02 COMORBILIDAD PRINCIPAL CIE 10] =(SELECT  TOP 1
@@ -922,8 +1014,12 @@ UPDATE #tbResult SET
 									FROM EHREventMedicalDiagnostics AS EHREMDiag WITH(NOLOCK)
 										INNER JOIN EHREvents AS EV WITH(NOLOCK) ON EHREMDiag.idEHREvent = EV.idEHREvent
 										INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON Diag.idDiagnostic = EHREMDiag.idDiagnostic
-									WHERE EV.idEncounter = #tbResult.idEncounter
-										AND EHREMDiag.isPrincipal = 0)
+									WHERE  EV.idPatient = #tbResult.idPatient
+									--EV.idEncounter = #tbResult.idEncounter
+										AND EHREMDiag.isPrincipal = 0
+										AND (EV.idAction = 1013
+								OR EV.idAction= 1004
+								OR EV.idAction= 1023))
 
 UPDATE #tbResult SET	
 	[DIAGNÓSTICO NO.03 OTRAS COMORBILIDADES CIE 10] =(SELECT  TOP 1
@@ -931,23 +1027,30 @@ UPDATE #tbResult SET
 									FROM EHREventMedicalDiagnostics AS EHREMDiag WITH(NOLOCK)
 										INNER JOIN EHREvents AS EV WITH(NOLOCK) ON EHREMDiag.idEHREvent = EV.idEHREvent
 										INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON Diag.idDiagnostic = EHREMDiag.idDiagnostic
-									WHERE EV.idEncounter = #tbResult.idEncounter
-										AND EHREMDiag.isPrincipal = 0)
+									WHERE  EV.idPatient = #tbResult.idPatient
+									--EV.idEncounter = #tbResult.idEncounter
+										AND EHREMDiag.isPrincipal = 0
+										AND (EV.idAction = 1013
+								OR EV.idAction= 1004
+								OR EV.idAction= 1023)
+										order by Diag.code DESC )
 
 	--[CANTIDAD DE SERVICIOS SOLICITADOS]
 
 UPDATE #tbResult SET	
-	[MEDICINA GENERAL] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4984
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[MEDICINA GENERAL] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4984
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 
 
@@ -966,124 +1069,160 @@ UPDATE #tbResult SET
 								AND EveA.idMedition = 2666)
 
 UPDATE #tbResult SET	
-	[ENFERMERIA PROFESIONAL] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4987
-							AND EHREplan.isActive =1
-							AND EHREplan.idRol =139
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[ENFERMERIA PROFESIONAL] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4987
+										AND Act.idRol =139
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
+	
+	
+
+UPDATE #tbResult
+SET [NUTRICIÓN Y DIETÉTICA] =   (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 40496
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
+										
+									 
+									 
+UPDATE #tbResult SET	
+	PSICOLOGÍA = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4989
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	[NUTRICIÓN Y DIETÉTICA] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 40496
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
-																
+	[TRABAJO SOCIAL] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4990
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	PSICOLOGÍA = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4989
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[FONIATRIA Y FONOAUDIOLOGÍA] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 40497
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	[TRABAJO SOCIAL] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4990
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	FISIOTERAPIA = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4992
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	[FONIATRIA Y FONOAUDIOLOGÍA] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4987
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[TERAPIA RESPIRATORIA] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4993
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	FISIOTERAPIA = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4992
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[TERAPIA OCUPACIONAL] = (SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4994
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
 
 UPDATE #tbResult SET	
-	[TERAPIA RESPIRATORIA] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4993
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
-
-UPDATE #tbResult SET	
-	[TERAPIA OCUPACIONAL] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4994
-							AND EHREplan.isActive =1
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
-
-UPDATE #tbResult SET	
-	[AUXILIAR DE ENFERMERÍA] = (SELECT TOP 1 quantityTODO
-							
-						FROM encounterHCActivities AS EHREplan WITH(NOLOCK)
-							--INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREplan.idEncounter = Eve.idEncounter
-							LEFT JOIN encounterHC AS Ehc WITH(NOLOCK) ON EHREplan.idEncounter = Ehc.idEncounter
-							LEFT JOIN EHRConfHCActivity As Conf WITH(NOLOCK) ON Conf.idHCActivity = Ehc.idHCActivity
-						WHERE EHREplan.idProduct = 4987
-							AND EHREplan.isActive =1
-							AND EHREplan.idRol =141
-							AND EHREplan.idEncounter = #tbResult.idEncounter
-							AND Conf.codeActivity = #tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
-							order by EHREplan.dateRegister DESC)
+	[AUXILIAR DE ENFERMERÍA] = ((SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4987
+										AND Act.idRol =141
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC)
+										+
+										(SELECT TOP 1 TRY_CAST(Act.quantityTODO AS INT)  -- or use CAST(Act.quantityTODO AS INT) if using older SQL Server versions
+									    FROM encounterHC AS planus
+										INNER JOIN encounters AS INGR WITH(NOLOCK) ON planus.idEncounter = INGR.idEncounter
+										INNER JOIN encounterHCActivities AS Act WITH(NOLOCK) ON planus.idEncounter = Act.idEncounter 
+										INNER JOIN EHRConfHCActivity AS CONF WITH(NOLOCK) ON planus.idHCActivity = CONF.idHCActivity
+										WHERE planus.isActive = 1
+										AND Act.idProduct = 4525
+										AND Act.idRol =141
+										AND planus.idHCActivity = CONF.idHCActivity
+										AND planus.idHCRecord=#tbResult.idHCRecordEncounter
+										AND INGR.idEncounter = #tbResult.idEncounter
+										AND planus.idHCRecord = Act.idHCRecord
+										AND CONF.codeActivity=#tbResult.[CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO]
+										ORDER BY Act.dateRegister DESC))
 
 
 SET @idAct = ''
@@ -1104,7 +1243,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 									WHERE EHRCQA.idScale = @idAct
 										AND EHRCQA.idQuestion = @idActEl
-										AND Eve.idEncounter = #tbResult.idEncounter
+										 AND Eve.idPatient = #tbResult.idPatient
+										--Eve.idEncounter = #tbResult.idEncounter
 										order by Eve.actionRecordedDate DESC) 
 
 SET @idAct = ''
@@ -1124,7 +1264,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 									WHERE EHRCQA.idScale = @idAct 
 										AND EHRCQA.idQuestion = @idActEl
-										AND Eve.idEncounter = #tbResult.idEncounter
+										AND Eve.idPatient = #tbResult.idPatient
+										--Eve.idEncounter = #tbResult.idEncounter
 										order by Eve.actionRecordedDate DESC) 
 
 SET @idAct = ''
@@ -1145,7 +1286,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 									WHERE EHRCQA.idScale = @idAct
 										AND EHRCQA.idQuestion = @idActEl
-										AND Eve.idEncounter = #tbResult.idEncounter
+										AND Eve.idPatient = #tbResult.idPatient
+										--AND Eve.idEncounter = #tbResult.idEncounter
 										order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -1165,7 +1307,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 									WHERE EHRCQA.idScale = @idAct
 										AND EHRCQA.idQuestion = @idActEl
-										AND Eve.idEncounter = #tbResult.idEncounter
+										AND Eve.idPatient = #tbResult.idPatient
+										--AND Eve.idEncounter = #tbResult.idEncounter
 										order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -1185,7 +1328,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 									WHERE EHRCQA.idScale = @idAct
 										AND EHRCQA.idQuestion = @idActEl
-										AND Eve.idEncounter = #tbResult.idEncounter
+										AND Eve.idPatient = #tbResult.idPatient
+										--AND Eve.idEncounter = #tbResult.idEncounter
 										order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -1205,7 +1349,8 @@ UPDATE #tbResult SET
 					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 				WHERE EHRCQA.idScale = @idAct
 					AND EHRCQA.idQuestion = @idActEl
-					AND Eve.idEncounter = #tbResult.idEncounter
+					AND Eve.idPatient = #tbResult.idPatient
+					--AND Eve.idEncounter = #tbResult.idEncounter
 					order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -1225,7 +1370,8 @@ UPDATE #tbResult SET
 					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 				WHERE EHRCQA.idScale = @idAct
 					AND EHRCQA.idQuestion = @idActEl
-					AND Eve.idEncounter = #tbResult.idEncounter
+					AND Eve.idPatient = #tbResult.idPatient
+					--AND Eve.idEncounter = #tbResult.idEncounter
 					order by Eve.actionRecordedDate DESC)
 
 SET @idAct = ''
@@ -1245,7 +1391,8 @@ UPDATE #tbResult SET
 					INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvMS.idEHREvent = Eve.idEHREvent
 				WHERE EHRCQA.idScale = @idAct
 					AND EHRCQA.idQuestion = @idActEl
-					AND Eve.idEncounter = #tbResult.idEncounter
+					AND Eve.idPatient = #tbResult.idPatient
+					--AND Eve.idEncounter = #tbResult.idEncounter
 					order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1255,7 +1402,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = 303
 							AND EHREvCust.idElement = 1
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 	
 UPDATE #tbResult SET	
@@ -1265,7 +1413,8 @@ UPDATE #tbResult SET
 							INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 						WHERE EHREvCust.idConfigActivity = 303
 							AND EHREvCust.idElement = 2
-							AND Eve.idEncounter = #tbResult.idEncounter
+							AND Eve.idPatient = #tbResult.idPatient
+							--AND Eve.idEncounter = #tbResult.idEncounter
 							order by Eve.actionRecordedDate DESC)
 
 
@@ -1276,7 +1425,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 13
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1286,7 +1436,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 14
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1296,7 +1447,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 15
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1306,7 +1458,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 16
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient 
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1316,7 +1469,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 17
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 --[TIEMPO REQUERIDO DE TRATAMIENTO]	
@@ -1329,7 +1483,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 12
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 UPDATE #tbResult SET	
@@ -1339,7 +1494,8 @@ UPDATE #tbResult SET
 										INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 290
 									AND EHREvCust.idElement = 18
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 --[MODO VENTILATORIO]
@@ -1364,15 +1520,17 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
 								WHERE EHREvCust.idConfigActivity = 304
 									AND EHREvCust.idElement = 1
-									AND Eve.idEncounter = #tbResult.idEncounter
-									order by Eve.actionRecordedDate DESC)
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
+/* CAMPO OK*/									order by Eve.actionRecordedDate DESC)
 UPDATE #tbResult SET	
 	[FECHA DE CONTROL MÉDICO] = (SELECT TOP 1 EV.actionRecordedDate 
 								FROM EHREvents AS EV WITH(NOLOCK) 
 								WHERE (EV.idAction = 1013
 								OR EV.idAction= 1004
 								OR EV.idAction= 1023)
-								AND Ev.idEncounter = #tbResult.idEncounter
+								AND EV.idPatient = #tbResult.idPatient
+								--AND Ev.idEncounter = #tbResult.idEncounter
 								ORDER BY EV.idEHREvent DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1382,7 +1540,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2780
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1393,7 +1552,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2781
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1404,7 +1564,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2782
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1414,7 +1575,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2783
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 	/* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1424,7 +1586,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2784
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 	/* CAMPO OK*/
@@ -1435,7 +1598,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2787
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1446,7 +1610,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2792
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1456,7 +1621,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2793
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1466,7 +1632,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2794
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1477,7 +1644,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2795
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1488,7 +1656,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2796
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 	/* CAMPO OK*/
@@ -1499,7 +1668,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2797
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 	/* CAMPO OK*/
@@ -1510,7 +1680,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2798
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1520,7 +1691,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2799
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1530,7 +1702,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2801
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1540,7 +1713,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2804
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1550,7 +1724,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2805
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1560,7 +1735,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2813
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1570,7 +1746,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2814
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1580,7 +1757,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2824
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 /* CAMPO OK*/
@@ -1591,7 +1769,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2826
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1601,7 +1780,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2828
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1611,7 +1791,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2829
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1621,7 +1802,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2830
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1631,7 +1813,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2819
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1641,7 +1824,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2825
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1650,8 +1834,9 @@ UPDATE #tbResult SET
 								FROM EHREventICUMonitoringMeditions AS EHREUCI WITH(NOLOCK)
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
-									AND EHREUCI.idMedition = 2830
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND EHREUCI.idMedition = 2831
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1660,8 +1845,9 @@ UPDATE #tbResult SET
 								FROM EHREventICUMonitoringMeditions AS EHREUCI WITH(NOLOCK)
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
-									AND EHREUCI.idMedition = 2831
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND EHREUCI.idMedition = 2832
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1671,7 +1857,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2815
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1681,7 +1868,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2816
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1691,7 +1879,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2833
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1701,7 +1890,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2834
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1711,7 +1901,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2835
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1721,7 +1912,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2836
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1731,7 +1923,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2837
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1741,7 +1934,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2838
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1751,7 +1945,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2839
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1761,7 +1956,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2840
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1771,7 +1967,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2841
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1781,7 +1978,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2842
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1791,7 +1989,8 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2843
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 /* CAMPO OK*/
 UPDATE #tbResult SET	
@@ -1801,152 +2000,155 @@ UPDATE #tbResult SET
 									INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREUCI.idEHREvent = Eve.idEHREvent
 								WHERE EHREUCI.idMonitoring = '1044'
 									AND EHREUCI.idMedition = 2844
-									AND Eve.idEncounter = #tbResult.idEncounter
+									AND Eve.idPatient = #tbResult.idPatient
+									--AND Eve.idEncounter = #tbResult.idEncounter
 									order by Eve.actionRecordedDate DESC)
 
 SELECT 
 	 [TIPO DE IDENTIFICACIÓN],
 	 CONVERT(BIGINT,[NÚMERO DE IDENTIFICACIÓN],104) AS [NÚMERO DE IDENTIFICACIÓN],
 	 [INGRESO],
+	 [NOMBRES COMPLETOS],
 	 CONVERT(BIGINT,[CÓDIGO HABILITACIÓN],104) AS [CÓDIGO HABILITACIÓN],
 	 CONVERT(BIGINT,[NIT IPS],104) AS [NIT IPS],
-	 [CÓDIGO SUCURSAL],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE INGRESO DEL USUARIO A LA IPS PAD]),'dd/MM/yyyy hh:mm tt') AS [FECHA DE INGRESO DEL USUARIO A LA IPS PAD],
+	 CONVERT(BIGINT,[CÓDIGO SUCURSAL],104) AS [CÓDIGO SUCURSAL] ,
+	 COALESCE((FORMAT(CONVERT(DATETIME,[FECHA DE INGRESO DEL USUARIO A LA IPS PAD]),'dd/MM/yyyy')),'') AS [FECHA DE INGRESO DEL USUARIO A LA IPS PAD],
 	 CONVERT(BIGINT,[MUNICIPIO DE RESIDENCIA],104) AS [MUNICIPIO DE RESIDENCIA],
-	 [NÚMERO TELEFÓNICO NO.1 DEL PACIENTE] AS [NÚMERO TELEFÓNICO NO.1 DEL PACIENTE],
-	 [NÚMERO TELEFÓNICO NO.2 DEL PACIENTE] AS [NÚMERO TELEFÓNICO NO.2 DEL PACIENTE],
-	 [DIRECCIÓN DE RESIDENCIA DEL PACIENTE],
-	 [TALLA],
-	 [PESO],
-	 [TENSIÓN ARTERIAL SISTÓLICA],
-	 [TENSIÓN ARTERIAL DIASTÓLICA],
-	 [CIRCUNFERENCIA ABDOMINAL],
-	 [ASPECTO GENERAL],
-	 [INTEGRIDAD DE LA PIEL],
-	 [RED DE APOYO],
-	 [SOPORTE DE CUIDADOR],
-	 [SITUACIÓN ACTUAL DE DISCAPACIDAD],
-	 [ALIMENTACIÓN],
-	 [ACTIVIDADES EN BAÑO],
-	 [VESTIRSE],
-	 [ASEO PERSONAL],
-	 [DEPOSICIONES-CONTROL ANAL],
-	 [MICCION-CONTROL VESICAL],
-	 [MANEJO DE INODORO O RETRETE],
-	 [TRASLADO SILLA-CAMA],
-	 [DEAMBULACIÓN TRASLADO],
-	 [SUBIR O BAJAR ESCALONES],
-	 [VALORACIÓN BARTHEL],
-	 [INDICE KARNOFSKY],
-	 [CARACTERÍSTICAS DE LAS PATOLOGÍAS DE INGRESO DEL PACIENTE],
-	 [FASE DE LA ENFERMEDAD DE INGRESO EN LA QUE PRESENTA EL USUARIO(A)],
-	 [ACCIONES INSEGURAS],
-	 [EVENTOS ADVERSOS PRESENTADOS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],
-	 [DESCRIPCIÓN DE OTROS EVENTOS ADVERSOS],
+	 COALESCE([NÚMERO TELEFÓNICO NO.1 DEL PACIENTE],'') AS [NÚMERO TELEFÓNICO NO.1 DEL PACIENTE],
+	 COALESCE([NÚMERO TELEFÓNICO NO.2 DEL PACIENTE],'') AS [NÚMERO TELEFÓNICO NO.2 DEL PACIENTE],
+	 COALESCE([DIRECCIÓN DE RESIDENCIA DEL PACIENTE],'') AS [DIRECCIÓN DE RESIDENCIA DEL PACIENTE],
+	 COALESCE([TALLA],'') AS [TALLA],
+	 COALESCE([PESO],'') AS [PESO],
+	 COALESCE([TENSIÓN ARTERIAL SISTÓLICA],'') AS [TENSIÓN ARTERIAL SISTÓLICA],
+	 COALESCE([TENSIÓN ARTERIAL DIASTÓLICA],'') AS [TENSIÓN ARTERIAL DIASTÓLICA],
+	 COALESCE([CIRCUNFERENCIA ABDOMINAL],'') AS [CIRCUNFERENCIA ABDOMINAL],
+	 COALESCE([ASPECTO GENERAL],'') AS [ASPECTO GENERAL],
+	 COALESCE([INTEGRIDAD DE LA PIEL],'') AS [INTEGRIDAD DE LA PIEL],
+	 COALESCE([RED DE APOYO],'') AS [RED DE APOYO],
+	 COALESCE([SOPORTE DE CUIDADOR],'') AS [SOPORTE DE CUIDADOR],
+	 COALESCE([SITUACIÓN ACTUAL DE DISCAPACIDAD],'') AS [SITUACIÓN ACTUAL DE DISCAPACIDAD],
+	 COALESCE([ALIMENTACIÓN],'') AS [ALIMENTACIÓN],
+	 COALESCE([ACTIVIDADES EN BAÑO],'') AS [ACTIVIDADES EN BAÑO],
+	 COALESCE([VESTIRSE],'') AS [VESTIRSE],
+	 COALESCE([ASEO PERSONAL],'') AS [ASEO PERSONAL],
+	 COALESCE([DEPOSICIONES-CONTROL ANAL],'') AS [DEPOSICIONES-CONTROL ANAL],
+	 COALESCE([MICCION-CONTROL VESICAL],'') AS [MICCION-CONTROL VESICAL],
+	 COALESCE([MANEJO DE INODORO O RETRETE],'') AS [MANEJO DE INODORO O RETRETE],
+	 COALESCE([TRASLADO SILLA-CAMA],'') AS [TRASLADO SILLA-CAMA],
+	 COALESCE([DEAMBULACIÓN TRASLADO],'') AS [DEAMBULACIÓN TRASLADO],
+	 COALESCE([SUBIR O BAJAR ESCALONES],'') AS [SUBIR O BAJAR ESCALONES],
+	 COALESCE([VALORACIÓN BARTHEL],'') AS [VALORACIÓN BARTHEL],
+	 COALESCE([INDICE KARNOFSKY],'Seleccione') as [INDICE KARNOFSKY],
+	 COALESCE([CARACTERÍSTICAS DE LAS PATOLOGÍAS DE INGRESO DEL PACIENTE],'Seleccione') as [CARACTERÍSTICAS DE LAS PATOLOGÍAS DE INGRESO DEL PACIENTE],
+	 COALESCE([FASE DE LA ENFERMEDAD DE INGRESO EN LA QUE PRESENTA EL USUARIO(A)],'Seleccione') as [FASE DE LA ENFERMEDAD DE INGRESO EN LA QUE PRESENTA EL USUARIO(A)],
+	 COALESCE([ACCIONES INSEGURAS],'Seleccione') as [ACCIONES INSEGURAS],
+	 COALESCE([EVENTOS ADVERSOS PRESENTADOS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],'Seleccione') as [EVENTOS ADVERSOS PRESENTADOS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],
+	 COALESCE([DESCRIPCIÓN DE OTROS EVENTOS ADVERSOS],'') as [DESCRIPCIÓN DE OTROS EVENTOS ADVERSOS],
 	 [NIT IPS DE OCURRENCIA DEL EVENTO ADVERSO],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE EVENTO ADVERSO]),'dd/MM/yyyy hh:mm tt') AS [FECHA DE EVENTO ADVERSO],
-	 [GRADO DE LESIÓN DEL EVENTO ADVERSO],
-	 [PLAN DE INTERVENCIÓN- EVENTOS ADVERSOS],
-	 [FALLAS DE CALIDAD PRESENTADAS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],
-	 [PLAN DE INTERVENCIÓN- FALLAS DE CALIDAD],
-	 [OBSERVACIÓN],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE INGRESO AL PROGRAMA PAD]),'dd/MM/yyyy hh:mm tt') AS [FECHA DE INGRESO AL PROGRAMA PAD],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE EVENTO ADVERSO]),'dd/MM/yyyy hh:mm tt'),'') AS [FECHA DE EVENTO ADVERSO],
+	 COALESCE([GRADO DE LESIÓN DEL EVENTO ADVERSO],'Seleccione') AS [GRADO DE LESIÓN DEL EVENTO ADVERSO],
+	 COALESCE([PLAN DE INTERVENCIÓN- EVENTOS ADVERSOS],'') AS [PLAN DE INTERVENCIÓN- EVENTOS ADVERSOS],
+	 COALESCE([FALLAS DE CALIDAD PRESENTADAS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],'Seleccione') as [FALLAS DE CALIDAD PRESENTADAS EN LA ATENCIÓN DE PACIENTES EN EL DOMICILIO],
+	 COALESCE([PLAN DE INTERVENCIÓN- FALLAS DE CALIDAD],'') AS [PLAN DE INTERVENCIÓN- FALLAS DE CALIDAD],
+	 COALESCE([OBSERVACIÓN],'') AS [OBSERVACIÓN],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE INGRESO AL PROGRAMA PAD]),'dd/MM/yyyy'),'') AS [FECHA DE INGRESO AL PROGRAMA PAD],
 	 [DIAGNÓSTICO PRINCIPAL CIE 10],
 	 [DIAGNÓSTICO NO.02 COMORBILIDAD PRINCIPAL CIE 10],
 	 [DIAGNÓSTICO NO.03 OTRAS COMORBILIDADES CIE 10],
-	 [CANTIDAD DE SERVICIOS SOLICITADOS] AS [CANTIDAD DE SERVICIOS SOLICITADOS],
+	 [CANTIDAD DE SERVICIOS SOLICITADOS],
 	 [CÓDIGO SERVICIO DE ATENCIÓN REQUERIDA POR EL USUARIO],
-	 [MEDICINA GENERAL] AS [MEDICINA GENERAL],
-	 [MEDICINA ESPECIALIZADA] AS [MEDICINA ESPECIALIZADA],
-	 [ESPECIALIDAD MÉDICA DE INTERVENCIÓN] AS [ESPECIALIDAD MÉDICA DE INTERVENCIÓN],
-	 [ENFERMERIA PROFESIONAL] AS [ENFERMERIA PROFESIONAL],
-	 [NUTRICIÓN Y DIETÉTICA] AS [NUTRICIÓN Y DIETÉTICA],
-	 [PSICOLOGÍA] AS [PSICOLOGÍA],
-	 [TRABAJO SOCIAL] AS [TRABAJO SOCIAL],
-	 [FONIATRIA Y FONOAUDIOLOGÍA] AS [FONIATRIA Y FONOAUDIOLOGÍA],
-	 [FISIOTERAPIA] AS [FISIOTERAPIA],
-	 [TERAPIA RESPIRATORIA] AS [TERAPIA RESPIRATORIA],
-	 [TERAPIA OCUPACIONAL] AS [TERAPIA OCUPACIONAL],
-	 [AUXILIAR DE ENFERMERÍA] AS [AUXILIAR DE ENFERMERÍA],
-	 [CLASIFICACIÓN DE LA HERIDA],
-	 [DIMENSIÓN DE LA HERIDA],
-	 [PROFUNDIDAD/TEJIDOS AFECTADOS],
-	 [COMORBILIDAD],
-	 [ESTADIO DE LA HERIDA],
-	 [INFECCIÓN],
-	 [TIEMPO DE EVOLUCIÓN EN TRATAMIENTO CON CLÍNICA DE HERIDAS],
-	 [EVOLUCIÓN SOPORTADA EN VISITA MÉDICA O REGISTRO FOTOGRAFICO],
-	 [NIVEL ALBUMINA SÉRICA],
-	 [FECHA DE REPORTE DE ALBUMINA],
-	 [TIPO DE SOPORTE DE OXÍGENO],
-	 [CONSUMO DE OXÍGENO EN LITROS/MINUTO],
-	 [HORAS DE ADMINISTRACIÓN DE OXÍGENO AL DÍA],
-	 FORMAT(CONVERT(DATETIME,[FECHAS DE INICIO DE SOPORTE DE OXÍGENO]),'dd/MM/yyyy hh:mm tt') AS [FECHAS DE INICIO DE SOPORTE DE OXÍGENO],
-	 [EQUIPO PARA PRESIÓN POSITIVA],
-	 [TIEMPO REQUERIDO DE TRATAMIENTO],
-	 FORMAT(CONVERT(DATETIME,[FECHA INICIO VENTILACIÓN MÉCANICA CRÓNICA]),'dd/MM/yyyy hh:mm tt') AS [FECHA INICIO VENTILACIÓN MÉCANICA CRÓNICA],
-	 [MODO DE VENTILACIÓN MÉCANICA],
-	 [DESCRIPCIÓN OTRO MODO DE VENTILACIÓN MÉCANICA],
+	 COALESCE([MEDICINA GENERAL],'') AS [MEDICINA GENERAL],
+	 COALESCE([MEDICINA ESPECIALIZADA], '') AS [MEDICINA ESPECIALIZADA],
+	 COALESCE([ESPECIALIDAD MÉDICA DE INTERVENCIÓN], 'Seleccione') AS [ESPECIALIDAD MÉDICA DE INTERVENCIÓN],
+	 COALESCE([ENFERMERIA PROFESIONAL],'') AS [ENFERMERIA PROFESIONAL],
+	 COALESCE([NUTRICIÓN Y DIETÉTICA],'') AS [NUTRICIÓN Y DIETÉTICA],
+	 COALESCE([PSICOLOGÍA],'') AS [PSICOLOGÍA],
+	 COALESCE([TRABAJO SOCIAL],'') AS [TRABAJO SOCIAL],
+	 COALESCE([FONIATRIA Y FONOAUDIOLOGÍA],'') AS [FONIATRIA Y FONOAUDIOLOGÍA],
+	 COALESCE([FISIOTERAPIA],'') AS [FISIOTERAPIA],
+	 COALESCE([TERAPIA RESPIRATORIA],'') AS [TERAPIA RESPIRATORIA],
+	 COALESCE([TERAPIA OCUPACIONAL],'') AS [TERAPIA OCUPACIONAL],
+	 COALESCE([AUXILIAR DE ENFERMERÍA],'') AS [AUXILIAR DE ENFERMERÍA],
+	 COALESCE([CLASIFICACIÓN DE LA HERIDA], 'Seleccione') AS [CLASIFICACIÓN DE LA HERIDA],
+	 COALESCE([DIMENSIÓN DE LA HERIDA], 'Seleccione') AS [DIMENSIÓN DE LA HERIDA],
+	 COALESCE([PROFUNDIDAD/TEJIDOS AFECTADOS], 'Seleccione') AS [PROFUNDIDAD/TEJIDOS AFECTADOS],
+	 COALESCE([COMORBILIDAD], 'Seleccione') AS [COMORBILIDAD],
+	 COALESCE([ESTADIO DE LA HERIDA], 'Seleccione') AS [ESTADIO DE LA HERIDA],
+	 COALESCE([INFECCIÓN], 'Seleccione') AS [INFECCIÓN],
+	 COALESCE([TIEMPO DE EVOLUCIÓN EN TRATAMIENTO CON CLÍNICA DE HERIDAS], 'Seleccione') AS [TIEMPO DE EVOLUCIÓN EN TRATAMIENTO CON CLÍNICA DE HERIDAS],
+	 COALESCE([EVOLUCIÓN SOPORTADA EN VISITA MÉDICA O REGISTRO FOTOGRAFICO], 'Seleccione') AS [EVOLUCIÓN SOPORTADA EN VISITA MÉDICA O REGISTRO FOTOGRAFICO],
+	 COALESCE([NIVEL ALBUMINA SÉRICA],'') AS [NIVEL ALBUMINA SÉRICA],
+	 COALESCE([FECHA DE REPORTE DE ALBUMINA],'') AS [FECHA DE REPORTE DE ALBUMINA],
+	 COALESCE([TIPO DE SOPORTE DE OXÍGENO], 'Seleccione') AS [TIPO DE SOPORTE DE OXÍGENO],
+	 COALESCE([CONSUMO DE OXÍGENO EN LITROS/MINUTO], 'Seleccione') AS [CONSUMO DE OXÍGENO EN LITROS/MINUTO],
+	 COALESCE([HORAS DE ADMINISTRACIÓN DE OXÍGENO AL DÍA], 'Seleccione') AS [HORAS DE ADMINISTRACIÓN DE OXÍGENO AL DÍA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHAS DE INICIO DE SOPORTE DE OXÍGENO]),'dd/MM/yyyy'),'') AS [FECHAS DE INICIO DE SOPORTE DE OXÍGENO],
+	 COALESCE([EQUIPO PARA PRESIÓN POSITIVA], 'Seleccione') AS [EQUIPO PARA PRESIÓN POSITIVA],
+	 COALESCE([TIEMPO REQUERIDO DE TRATAMIENTO], 'Seleccione') AS [TIEMPO REQUERIDO DE TRATAMIENTO],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA INICIO VENTILACIÓN MÉCANICA CRÓNICA]),'dd/MM/yyyy'),'Seleccione') AS [FECHA INICIO VENTILACIÓN MÉCANICA CRÓNICA],
+	 COALESCE([MODO DE VENTILACIÓN MÉCANICA], 'Seleccione') AS [MODO DE VENTILACIÓN MÉCANICA],
+	 COALESCE([DESCRIPCIÓN OTRO MODO DE VENTILACIÓN MÉCANICA], '') AS [DESCRIPCIÓN OTRO MODO DE VENTILACIÓN MÉCANICA],
 	 [MODO VENTILATORIO],
 	 [MODALIDAD VENTILATORIA],
-	 [DESCRIPCION MODALIDAD VENTILATORIA],
-	 [PEEP],
-	 [PEEP ALTO],
-	 [PEEP BAJO],
-	 [TIEMPO BAJO],
-	 [TIEMPO ALTO],
-	 [FRECUENCIA RESPIRATORIA TOTAL],
-	 [FRECUENCIA RESPIRATORIA PROGRAMADA],
-	 [FIO2],
+	 COALESCE([DESCRIPCION MODALIDAD VENTILATORIA], '') AS [DESCRIPCION MODALIDAD VENTILATORIA],
+	 COALESCE([PEEP], '') AS [PEEP],
+	 COALESCE([PEEP ALTO], '') AS [PEEP ALTO],
+	 COALESCE([PEEP BAJO], '') AS [PEEP BAJO],
+	 COALESCE([TIEMPO BAJO], '') AS [TIEMPO BAJO],
+	 COALESCE([TIEMPO ALTO], '') AS [TIEMPO ALTO],
+	 COALESCE([FRECUENCIA RESPIRATORIA TOTAL], '') AS [FRECUENCIA RESPIRATORIA TOTAL],
+	 COALESCE([FRECUENCIA RESPIRATORIA PROGRAMADA], '') AS [FRECUENCIA RESPIRATORIA PROGRAMADA],
+	 COALESCE([FIO2], '') AS [FIO2],
 	 [TIPO DE VENTILADOR EN USO POR EL PACIENTE],
-	 [DESCRIPCIÓN OTRO TIPO DE VENTILADOR EN USO POR EL PACIENTE],
-	 [OBSERVACIONES],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE CONTROL MÉDICO]),'dd/MM/yyyy hh:mm tt') AS [FECHA DE CONTROL MÉDICO],
-	 [HTA],
-	 [FECHA DE DIÁGNOSTICO HTA],
-	 [MEDICAMENTO 1  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
-	 [MEDICAMENTO 2  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
-	 [MEDICAMENTO 3  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
-	 [RIESGO DE LA HTA AL INGRESO],
-	 [DM],
-	 [TIPO DE DIABETES],
-	 [FECHA DE DIAGNÓSTICO DM],
-	 [MEDICAMENTO 1 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
-	 [MEDICAMENTO 2 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
-	 [MEDICAMENTO 3 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
-	 [TIPO DE INSULINA ADMINISTRADA AL INGRESO DEL PROGRAMA],
-	 [TIPO DE INSULINA ADMINISTRADA DURANTE EL CONTROL],
-	 [RIESGO DE LA DM AL INGRESO],
-	 [ERC],
-	 [FECHA DE DIAGNÓSTICO ERC], 
-	 [TFG INGRESO],
-	 [FECHA TFG INGRESO],
-	 [TFG ACTUAL],
-	 [FECHA TFG ACTUAL ],
-	 [MICROALBUMINURIA AL INGRESO DEL PROGRAMA],
-	 [FECHA MICROALBUMINURIA AL INGRESO DEL PROGRAMA],
-	 [ESTADIO ACTUAL DE LA PATOLOGÌA],
-	 [CREATININA SUERO],
-	 [FECHA DE CREATININA],
-	 [GLICEMIA],
-	 [FECHA DE TOMA DE GLICEMIA],
-	 [HEMOGLOBINA GLICOSILADA],
-	 [FECHA DE TOMA DE HEMOGLOBINA GLICOSILADA],
-	 [COLESTEROL TOTAL],
-	 [FECHA DE TOMA DE COLESTEROL TOTAL],
-	 [COLESTEROL HDL],
-	 [FECHA DE TOMA DE COLESTEROL HDL],
-	 [COLESTEROL LDL],
-	 [FECHA DE TOMA DE COLESTEROL LDL],
-	 [TRIGLICERIDOS],
-	 [FECHA DE TOMA DE TRIGLICERIDOS],
-	 [MICRO ALBUMINURIA],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE MICRO ALBUMINURIA]),'dd/MM/yyyy') as [FECHA DE TOMA DE MICRO ALBUMINURIA],
-	 [RELACIÓN MICROALBUMINURIA/CREATINURIA],
-	 FORMAT(CONVERT(DATETIME,[FECHA DE RELACIÓN MICROALBUMINURIA/CREATINURIA]),'dd/MM/yyyy') as [FECHA DE RELACIÓN MICROALBUMINURIA/CREATINURIA]
+	 COALESCE([DESCRIPCIÓN OTRO TIPO DE VENTILADOR EN USO POR EL PACIENTE], '') AS [DESCRIPCIÓN OTRO TIPO DE VENTILADOR EN USO POR EL PACIENTE],
+	 COALESCE([OBSERVACIONES], '') AS [OBSERVACIONES],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE CONTROL MÉDICO]),'dd/MM/yyyy'),'') AS [FECHA DE CONTROL MÉDICO],
+	 COALESCE([HTA],'Seleccione') AS [HTA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE DIÁGNOSTICO HTA]),'dd/MM/yyyy'),'') AS [FECHA DE DIÁGNOSTICO HTA],
+	 COALESCE([MEDICAMENTO 1  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL], 'Seleccione') AS [MEDICAMENTO 1  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
+	 COALESCE([MEDICAMENTO 2  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL], 'Seleccione') AS [MEDICAMENTO 2  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
+	 COALESCE([MEDICAMENTO 3  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL], 'Seleccione') AS [MEDICAMENTO 3  QUE ESTA FORMULADO PARA MANEJO DE LA HTA ACTUAL],
+	 COALESCE([RIESGO DE LA HTA AL INGRESO], 'Seleccione') AS [RIESGO DE LA HTA AL INGRESO],
+	 COALESCE([DM], 'Seleccione') AS [DM],
+	 COALESCE([TIPO DE DIABETES], 'Seleccione') AS [TIPO DE DIABETES],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE DIAGNÓSTICO DM]),'dd/MM/yyyy'),'') AS [FECHA DE DIAGNÓSTICO DM],
+	 COALESCE([MEDICAMENTO 1 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM], 'Seleccione') AS [MEDICAMENTO 1 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
+	 COALESCE([MEDICAMENTO 2 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM], 'Seleccione') AS [MEDICAMENTO 2 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
+	 COALESCE([MEDICAMENTO 3 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM], 'Seleccione') AS [MEDICAMENTO 3 QUE ESTA FORMULADO PARA EL MANEJO DE LA DM ACTUALM],
+	 COALESCE([TIPO DE INSULINA ADMINISTRADA AL INGRESO DEL PROGRAMA],'Seleccione') AS [TIPO DE INSULINA ADMINISTRADA AL INGRESO DEL PROGRAMA],
+	 COALESCE([TIPO DE INSULINA ADMINISTRADA DURANTE EL CONTROL],'Seleccione') AS [TIPO DE INSULINA ADMINISTRADA DURANTE EL CONTROL],
+	 COALESCE([RIESGO DE LA DM AL INGRESO],'Seleccione') AS [RIESGO DE LA DM AL INGRESO],
+	 COALESCE([ERC],'Seleccione') AS [ERC],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE DIAGNÓSTICO ERC]),'dd/MM/yyyy'),'') AS [FECHA DE DIAGNÓSTICO ERC], 
+	 COALESCE([TFG INGRESO],'') AS [TFG INGRESO],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA TFG INGRESO]),'dd/MM/yyyy'),'') AS [FECHA TFG INGRESO],
+	 COALESCE([TFG ACTUAL],'') AS [TFG ACTUAL],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA TFG ACTUAL ]),'dd/MM/yyyy'),'') AS [FECHA TFG ACTUAL ],
+	 COALESCE([MICROALBUMINURIA AL INGRESO DEL PROGRAMA],'') AS [MICROALBUMINURIA AL INGRESO DEL PROGRAMA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA MICROALBUMINURIA AL INGRESO DEL PROGRAMA]),'dd/MM/yyyy'),'') AS [FECHA MICROALBUMINURIA AL INGRESO DEL PROGRAMA],
+	 COALESCE([ESTADIO ACTUAL DE LA PATOLOGÌA],'Seleccione') AS [ESTADIO ACTUAL DE LA PATOLOGÌA],
+	 COALESCE([CREATININA SUERO],'') AS [CREATININA SUERO],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE CREATININA]),'dd/MM/yyyy'),'') AS [FECHA DE CREATININA],
+	 COALESCE([GLICEMIA],'') AS [GLICEMIA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE GLICEMIA]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE GLICEMIA],
+	 COALESCE([HEMOGLOBINA GLICOSILADA],'') AS [HEMOGLOBINA GLICOSILADA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE HEMOGLOBINA GLICOSILADA]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE HEMOGLOBINA GLICOSILADA],
+	 COALESCE([COLESTEROL TOTAL],'') AS [COLESTEROL TOTAL],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE COLESTEROL TOTAL]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE COLESTEROL TOTAL],
+	 COALESCE([COLESTEROL HDL],'') AS [COLESTEROL HDL],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE COLESTEROL HDL]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE COLESTEROL LDL],
+	 COALESCE([COLESTEROL LDL],'') AS [COLESTEROL LDL],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE COLESTEROL LDL]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE COLESTEROL LDL],
+	 COALESCE([TRIGLICERIDOS],'') AS [TRIGLICERIDOS],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE TRIGLICERIDOS]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE TRIGLICERIDOS],
+	 COALESCE([MICRO ALBUMINURIA],'') AS [MICRO ALBUMINURIA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE TOMA DE MICRO ALBUMINURIA]),'dd/MM/yyyy'),'') AS [FECHA DE TOMA DE MICRO ALBUMINURIA],
+	 COALESCE([RELACIÓN MICROALBUMINURIA/CREATINURIA],'') AS [RELACIÓN MICROALBUMINURIA/CREATINURIA],
+	 COALESCE(FORMAT(CONVERT(DATETIME,[FECHA DE RELACIÓN MICROALBUMINURIA/CREATINURIA]),'dd/MM/yyyy'),'') AS [FECHA DE RELACIÓN MICROALBUMINURIA/CREATINURIA]
 FROM #tbResult
 
 DROP TABLE #tbResult
 DROP TABLE #tbProdHTA
 DROP TABLE #tbProdDM
 DROP TABLE #tbActNu
+ 
