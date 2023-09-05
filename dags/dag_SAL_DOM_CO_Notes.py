@@ -34,6 +34,9 @@ def func_get_SAL_DOM_CO_Notas ():
     print('Fecha fin ', now)
     
     domiConsultas_query = f"""
+DECLARE
+
+@idContract VARCHAR(MAX) = '57,76,77,92,101'
     (SELECT DISTINCT
         ENC.identifier 								AS Ingreso,
         --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 	AS FechaIngreso,
@@ -67,7 +70,7 @@ def func_get_SAL_DOM_CO_Notas ():
 
     WHERE 
         GACT.name like '%Nota%' --Acciones que corresponden a Notas
-        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva Eps
+        AND ENCR.idPrincipalContract IN (SELECT * FROM STRING_SPLIT(@idContract,',')) --Código del contrato de Compensar-Domiciliaria y Nueva Eps
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00.000' AND ENC.dateStart < '2023-03-01 00:00:00.000')
                 

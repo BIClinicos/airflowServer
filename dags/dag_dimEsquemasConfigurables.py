@@ -43,7 +43,7 @@ def func_get_dimEsquemasConfigurables ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query = f"""
+    query_legacy = f"""
         SELECT
             Todo.idEvento,
             Todo.idIngreso,
@@ -79,7 +79,32 @@ def func_get_dimEsquemasConfigurables ():
             WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
             WHERE Indicador=1
     """
-
+    
+    query = f"""
+        SELECT
+            EC.idEvento,
+            EC.idIngreso,
+            EC.idUsuarioPaciente,
+            EC.idEsquemaActividad,
+            EC.idElementoAGuardar,
+            EC.valorTextoARegistrar,
+            EC.isActive,
+            EC.fechaEvento
+        FROM (
+            SELECT
+            EHREvCust.idEvent as idEvento,
+            Enc.idEncounter as idIngreso,
+            Enc.idUserPatient as idUsuarioPaciente,
+            EHREvCust.idConfigActivity as idEsquemaActividad,
+            EHREvCust.idElement as idElementoAGuardar,
+            EHREvCust.valueText as valorTextoARegistrar,
+            Eve.isActive,
+            Eve.actionRecordedDate as fechaEvento
+            FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
+            INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
+            INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
+            WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS EC
+    """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 

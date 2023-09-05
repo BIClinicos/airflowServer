@@ -45,7 +45,7 @@ def func_get_dimMedicionesDeMonitoria ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query = f"""
+    query_legacy = f"""
         SELECT
             Todo.idEventoEHR,
             Todo.idUsuarioPaciente,
@@ -88,6 +88,38 @@ def func_get_dimMedicionesDeMonitoria ():
         WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
         WHERE Indicador=1
     """
+    
+    query = f"""
+       SELECT
+            MM.idIngreso,
+            MM.idEventoEHR,
+            MM.idUsuarioPaciente,
+            MM.idMonitoring,
+            MM.idMedition,
+            MM.valorARegistrar,
+            MM.descripcionElemento,
+            MM.esNumerico,
+            MM.isActive,
+            MM.fechaEvento
+        FROM (
+        SELECT
+            Eve.idEncounter as idIngreso,
+            ICU.idEHREvent as idEventoEHR,
+            ENC.idUserPatient as idUsuarioPaciente,
+            ICU.idMonitoring,
+            ICU.idMedition,
+            ICU.value as valorARegistrar,
+            UCI.name as descripcionElemento,
+            UCI.isNumeric as esNumerico,
+            Eve.isActive,
+            Eve.actionRecordedDate as fechaEvento
+        FROM EHREventICUMonitoringMeditions ICU
+        INNER JOIN EHREvents AS Eve ON ICU.idEHREvent = Eve.idEHREvent
+        INNER JOIN [dbo].[encounters] ENC on  Eve.idEncounter=ENC.idEncounter
+        INNER JOIN EHRConfUCIMonitoringMeditions UCI ON ICU.idMonitoring = UCI.idMonitoring AND ICU.idMedition = UCI.idMedition
+        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS MM
+    """
+
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
     # conversión de campos

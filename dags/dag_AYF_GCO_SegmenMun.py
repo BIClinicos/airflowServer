@@ -12,7 +12,7 @@ import pandas as pd
 import pyodbc
 from pandas import read_excel
 from variables import sql_connid
-from utils import get_files_blob_with_prefix_args,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix, get_files_xlsx_contains_name, get_files_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get
+from utils import get_files_blob_with_prefix_args,load_df_to_sql
 
 # Fecha de ejecución del dag
 today = date.today()
@@ -45,12 +45,12 @@ def transform_tables (df):
     df.columns = df.columns.str.replace('ñ','ni')
 
     # Mod 2023-07-19
-    if 'anio' in df.columns or 'annio' in df.columns:
-        df = df.iloc[: , 1:]
-
-    df['anio_mes'] = pd.to_datetime('today') + pd.DateOffset(months=-1)
-    df['anio_mes'] = df['anio_mes'].apply(lambda x: x.strftime('%Y-%m'))
-    df['anio_mes'] = pd.to_datetime(df['anio_mes'], format="%Y-%m")
+    if 'anio' in df.columns:
+        df['anio_mes'] = df['anio']
+    else:
+        df['anio_mes'] = pd.to_datetime('today') + pd.DateOffset(months=-1)
+        df['anio_mes'] = df['anio_mes'].apply(lambda x: x.strftime('%Y-%m'))
+        df['anio_mes'] = pd.to_datetime(df['anio_mes'], format="%Y-%m")
 
     print(df['anio_mes'])
     print("dataframe leido")

@@ -7,9 +7,8 @@ from airflow.operators.mssql_operator import MsSqlOperator
 from airflow.hooks.mssql_hook import MsSqlHook
 from datetime import datetime, timedelta
 from NEPS.utils.utils import generar_rango_fechas
-from dags.utils import load_df_to_sql_pandas
-from variables import sql_connid,sql_connid_gomedisys
-from utils import sql_2_df,load_df_to_sql,load_df_to_sql_query
+from variables import sql_connid
+from utils import load_df_to_sql,load_df_to_sql_pandas,sql_2_df
 
 #  Se nombran las variables a utilizar en el dag
 
@@ -18,8 +17,8 @@ db_tmp_table = "tmpEspecializadaNEPS"
 dag_name = 'dag_' + db_table
 
 now = datetime.now()
-# last_week_date = now - timedelta(weeks=1)
-last_week_date = datetime(2021,2,1)
+last_week_date = now - timedelta(weeks=1)
+# last_week_date = datetime(2021,2,1)
 last_week = last_week_date.strftime('%Y-%m-%d %H:%M:%S')
 
 
@@ -51,24 +50,16 @@ def func_get_tblhEspecializadaNEPS():
     
     # CARGA A BASE DE DATOS
     if ~data_guardada.empty and len(data_guardada.columns) >0:
-        # # Seleccionar todas las columnas de tipo datetime64
-        # datetime_columns = data_guardada.select_dtypes(include=['datetime64']).columns
 
-        # # Convertir las columnas datetime64 a strings
-        # data_guardada[datetime_columns] = data_guardada[datetime_columns].astype(str)
         data_guardada.drop_duplicates(["idUser","date_control"], keep='last', inplace=True)
         
         data_guardada.drop(["activo"], axis=1, inplace=True)
-        # Buscar la palabra "Cita" en todas las columnas del DataFrame
-        
-        
         
         data_guardada["total_diagnosticos"].fillna(0, inplace=True)
         data_guardada["total_diagnosticos"] = data_guardada["total_diagnosticos"].astype(int)
         data_guardada = data_guardada.drop_duplicates(["idUser","date_control"], keep='last')
         float_columns = data_guardada.select_dtypes(np.number)
         data_guardada[float_columns.columns] = float_columns.round().astype(pd.Int64Dtype())
-        print(data_guardada.info())
         load_df_to_sql_pandas(data_guardada,db_tmp_table, sql_connid)
     
 
@@ -94,7 +85,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag a las 1:00 am (hora servidor) todos los Domingos
-    schedule_interval= '0 1 * * 0',
+    schedule_interval= '0 3 * * 0',
     max_active_runs=1
     ) as dag:
 

@@ -13,6 +13,8 @@ from azure.storage.blob import ContainerClient
 import xlrd
 import pymssql
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -98,20 +100,30 @@ def insert_new_table(table, data:pd.DataFrame,sql_connid):
     cursor.close()
     conn.close()
     
+def get_engine(sql_connid,conn= None) -> Engine:
+    if not conn: 
+        sql_conn = MsSqlHook(sql_connid)
+        conn = sql_conn.get_connection(sql_connid)
+    if sql_connid == 'db_clinicos_bi':
+        return create_engine(("mssql+pyodbc:///?odbc_connect=DRIVER={ODBC Driver 17 for SQL Server};"
+        f"SERVER=srvbdclinicosbi.database.windows.net;DATABASE=BD_CLINICOS_BI;UID={conn.login};PWD={conn.password};"))
+    else:
+        return create_engine(("mssql+pyodbc:///?odbc_connect=DRIVER={ODBC Driver 17 for SQL Server};"
+        f"SERVER=goreplica.database.windows.net;DATABASE=goMedisysCo_clinicos;UID={conn.login};PWD={conn.password};"))
+    
+    
 def load_df_to_sql_pandas(df:pd.DataFrame, sql_table, sql_connid, pk:list=None,truncate= True):
     """Function to upload excel file to SQL table"""
     # df_cleaned = df.replace([np.nan,pd.NaT, pd.NA,'nan', 'NaT'], None)
     sql_conn = MsSqlHook(sql_connid)
     if truncate:
         sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
-    conn = sql_conn.get_connection(sql_conn.conn_name_attr)
-    if sql_connid == 'db_clinicos_bi':
-        engine = create_engine(create_engine(("mssql+pyodbc:///?odbc_connect='DRIVER={ODBC Driver 17 for SQL Server};"
-        f"SERVER=srvbdclinicosbi.database.windows.net;DATABASE=BD_CLINICOS_BI;UID={conn.login};PWD={conn.password};"))) 
-        
-        df.to_sql(sql_table, engine, if_exists="append", index=False)
+    conn = sql_conn.get_connection(sql_connid)
+    engine = get_engine( sql_connid,conn)
+    df.to_sql(sql_table, engine, if_exists="append", index=False)
     
-    
+
+
 def load_df_to_sql_query(df:pd.DataFrame, sql_connid, query):
     """Function to upload excel file to SQL table"""
     # df_cleaned = df.replace([np.nan,pd.NaT, pd.NA,'nan', 'NaT'], None)

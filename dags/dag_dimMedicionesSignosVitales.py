@@ -44,27 +44,8 @@ def func_get_dimMedicionesSignosVitales ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query_legacy = f"""
-        SELECT
-            DISTINCT
-            -- CONCAT(EHRCM.idMeasurement, '-', EHRPM.idUserPatient ,'-') as id_Medicion_Signo_Vital,
-            EHRCM.idMeasurement as id_Medicion_Registrada,
-            EHRPM.idUserPatient as id_Usuario_Paciente,
-            EHRPM.recordedDate as [Fecha_de_Evento],
-            EHRCM.name as [Nombre_Signo_Vital],
-            EHRCM.isForMale as [Aplica_para_Hombres],
-            EHRCM.isForFemale as [Aplica_para_Mujeres],
-            EHRCM.minimumAgeMonths as [Edad_Minima_en_Meses],
-            EHRCM.maximumAgeMonths as [Edad_Maxima_en_Meses],
-            EHRCM.requireSpeciality as [Requiere_Especialidad_Profesional],
-            EHRCM.requiereCDA as [Requiere_Actividad_de_EHR],
-            EHRCM.sortPosition as [Posicion_en_Pantalla]
-        FROM EHRConfMeasurements EHRCM
-        INNER JOIN EHRPatientMeasurements EHRPM ON EHRCM.idMeasurement=EHRPM.idMeasurement
-        WHERE recordedDate >='{last_week}' AND recordedDate<='{now}'
-    """
 
-    query = f"""
+    query_legacy = f"""
         SELECT
             Todo.idMedicionRegistrada,
             Todo.idUsuarioPaciente,
@@ -98,6 +79,43 @@ def func_get_dimMedicionesSignosVitales ():
             WHERE recordedDate >='{last_week}' AND recordedDate<='{now}' ) AS Todo
             WHERE Todo.Indicador=1
     """ 
+
+    query = f"""
+    SELECT
+        MSV.idMeasurement,
+        MSV.idUsuarioPaciente,
+        MSV.idIngreso,
+        MSV.idEventoEHR,
+        MSV.descripcionSignoVital,
+        MSV.valorRegistradoSigno,
+        MSV.aplicaParaMujeres,
+        MSV.aplicaParaHombres,
+        MSV.edadMinimaEnMeses,
+        MSV.edadMaximaEnMeses,
+        MSV.requiereEspecialidadProfesional,
+        MSV.fechaEvento
+    FROM (
+    SELECT
+        EHP.idMeasurement,
+        EHP.idUserPatient as idUsuarioPaciente,
+        EHP.idEncounter as idIngreso,
+        EHP.idEHREvent as idEventoEHR,
+        EHC.name as descripcionSignoVital,
+        CAST(EHP.recordedValue as INT) as valorRegistradoSigno,
+
+        EHC.isForFemale as aplicaParaMujeres,
+        EHC.isForMale as aplicaParaHombres,
+        EHC.minimumAgeMonths as edadMinimaEnMeses,
+        EHC.maximumAgeMonths as edadMaximaEnMeses,
+        EHC.requireSpeciality as requiereEspecialidadProfesional,
+
+        EHP.recordedDate as fechaEvento
+    from EHRPatientMeasurements EHP
+    INNER JOIN EHRConfMeasurements EHC ON  EHP.idMeasurement=EHC.idMeasurement
+    INNER JOIN Encounters Enc ON Enc.idEncounter = EHP.idEncounter
+    INNER JOIN EHREvents Ev ON Ev.idEHREvent = EHP.idEHREvent
+    WHERE recordedDate >='{last_week}' AND recordedDate<='{now}') AS MSV
+    """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 

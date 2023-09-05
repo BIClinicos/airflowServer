@@ -44,7 +44,7 @@ def func_get_dimConsultasMedicas ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query = f"""
+    query_legacy = f"""
         SELECT
             Todo.idEventoEHR,
             Todo.idIngreso,
@@ -107,6 +107,49 @@ def func_get_dimConsultasMedicas ():
             WHERE Indicador=1
     """
 
+    query = f"""
+    SELECT
+        CM.idEventoEHR,
+        CM.idIngreso,
+        CM.idUsuarioPaciente,
+        CM.idEscala,
+        CM.idPregunta,
+        CM.idRespuesta,
+        CM.idResultadoEvaluacion,
+        CM.idRegistro,
+        CM.aplicaParaHombres,
+        CM.aplicaParaMujeres,
+        CM.descripcionRespuesta,
+        CM.valorAnalizado,
+        CM.interpretacionEscala,
+        CM.fechaEvento
+    FROM (
+        SELECT DISTINCT
+            EventMSQ.idEHREvent as idEventoEHR,
+            Enc.idEncounter as idIngreso,
+            Enc.idUserPatient as idUsuarioPaciente,
+
+            EventMSQ.idScale as idEscala,
+            EventMSQ.idQuestion as idPregunta,
+            EventMSQ.idAnswer as idRespuesta,
+            ConfSQA.isForMale as aplicaParaHombres,
+            ConfSQA.isForFemale as aplicaParaMujeres,
+            ConfSQA.description as descripcionRespuesta,
+            CAST(ConfSQA.value AS INT) as valorAnalizado,
+            EventMS.idEvaluation as idResultadoEvaluacion,
+            ConfgSV.idRecord as idRegistro,
+            ConfgSV.name as interpretacionEscala,
+            Ev.actionRecordedDate as fechaEvento
+
+        FROM EHREventMedicalScaleQuestions AS EventMSQ WITH(NOLOCK)
+        INNER JOIN EHRConfScaleQuestionAnswers AS ConfSQA WITH(NOLOCK) ON EventMSQ.idScale = ConfSQA.idScale AND ConfSQA.idQuestion = EventMSQ.idQuestion AND ConfSQA.idAnswer = EventMSQ.idAnswer
+        INNER JOIN EHREventMedicalScales AS EventMS WITH(NOLOCK) ON EventMSQ.idEHREvent = EventMS.idEHREvent AND EventMSQ.idScale = EventMS.idScale
+        INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) ON EventMS.idScale = ConfgSV.idScale AND ConfgSV.idRecord = EventMS.idEvaluation
+        INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EventMSQ.idEHREvent = Ev.idEHREvent
+        INNER JOIN Encounters AS Enc WITH(NOLOCK) ON Ev.idEncounter = Enc.idEncounter
+        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS CM
+
+    """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
