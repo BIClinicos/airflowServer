@@ -147,7 +147,7 @@ def func_get_dimConsultasMedicas ():
         INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) ON EventMS.idScale = ConfgSV.idScale AND ConfgSV.idRecord = EventMS.idEvaluation
         INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EventMSQ.idEHREvent = Ev.idEHREvent
         INNER JOIN Encounters AS Enc WITH(NOLOCK) ON Ev.idEncounter = Enc.idEncounter
-        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS CM
+        WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}') AS CM
 
     """
 

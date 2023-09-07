@@ -81,11 +81,12 @@ def func_get_dimMedicionesSignosVitales ():
     """ 
 
     query = f"""
-    SELECT
-        MSV.idMeasurement,
+        SELECT
+        MSV.idSignoVital,
         MSV.idUsuarioPaciente,
         MSV.idIngreso,
         MSV.idEventoEHR,
+        MSV.idRegistro,
         MSV.descripcionSignoVital,
         MSV.valorRegistradoSigno,
         MSV.aplicaParaMujeres,
@@ -96,19 +97,20 @@ def func_get_dimMedicionesSignosVitales ():
         MSV.fechaEvento
     FROM (
     SELECT
-        EHP.idMeasurement,
+        EHP.idMeasurement as idSignoVital,
         EHP.idUserPatient as idUsuarioPaciente,
         EHP.idEncounter as idIngreso,
         EHP.idEHREvent as idEventoEHR,
+        EHP.idRecord as idRegistro,
         EHC.name as descripcionSignoVital,
         CAST(EHP.recordedValue as INT) as valorRegistradoSigno,
-
         EHC.isForFemale as aplicaParaMujeres,
         EHC.isForMale as aplicaParaHombres,
         EHC.minimumAgeMonths as edadMinimaEnMeses,
         EHC.maximumAgeMonths as edadMaximaEnMeses,
         EHC.requireSpeciality as requiereEspecialidadProfesional,
 
+        
         EHP.recordedDate as fechaEvento
     from EHRPatientMeasurements EHP
     INNER JOIN EHRConfMeasurements EHC ON  EHP.idMeasurement=EHC.idMeasurement
