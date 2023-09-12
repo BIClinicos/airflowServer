@@ -28,9 +28,9 @@ db_tmp_table = "TmpMasiva"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-06-31 00:00:00'
+fecha_texto = '2023-01-02 23:59:59'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -42,15 +42,17 @@ def func_get_factMasiva():
 
     # LECTURA DE DATOS
     query = f"""    
-            DECLARE -- 3 meses.
+            DECLARE 
                 @idUserCompany INT= 1,
-                -- @dateStart DATETIME = '2023/01/01', -- '2023/06/01',
-                -- @dateEnd DATETIME = '2023/01/31', -- '2023/08/07',
-                @OfficeFilter VARCHAR(MAX) = '1,17',--(SELECT STRING_AGG(idOffice,',') FROM companyOffices WHERE idUserCompany = 352666),
+                @OfficeFilter VARCHAR(MAX) = '1,17,352666',--(SELECT STRING_AGG(idOffice,',') FROM companyOffices WHERE idUserCompany = 352666),
                 @idIns VARCHAR(MAX) = '16,33,285991,20,266465,422816,289134,17,150579,358811,39,88813,4,24,22,25,150571,302708,26,289154,365849,266467,7,28,23,420,32,421',
                 @idCont VARCHAR(MAX) = '83,81,79,76,84,77,88,82,78,80,92'
+                
+                -- @idEncountersEnero VARCHAR(MAX) = '1320588,1320597,1320598,1320600,1320601,1320604,1320605,1321047,1321126,1321137'
 
 
+
+            -- QUERY PARA EL DAG
             SELECT
                 Todo.idIngreso,
                 Todo.idUsuario,
@@ -64,22 +66,31 @@ def func_get_factMasiva():
                 Todo.idElementoAGuardar,
                 Todo.idSignoVital,
                 Todo.idRegistro,
+                Todo.idMonitoria,
                 Todo.idEventoAEvaluar,
                 Todo.idEscala,
                 Todo.idPregunta,
-
+                Todo.idRespuesta,
+                Todo.idProducto,
+                Todo.idRol,
+                Todo.idTipoEvento,
                 Todo.fechaRegistroEvento,
                 Todo.fechaRealizacionEventoAlPaciente,
                 Todo.fechaInicioPlan,
-
                 Todo.ingreso,
                 Todo.nitIPS,
                 Todo.codigoHabilitacion,
-                Todo.codigoSucursal
+                Todo.codigoSucursal,
+                Todo.esDiagnosticoPrincipal,
+                Todo.codigoServicioAtencionRequeridaPorUsuario,
+
+                
+                Todo.actualmenteActivo,
+                Todo.cantidadPorHacer
             FROM (
                 SELECT
                     DISTINCT
-                    Enc.idEncounter as idIngreso, 
+                    Enc.idEncounter as idIngreso,
                     Pat.idUser as idUsuario,
                     Enc.idUserPatient as idUsuarioPaciente, -- Conecta con Dim Users
                     EV.idEHREvent as idEventoEHR,
@@ -92,18 +103,29 @@ def func_get_factMasiva():
                     EHREvCust.idElement as idElementoAGuardar,
                     EHRPaMe.idMeasurement as idSignoVital,
                     EHRPaMe.idRecord as idRegistro,
+                    EvICU.idMonitoring as idMonitoria,
                     EvICU.idMedition as idEventoAEvaluar,
                     EvICU.value as valorARegistrarDeMonitoria,
                     EventMSQ.idScale as idEscala,
                     EventMSQ.idQuestion as idPregunta,
+                    EventMSQ.idAnswer as idRespuesta,
                     Enc.dateRegister as fechaRegistroEvento,
                     EV.actionRecordedDate as fechaRealizacionEventoAlPaciente,
                     EncHc.dateStart as fechaInicioPlan, -- Campo Delta.
                     Enc.identifier as ingreso,
                     Ucom.documentNumber as nitIPS,
                     Office.legalCode as codigoHabilitacion,
-                    RIGHT(Office.legalCode, 1) as codigoSucursal
-                FROM Encounters Enc
+                    RIGHT(Office.legalCode, 1) as codigoSucursal,
+                    EHREvMDiag.isPrincipal as esDiagnosticoPrincipal,
+                    EHRconfAct.codeActivity as codigoServicioAtencionRequeridaPorUsuario,
+                    
+                    EV.idAction as idTipoEvento,
+                    EncHcAct.idProduct as idProducto,
+                    EncHcAct.idRol,
+                    EncHcAct.isActive as actualmenteActivo,
+                    EncHcAct.quantityTODO as cantidadPorHacer
+
+                FROM Encounters AS Enc
                 INNER JOIN users AS Pat WITH(NOLOCK) ON Enc.idUserPatient = Pat.idUser
                 INNER JOIN userConfTypeDocuments AS Doc WITH(NOLOCK) ON Pat.idDocumentType = Doc.idTypeDocument
                 INNER JOIN companyOffices AS Office WITH(NOLOCK) ON Enc.idOffice = Office.idOffice
@@ -117,6 +139,10 @@ def func_get_factMasiva():
                 INNER JOIN EHREvents AS EV WITH(NOLOCK) ON Enc.idEncounter = EV.idEncounter
                 INNER JOIN EHREventMedicalDiagnostics AS EHREvMDiag WITH(NOLOCK) ON EHREvMDiag.idEHREvent = EV.idEHREvent
                 INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON EHREvMDiag.idDiagnostic = Diag.idDiagnostic
+                
+                -- DIM Actividades HomeCare
+                INNER JOIN (SELECT * FROM encounterHCActivities 
+                                WHERE idProduct IS NOT NULL AND idRol IS NOT NULL) as EncHcAct ON EncHc.idEncounter = EncHcAct.idEncounter AND EncHc.idHCRecord = EncHcAct.idHCRecord
 
                 -- DIM Esquemas Configurables
                 INNER JOIN EHREventCustomActivities AS EHREvCust WITH(NOLOCK) ON EV.idEHREvent = EHREvCust.idEvent
@@ -131,11 +157,10 @@ def func_get_factMasiva():
                 INNER JOIN EHREventMedicalScaleQuestions AS EventMSQ ON EV.idEHREvent = EventMSQ.idEHREvent
 
                 WHERE Enc.idUserCompany = @idUserCompany
-                    -- AND EncHC.dateStart BETWEEN @dateStart AND (@dateEnd + '23:59:59')
-                    AND EncHC.dateStart >='{last_week}' AND recordedDate<='{now}'
+                    AND EncHC.dateStart >='{last_week}' AND EncHC.dateStart<='{now}'
                     AND Enc.idOffice IN (SELECT Value FROM dbo.FnSplit (@OfficeFilter))
                     AND EncR.idPrincipalContractee IN (SELECT Value FROM dbo.FnSplit (@idIns))
-                    -- AND EncR.idPrincipalContract IN (SELECT Value FROM dbo.FnSplit (@idCont))
+                    -- AND Enc.idEncounter IN (SELECT Value FROM dbo.FnSplit (@idEncountersEnero))
 	        ) AS Todo
         """
     
