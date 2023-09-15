@@ -30,3 +30,5 @@ __pycache__
 dags/__pycache__/*.*
 .local
 /.local
+/.fonts
+/.poshthemes
