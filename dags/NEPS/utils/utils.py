@@ -57,8 +57,29 @@ def generar_rango_fechas(group:pd.DataFrame):
         df_auxiliar = pd.DataFrame({'date_control': [fecha_minima,fecha_maxima]})
     else:
         df_auxiliar = pd.DataFrame({'date_control': rango_fechas})
+        
     df_auxiliar["idUser"],df_auxiliar["Documento"] = group["idUser"].iloc[0],group["Documento"].iloc[0]
     df_auxiliar["date_control"] = pd.to_datetime(df_auxiliar["date_control"])
     df_combinado = pd.merge(df_auxiliar, group, on=["date_control","idUser","Documento"], how='left')
     df_combinado = df_combinado.ffill().bfill()
     return df_combinado
+
+
+def get_dispositivo(value:str):
+    if not value or pd.isna(value): return None
+    value = str(value).lower()
+    path = re.search(r"concen?t|cn?o?ne?ce?nt?r?a?d?o?r?",value)
+    if path : return "Concentrador"
+    path = re.search(r"bala| balñ?a",value)
+    if path : return "Bala de oxigeno"
+    path = re.search(r"termo",value)
+    if path : return "Termo productor de oxigeno"
+    
+    
+def get_cpap_bpap(value:str):
+    if not value or pd.isna(value): return None
+    value = str(value).lower()
+    path = re.search(r" ?cp[a-z]?p",value)
+    if path : return "CPAP"
+    path = re.search(r" ?bp[a-z]?p",value)
+    if path : return "BPAP"

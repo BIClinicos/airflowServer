@@ -24,7 +24,7 @@ dag_name = 'dag_' + db_table
 
 # Para correr fechas con delta
 now = datetime.now()
-now = now - timedelta(days=1)
+now = now - timedelta(days=30)
 now = now.strftime('%Y-%m-%d')
 
 

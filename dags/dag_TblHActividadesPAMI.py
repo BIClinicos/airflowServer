@@ -110,8 +110,9 @@ def transform_table(dir, filenames):
         'Cartagnera':'Clínicos IPS Sede Cartagena'
     }
     df = df.replace({'sede':dict_replace})
-    ### Llenar cantidades nulas
+    ### Llenar cantidades nulas y transformar a enteros
     df['cantidad'] = df['cantidad'].fillna(0)
+    df['cantidad'] = df['cantidad'].astype(int)
     ### Acomodar columnas
     df = df[['fecha', 'concepto', 'detalle', 'sede', 'cantidad']]
     print(df.info())

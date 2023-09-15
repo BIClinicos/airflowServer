@@ -32,6 +32,9 @@ def func_get_TEC_PYR_DOMIConsultas ():
     print('Fecha fin ', now)
     
     domiConsultas_query = f"""
+    DECLARE
+
+    @idContract VARCHAR(MAX) = '57,76,77,92,101'
         (SELECT DISTINCT 
         ENC.identifier 									AS Ingreso, 
         --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
@@ -78,7 +81,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         OR GS.name like '%Neurolog_a%'OR GS.name like '%Neumolog_a%' OR GS.name like '%Fisiatr_a%'
         OR GS.name like '%Cardiolog_a%' OR GS.name like '%Medicina Interna%' OR GS.name like '%Medicina Familiar%' OR GS.name like '%Pediatr_a%' 
         OR GS.name like '%Trabajo%Social%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract IN (57,76) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
+        AND ENCR.idPrincipalContract IN (SELECT * FROM STRING_SPLIT(@idContract,',')) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}'
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00'
@@ -126,7 +129,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
     
     WHERE 
         (GS.name like '%Psicolog_a%') --Especialidades manejadas en el contrato
-        AND ENCR.idPrincipalContract IN (57,76, 92) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
+        AND ENCR.idPrincipalContract IN (SELECT * FROM STRING_SPLIT(@idContract,',')) --Código del contrato de Compensar-Domiciliaria y Nueva EPS
         
         AND EV.actionRecordedDate >='{last_week}' AND EV.actionRecordedDate<'{now}')
         --AND ENC.dateStart >= '2023-02-01 00:00:00' AND ENC.dateStart < '2023-03-01 00:00:00')

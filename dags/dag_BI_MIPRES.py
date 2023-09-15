@@ -97,9 +97,11 @@ def func_get_BI_MIPRES_prescripcion():
 
     # Get date list from the last 5 days
     now = pd.datetime.today()
-    days_ago = add_days_to_date(now,-5)
-    now = datetime(2023,5,30)
-    days_ago = datetime(2023,4,1)
+    # Eliminar luego de comprobacion
+    if now <= datetime(2023,9,15):
+        days_ago = datetime(2023,5,31)
+    else:
+        days_ago = add_days_to_date(now,-5)
 
     dates = pd.date_range(start=days_ago, end = now,freq='D')
     print(dates)

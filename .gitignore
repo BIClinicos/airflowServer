@@ -20,6 +20,7 @@
 /dags/files_segmentacion/*.*
 /dags/generated_files/*.*
 /dags/__pycache__/*.*
+dags/__pycache__
 __pycache__
 .gitconfig
 .bash_history
@@ -30,5 +31,10 @@ __pycache__
 dags/__pycache__/*.*
 .local
 /.local
-/.fonts
-/.poshthemes
+./.bash_history
+./.wget-hsts 
+.dotnet
+.vscode/
+.wget*
+.fonts/
+.poshthemes/

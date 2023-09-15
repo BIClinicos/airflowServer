@@ -31,7 +31,8 @@ def check_connection():
 # Función de transformación de los archivos xlsx
 def transform_tables(path):
 
-    df = pd.read_excel(path, header = [1])
+    df = pd.read_excel(path, header = [0])
+    df.columns = df.columns.str.upper()
     df = df.dropna(subset=['FECHA DE RETIRO'])
 
     # Separación de las columna 'FUNCIÓN' por cargo y nivel de cargo

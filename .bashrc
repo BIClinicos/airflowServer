@@ -115,3 +115,6 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+#oh-my-posh
+eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/bubblesextra.omp.json)"
