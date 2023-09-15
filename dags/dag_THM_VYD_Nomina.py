@@ -34,12 +34,7 @@ def norm_excel_date_gen(date_gen):
 
     # Conversion a entero y luego date.time
     try:
-        int_date = int(date_gen)
-        res = xlrd.xldate_as_datetime(int_date, 0)
-        res = pd.to_datetime(res)
-    # Excepcion por retorno de string
-    except ValueError:
-        res = pd.to_datetime(date_gen, format='%d/%m/%Y')
+        res = pd.to_datetime(date_gen, format='%d/%m/%Y', errors = 'coerce')
     # Excepcion por tipo (esperando fecha)
     except TypeError:
         res = date_gen    
@@ -207,14 +202,18 @@ def transform_table(path):
       ,'fecha_ingreso_clinicos'
       ,'organizacion']] #, 'migrado_innovar'
 
-
-    df['fecha_retiro'] = pd.to_datetime(df['fecha_retiro'], format='%Y/%m/%d')
+    date_cols = ['fecha_retiro', 'fecha_ingreso', 'fecha_ingreso_clinicos']
+    for col in date_cols:
+        df[col] = df[col].apply(norm_excel_date_gen)
 
     ## Quitar de ingesta - 20230321
     # df['fecha_nacim'] = df['fecha_nacim'].apply(norm_excel_date_gen)
 
     ## Fill tipo_id
     df['tipo_id'] = df['tipo_id'].fillna('CC')
+
+    ## Fill fecha de ingreso
+    df['fecha_ingreso'] = df['fecha_ingreso'].fillna(df['fecha_retiro'])
 
     df['sucursal'] = df['sucursal'].str.strip()
 

@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-08 00:00:00'
+fecha_texto = '2023-08-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-08-06 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -43,42 +43,6 @@ def func_get_dimEsquemasConfigurables ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query_legacy = f"""
-        SELECT
-            Todo.idEvento,
-            Todo.idIngreso,
-            Todo.idUsuarioPaciente,
-            Todo.idEsquemaActividad,
-            Todo.idElementoAGuardar,
-            Todo.nombreElemento, 
-            Todo.valorTextoARegistrar,
-            Todo.isActive,
-            Todo.fechaEvento
-        FROM (
-            SELECT DISTINCT
-                EHREvCust.idEvent as idEvento,
-                Eve.idEncounter as idIngreso,
-                Enc.idUserPatient as idUsuarioPaciente,
-                EHREvCust.idConfigActivity as idEsquemaActividad,
-                EHREvCust.idElement as idElementoAGuardar,
-                EHRConfCust.nameElement as nombreElemento,
-                EHREvCust.valueText as valorTextoARegistrar,
-                Eve.isActive,
-                Eve.actionRecordedDate as fechaEvento,
-                ROW_NUMBER() over( partition by EHREvCust.idEvent,
-                                                Eve.idEncounter,
-                                                Enc.idUserPatient,
-                                                EHREvCust.idConfigActivity,
-                                                EHREvCust.idElement ORDER BY Eve.actionRecordedDate DESC) as Indicador
-            FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
-            INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
-            INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
-            LEFT JOIN EHRConfCustomActivityElements AS EHRConfCust
-            ON EHREvCust.idConfigActivity = EHRConfCust.idConfigActivity
-            AND EHREvCust.idElement = EHRConfCust.idElement
-            WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
-            WHERE Indicador=1
-    """
     
     query = f"""
         SELECT

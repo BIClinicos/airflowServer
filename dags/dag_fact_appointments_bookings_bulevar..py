@@ -32,9 +32,9 @@ def transform_tables (path):
 
 
     # se añaden las columnas "sede" y "entidad"
-    #df['sede'] = 'BULEVAR'
-    #df['entidad'] = 'ECOPETROL S.A.'
-    #df['Cita Asignada en E-Salud'] = '1'
+    df['sede'] = 'BULEVAR'
+    df['entidad'] = 'ECOPETROL S.A.'
+    df['Cita Asignada en E-Salud'] = '1'
 
     # cambio de nombres de columnas
     
@@ -74,14 +74,14 @@ def transform_tables (path):
             'CIE10' : 'cie10',
             'Tipo de Diagnóstico' : 'dx_type',
             'Diagnóstico Secundario' : 'secondary_dx',
-            'Diagnóstico Secundario: CIE 10' : 'secondary_cie10',
-            'Tipo de Diagnóstico Secundario' : 'secondary_dx_type',
-            'I Diagnóstico Secundario' : 'tertiary_dx',
-            'I Diagnóstico Secundario: CIE 10' : 'tertiary_cie10',
-            'I Tipo de Diagnóstico Secundario' : 'tertiary_dx_type',
-            'II Diagnóstico Secundario' : 'quaternary_dx',
-            'II Diagnóstico Secundario: CIE 10' : 'quaternary_cie10',
-            'II Tipo de Diagnóstico Secundario' : 'quaternary_dx_type',
+            'CIE10 Secundario' : 'secondary_cie10',
+            'Tipo de Diagnóstico Sec' : 'secondary_dx_type',
+            'II Diagnóstico Secundario' : 'tertiary_dx',
+            'CIE10 II Secundario' : 'tertiary_cie10',
+            'Tipo de Diagnóstico II Sec' : 'tertiary_dx_type',
+            'III Diagnóstico Secundario' : 'quaternary_dx',
+            'CIE10 III Secundario' : 'quaternary_cie10',
+            'Tipo de Diagnóstico III Sec' : 'quaternary_dx_type',
             'Seguimiento' : 'tracing',
             'Resultado Seguimiento' : 'tracing_result',
             'SintomasAsociadosCovid' : 'covid_associate_symptoms',

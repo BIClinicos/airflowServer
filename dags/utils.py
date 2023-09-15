@@ -1,20 +1,16 @@
 from datetime import datetime, timedelta, date
-import csv
-# from posixpath import dirname
-# from dateutil.parser import parse
 from airflow.hooks.mssql_hook import MsSqlHook
-import numpy as np
 from variables import sql_connid
 from variables import connection_string
 import pandas as pd
 from airflow.contrib.hooks.wasb_hook import WasbHook
-import os
+import os, re
 from azure.storage.blob import ContainerClient
 import xlrd
 import pymssql
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
+from collections import Counter
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -166,6 +162,13 @@ def load_df_to_sql_2(df, sql_table, sql_connid):
     sql_conn = MsSqlHook(sql_connid)
     #sql_conn.run('TRUNCATE TABLE {}'.format(sql_table), autocommit=True)
     sql_conn.insert_rows(sql_table, row_list2)
+
+
+def professional_names(value:str):
+    if not value or pd.isnull(value): return None
+    value = re.sub(r"(?: ?[-] ?){2,}","", value).strip()
+    counter = Counter([val.strip() for val in value.split("-") if val.strip() != ""])
+    return " - ".join([ f"{k} ({v})" for k, v in counter.items()])
 
 
 def remove_accents_cols(df_cols):

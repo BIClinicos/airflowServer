@@ -23,16 +23,15 @@ from utils import sql_2_df,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefi
 
 
 #  Creación de variables
-
 db_table = "TblDMedicionesDeMonitoria"
 db_tmp_table = "TmpMedicionesDeMonitoria"
 dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-08 00:00:00'
+fecha_texto = '2023-08-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-08-06 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -45,49 +44,6 @@ def func_get_dimMedicionesDeMonitoria ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query_legacy = f"""
-        SELECT
-            Todo.idEventoEHR,
-            Todo.idUsuarioPaciente,
-            Todo.idIngreso,
-            Todo.idMonitoreo,
-            Todo.idMedicion,
-            Todo.fechaEvento, 
-            Todo.ValorARegistrar,
-            Todo.nombreDelElemento,
-            Todo.esNumerico,
-            Todo.isActive,
-            Todo.tieneNotasMedicas,
-            Todo.esParaTelemedicina
-        FROM (
-            SELECT DISTINCT
-                EHREvCust.idEHREvent as idEventoEHR,
-                Enc.idUserPatient as idUsuarioPaciente,
-                Eve.idEncounter as idIngreso,
-                EHREvCust.idMonitoring as idMonitoreo,
-                EHREvCust.idMedition as idMedicion,
-                EHREvCust.value as ValorARegistrar,
-                EHREvCUsM.name as nombreDelElemento,
-                EHREvCUsM.isNumeric as esNumerico,
-                EHREvCUsM.isActive as isActive,
-                Eve.haveMedicalNotes as tieneNotasMedicas,
-                Eve.isForTelemedicine as esParaTelemedicina,
-                Eve.actionRecordedDate as fechaEvento,
-                ROW_NUMBER() over( partition by EHREvCust.idEHREvent,
-                                                Enc.idUserPatient,
-                                                Eve.idEncounter,
-                                                EHREvCust.idMonitoring,
-                                                EHREvCust.idMedition ORDER BY Eve.actionRecordedDate DESC) as Indicador
-            FROM EHREventICUMonitoringMeditions AS EHREvCust
-            INNER JOIN EHRConfUCIMonitoringMeditions AS EHREvCUsM WITH(NOLOCK)
-                ON EHREvCust.idMonitoring = EHREvCUsM.idMonitoring
-            INNER JOIN EHREvents AS Eve WITH(NOLOCK)
-                ON EHREvCust.idEHREvent = Eve.idEHREvent
-            INNER JOIN encounters as Enc WITH(NOLOCK)
-                ON Eve.idEncounter = Enc.idEncounter
-        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS Todo
-        WHERE Indicador=1
-    """
     
     query = f"""
        SELECT

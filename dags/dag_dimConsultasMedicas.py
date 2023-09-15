@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-08 00:00:00'
+fecha_texto = '2023-08-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-08-06 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -44,69 +44,7 @@ def func_get_dimConsultasMedicas ():
     print('Fecha inicio ', last_week)
     print('Fecha fin ', now)
 
-    query_legacy = f"""
-        SELECT
-            Todo.idEventoEHR,
-            Todo.idIngreso,
-            Todo.idUsuarioPaciente,
-            Todo.idEscala,
-            Todo.idPregunta,
-            Todo.idRespuesta,
-            Todo.fechaEvento,
-            Todo.aplicaParaHombres,
-            Todo.aplicaParaMujeres,
-            Todo.descripcionRespuesta,
-            Todo.valorAnalizado,
-            Todo.idResultadoEvaluacion,
-            Todo.idRegistro,
-            Todo.interpretacionEscala
-        FROM (
-            SELECT DISTINCT
-                EventMSC.idEHREvent as idEventoEHR,
-                Enc.idEncounter as idIngreso,
-                Enc.idUserPatient as idUsuarioPaciente,
-
-                EventMSC.idScale as idEscala,
-                EventMSC.idQuestion as idPregunta,
-                EventMSC.idAnswer as idRespuesta,
-                ConfSQA.isForMale as aplicaParaHombres,
-                ConfSQA.isForFemale as aplicaParaMujeres,
-                ConfSQA.description as descripcionRespuesta,
-                ConfSQA.value as valorAnalizado,
-
-                EventMS.idEvaluation as idResultadoEvaluacion,
-                ConfgSV.idRecord as idRegistro,
-                ConfgSV.name as interpretacionEscala,
-
-                Ev.actionRecordedDate as fechaEvento,
-
-                ROW_NUMBER() over( partition by EventMSC.idEHREvent,
-                                                Enc.idEncounter,
-                                                Enc.idUserPatient,
-                                                EventMSC.idScale,
-                                                EventMSC.idQuestion,
-                                                EventMSC.idAnswer,
-                                                EventMS.idEvaluation,
-                                                ConfgSV.idRecord ORDER BY Ev.actionRecordedDate DESC) as Indicador
-            FROM EHREventMedicalScaleQuestions AS EventMSC WITH(NOLOCK)
-            INNER JOIN EHRConfScaleQuestionAnswers AS ConfSQA WITH(NOLOCK)
-                ON EventMSC.idScale = ConfSQA.idScale
-                    AND ConfSQA.idQuestion = EventMSC.idQuestion
-                    AND ConfSQA.idAnswer = EventMSC.idAnswer
-            INNER JOIN EHREventMedicalScales AS EventMS WITH(NOLOCK) 
-                ON EventMSC.idEHREvent = EventMS.idEHREvent
-                    AND EventMSC.idScale = EventMS.idScale
-            INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) 
-                ON EventMS.idScale = ConfgSV.idScale
-                    AND ConfgSV.idRecord = EventMS.idEvaluation
-            INNER JOIN EHREvents AS Ev WITH(NOLOCK) 
-                ON EventMSC.idEHREvent = Ev.idEHREvent
-            INNER JOIN Encounters AS Enc WITH(NOLOCK) 
-                ON Ev.idEncounter = Enc.idEncounter
-            WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}') AS Todo
-            WHERE Indicador=1
-    """
-
+   
     query = f"""
     SELECT
         CM.idEventoEHR,

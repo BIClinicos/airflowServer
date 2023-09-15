@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-08 00:00:00'
+fecha_texto = '2023-03-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-08-06 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -50,46 +50,46 @@ def func_get_dimMedicionesSignosVitales ():
 		@idActionEvents VARCHAR(MAX) = '1013,1004,1023'
 
         SELECT
-        MSV.idSignoVital,
-        MSV.idUsuarioPaciente,
-        MSV.idIngreso,
-        MSV.idEventoEHR,
-        MSV.idRegistro,
-        MSV.idHistoriaClinica,
-        MSV.descripcionSignoVital,
-        MSV.valorRegistradoSigno,
-        MSV.aplicaParaMujeres,
-        MSV.aplicaParaHombres,
-        MSV.edadMinimaEnMeses,
-        MSV.edadMaximaEnMeses,
-        MSV.requiereEspecialidadProfesional,
-        MSV.fechaEvento
-    FROM (
-    SELECT
-        DISTINCT
-        EHP.idMeasurement as idSignoVital,
-        EHP.idUserPatient as idUsuarioPaciente,
-        EHP.idEncounter as idIngreso,
-        EHP.idEHREvent as idEventoEHR,
-        EHP.idRecord as idRegistro,
-        Ev.idAction as idHistoriaClinica,
-        EHC.name as descripcionSignoVital,
-        CAST(EHP.recordedValue as INT) as valorRegistradoSigno,
-        EHC.isForFemale as aplicaParaMujeres,
-        EHC.isForMale as aplicaParaHombres,
-        EHC.minimumAgeMonths as edadMinimaEnMeses,
-        EHC.maximumAgeMonths as edadMaximaEnMeses,
-        EHC.requireSpeciality as requiereEspecialidadProfesional,
+            MSV.idSignoVital,
+            MSV.idUsuarioPaciente,
+            MSV.idIngreso,
+            MSV.idEventoEHR,
+            MSV.idRegistro,
+            MSV.idHistoriaClinica,
+            MSV.descripcionSignoVital,
+            MSV.valorRegistradoSigno,
+            MSV.aplicaParaMujeres,
+            MSV.aplicaParaHombres,
+            MSV.edadMinimaEnMeses,
+            MSV.edadMaximaEnMeses,
+            MSV.requiereEspecialidadProfesional,
+            MSV.fechaEvento
+        FROM (
+        SELECT
+            DISTINCT
+            EHP.idMeasurement as idSignoVital,
+            EHP.idUserPatient as idUsuarioPaciente,
+            EHP.idEncounter as idIngreso,
+            EHP.idEHREvent as idEventoEHR,
+            EHP.idRecord as idRegistro,
+            Ev.idAction as idHistoriaClinica,
+            EHC.name as descripcionSignoVital,
+            CAST(EHP.recordedValue as INT) as valorRegistradoSigno,
+            EHC.isForFemale as aplicaParaMujeres,
+            EHC.isForMale as aplicaParaHombres,
+            EHC.minimumAgeMonths as edadMinimaEnMeses,
+            EHC.maximumAgeMonths as edadMaximaEnMeses,
+            EHC.requireSpeciality as requiereEspecialidadProfesional,
 
-        
-        EHP.recordedDate as fechaEvento
-    from EHRPatientMeasurements EHP
-    INNER JOIN EHRConfMeasurements EHC ON  EHP.idMeasurement=EHC.idMeasurement
-    INNER JOIN Encounters Enc ON Enc.idEncounter = EHP.idEncounter
-    INNER JOIN EHREvents Ev ON Ev.idEHREvent = EHP.idEHREvent
-    WHERE recordedDate >='{last_week}' AND recordedDate<='{now}'
-    AND Ev.idAction in (SELECT Value FROM dbo.FnSplit(@idActionEvents))
-    ) AS MSV
+            
+            EHP.recordedDate as fechaEvento
+        from EHRPatientMeasurements EHP
+        INNER JOIN EHRConfMeasurements EHC ON  EHP.idMeasurement=EHC.idMeasurement
+        INNER JOIN Encounters Enc ON Enc.idEncounter = EHP.idEncounter
+        INNER JOIN EHREvents Ev ON Ev.idEHREvent = EHP.idEHREvent
+        WHERE recordedDate >='{last_week}' AND recordedDate<='{now}'
+        AND Ev.idAction in (SELECT Value FROM dbo.FnSplit(@idActionEvents))
+        ) AS MSV
     
     """
 

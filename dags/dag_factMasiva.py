@@ -28,7 +28,7 @@ db_tmp_table = "TmpMasiva"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-01-02 23:59:59'
+fecha_texto = '2023-02-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
@@ -53,77 +53,65 @@ def func_get_factMasiva():
 
 
             -- QUERY PARA EL DAG
-            SELECT
-                Todo.idIngreso,
+            SELECT 
                 Todo.idUsuario,
-                Todo.idUsuarioPaciente,
+                Todo.idIngreso,
                 Todo.idEventoEHR,
                 Todo.idOficina,
                 Todo.idNombreAseguradora,
                 Todo.idContratoPrincipal,
                 Todo.idDiagnostico,
-                Todo.idEsquemaActividad,
-                Todo.idElementoAGuardar,
-                Todo.idSignoVital,
-                Todo.idRegistro,
-                Todo.idMonitoria,
-                Todo.idEventoAEvaluar,
-                Todo.idEscala,
-                Todo.idPregunta,
-                Todo.idRespuesta,
-                Todo.idProducto,
-                Todo.idRol,
+                Todo.idActividadesHC,
                 Todo.idTipoEvento,
                 Todo.fechaRegistroEvento,
                 Todo.fechaRealizacionEventoAlPaciente,
                 Todo.fechaInicioPlan,
+                Todo.esPlanPrincipal,
+                Todo.tipoDeIdentificacion,
+                Todo.numeroIdentificacion,
                 Todo.ingreso,
-                Todo.nitIPS,
                 Todo.codigoHabilitacion,
+                Todo.nitIPS,
                 Todo.codigoSucursal,
+                Todo.municipioDeResidencia,
+                Todo.numeroTelefonicoNo1DelPaciente,
+                Todo.numeroTelefonicoNo2DelPaciente,
+                Todo.direccionDeRecidenciaDelPaciente,
                 Todo.esDiagnosticoPrincipal,
-                Todo.codigoServicioAtencionRequeridaPorUsuario,
-
-                
-                Todo.actualmenteActivo,
-                Todo.cantidadPorHacer
+                Todo.codigoServicioAtencionRequeridaPorUsuario
             FROM (
                 SELECT
                     DISTINCT
-                    Enc.idEncounter as idIngreso,
                     Pat.idUser as idUsuario,
-                    Enc.idUserPatient as idUsuarioPaciente, -- Conecta con Dim Users
+                    Enc.idEncounter as idIngreso,
                     EV.idEHREvent as idEventoEHR,
-                    Enc.idOffice as idOficina, -- Conecta con TblDOficina
+                    Enc.idOffice as idOficina,
                     EncR.idPrincipalContractee as idNombreAseguradora,
                     EncR.idPrincipalContract as idContratoPrincipal,
-                    Diag.idDiagnostic as idDiagnostico, -- Conecta con Dimension Diagnostics
-                    -- TheDate -- Es con el delta 
-                    EHREvCust.idConfigActivity as idEsquemaActividad,
-                    EHREvCust.idElement as idElementoAGuardar,
-                    EHRPaMe.idMeasurement as idSignoVital,
-                    EHRPaMe.idRecord as idRegistro,
-                    EvICU.idMonitoring as idMonitoria,
-                    EvICU.idMedition as idEventoAEvaluar,
-                    EvICU.value as valorARegistrarDeMonitoria,
-                    EventMSQ.idScale as idEscala,
-                    EventMSQ.idQuestion as idPregunta,
-                    EventMSQ.idAnswer as idRespuesta,
-                    Enc.dateRegister as fechaRegistroEvento,
-                    EV.actionRecordedDate as fechaRealizacionEventoAlPaciente,
-                    EncHc.dateStart as fechaInicioPlan, -- Campo Delta.
+                    EHREvMDiag.idDiagnostic as idDiagnostico,
+                    EncHc.idHCActivity as idActividadesHC,
+                    EV.idAction as idTipoEvento,
+                    -- sEnc.idUserPatient as idUsuarioPaciente, -- Conecta con Dim Users
+                    Doc.code + ' | ' + Doc.name AS tipoDeIdentificacion,
+                    Pat.documentNumber as numeroIdentificacion,
                     Enc.identifier as ingreso,
-                    Ucom.documentNumber as nitIPS,
                     Office.legalCode as codigoHabilitacion,
-                    RIGHT(Office.legalCode, 1) as codigoSucursal,
+                    Ucom.documentNumber as nitIPS,
+                    CAST(RIGHT(Office.legalCode, 1) AS INT) as codigoSucursal,
+                    
+
+                    CityD.codeConcatenate AS municipioDeResidencia,
+                    PatU.telecom AS numeroTelefonicoNo1DelPaciente,
+                    PatU.phoneHome AS numeroTelefonicoNo2DelPaciente,
+                    PatU.homeAddress AS direccionDeRecidenciaDelPaciente,
                     EHREvMDiag.isPrincipal as esDiagnosticoPrincipal,
                     EHRconfAct.codeActivity as codigoServicioAtencionRequeridaPorUsuario,
                     
-                    EV.idAction as idTipoEvento,
-                    EncHcAct.idProduct as idProducto,
-                    EncHcAct.idRol,
-                    EncHcAct.isActive as actualmenteActivo,
-                    EncHcAct.quantityTODO as cantidadPorHacer
+
+                    Enc.dateRegister as fechaRegistroEvento,
+                    EV.actionRecordedDate as fechaRealizacionEventoAlPaciente,
+                    EncHc.dateStart as fechaInicioPlan,
+                    EncHc.isPrincipal as esPlanPrincipal
 
                 FROM Encounters AS Enc
                 INNER JOIN users AS Pat WITH(NOLOCK) ON Enc.idUserPatient = Pat.idUser
@@ -139,25 +127,25 @@ def func_get_factMasiva():
                 INNER JOIN EHREvents AS EV WITH(NOLOCK) ON Enc.idEncounter = EV.idEncounter
                 INNER JOIN EHREventMedicalDiagnostics AS EHREvMDiag WITH(NOLOCK) ON EHREvMDiag.idEHREvent = EV.idEHREvent
                 INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON EHREvMDiag.idDiagnostic = Diag.idDiagnostic
-                
+
                 -- DIM Actividades HomeCare
                 INNER JOIN (SELECT * FROM encounterHCActivities 
                                 WHERE idProduct IS NOT NULL AND idRol IS NOT NULL) as EncHcAct ON EncHc.idEncounter = EncHcAct.idEncounter AND EncHc.idHCRecord = EncHcAct.idHCRecord
-
+                            
                 -- DIM Esquemas Configurables
                 INNER JOIN EHREventCustomActivities AS EHREvCust WITH(NOLOCK) ON EV.idEHREvent = EHREvCust.idEvent
-                
+                            
                 -- DIM Mediciones Signos Vitales
                 INNER JOIN EHRPatientMeasurements AS EHRPaMe WITH(NOLOCK) ON Enc.idEncounter = EHRPaMe.idEncounter AND EV.idEHREvent = EHRPaMe.idEHREvent AND Enc.idUserPatient = EHRPaMe.idUserPatient
-                
+                            
                 -- DIM Mediciones de Monitoria
                 INNER JOIN EHREventICUMonitoringMeditions EvICU ON EV.idEHREvent = EvICU.idEHREvent
-                
+                            
                 -- DIM Consultas Medicas
-                INNER JOIN EHREventMedicalScaleQuestions AS EventMSQ ON EV.idEHREvent = EventMSQ.idEHREvent
+                INNER JOIN (SELECT DISTINCT idEHREvent, idScale FROM EHREventMedicalScaleQuestions) AS EventMSQ ON EV.idEHREvent = EventMSQ.idEHREvent
 
                 WHERE Enc.idUserCompany = @idUserCompany
-                    AND EncHC.dateStart >='{last_week}' AND EncHC.dateStart<='{now}'
+                    AND EncHC.dateStart >='{last_week}' AND EncHC.dateStart<'{now}'
                     AND Enc.idOffice IN (SELECT Value FROM dbo.FnSplit (@OfficeFilter))
                     AND EncR.idPrincipalContractee IN (SELECT Value FROM dbo.FnSplit (@idIns))
                     -- AND Enc.idEncounter IN (SELECT Value FROM dbo.FnSplit (@idEncountersEnero))
