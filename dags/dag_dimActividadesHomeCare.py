@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-01 00:00:00'
+fecha_texto = '2023-01-31 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -45,44 +45,24 @@ def func_get_dimActividadesHomeCare ():
 
     
     query = f"""
-        SELECT
-            Todo.idIngreso,
-            Todo.idUsuarioPaciente,
-            Todo.idEventoEHR,
-            Todo.idRol,
-            Todo.idProducto,
-            Todo.idRegistroActividad,
-            Todo.cantidadPorHacer,
-            Todo.actualmenteActivo,
-            Todo.fechaRegistro
-        FROM
-        (
        SELECT
             DISTINCT
-            EncHcAct.idEncounter as idIngreso,
-            Enc.idUserPatient as idUsuarioPaciente,
-            Ev.idEHREvent as idEventoEHR,
-            EncHcAct.idRol,
-            EncHcAct.idProduct as idProducto,
-            EncHC.idHCActivity as idRegistroActividad,
-            EncHcAct.quantityTODO as cantidadPorHacer,
-            EncHcAct.isActive as actualmenteActivo,
-            EncHcAct.dateRegister as fechaRegistro,
-            ROW_NUMBER() over( partition by EncHcAct.idEncounter,
-                                                Enc.idEncounter,
-                                                Enc.idUserPatient,
-                                                Ev.idEHREvent,
-                                                EncHcAct.idRol,
-                                                EncHcAct.idProduct,
-                                                EncHC.idHCActivity ORDER BY EncHcAct.dateRegister DESC) as Indicador
+             Enc.idUserPatient           as idUsuarioPaciente
+            ,EncHcAct.idEncounter        as idIngreso
+            ,Ev.idEHREvent               as idEventoEHR
+            ,EncHcAct.dateRegister       as fechaRegistro
+            ,EncHcAct.idProduct          as idProducto
+            ,EncHcAct.idRol
+            ,EHRConf.idHCActivity        as idRegistroActividad
+            ,EncHcAct.quantityTODO       as cantidadPorHacer
         FROM encounterHCActivities EncHcAct
         INNER JOIN Encounters as Enc WITH(NOLOCK) ON EncHcAct.idEncounter = Enc.idEncounter
         INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EncHcAct.idEncounter = Ev.idEncounter
         INNER JOIN encounterHC as EncHC WITH(NOLOCK) ON EncHcAct.idEncounter = EncHC.idEncounter
-        WHERE EncHcAct.idRol IS NOT NULL
-        AND EncHcAct.idProduct IS NOT NULL
-        AND EncHcAct.dateRegister >='{last_week}' AND EncHcAct.dateRegister <'{now}') AS Todo
-        WHERE Indicador=1
+        LEFT JOIN EHRConfHCActivity AS EHRConf ON EncHC.idHCActivity = EHRConf.idHCActivity
+        WHERE EncHcAct.idRol IS NOT NULL AND EncHcAct.idProduct IS NOT NULL AND EncHcAct.isActive = 1
+        AND EncHcAct.dateRegister >='{last_week}' AND EncHcAct.dateRegister <'{now}'
+        ORDER BY EncHcAct.idEncounter, Enc.idUserPatient, Ev.idEHREvent, EncHcAct.idProduct, EncHcAct.idRol, EHRConf.idHCActivity, EncHcAct.dateRegister
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
@@ -137,8 +117,17 @@ with DAG(dag_name,
                                         dag=dag
                                        )
 
+    load_factActividadesHomeCare = MsSqlOperator(task_id='Load_factActividadesHomeCare',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblHActividadesHomeCare",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
+
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimActividadesHomeCare >> load_dimActividadesHomeCare >> task_end
+start_task >> get_dimActividadesHomeCare >> load_dimActividadesHomeCare >> load_factActividadesHomeCare >> task_end

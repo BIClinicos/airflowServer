@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-01 00:00:00'
+fecha_texto = '2023-09-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-08-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -46,38 +46,21 @@ def func_get_dimConsultasMedicas ():
 
    
     query = f"""
-    SELECT
-        CM.idEventoEHR,
-        CM.idIngreso,
-        CM.idUsuarioPaciente,
-        CM.idEscala,
-        CM.idPregunta,
-        CM.idRespuesta,
-        CM.idResultadoEvaluacion,
-        CM.idRegistro,
-        CM.aplicaParaHombres,
-        CM.aplicaParaMujeres,
-        CM.descripcionRespuesta,
-        CM.valorAnalizado,
-        CM.interpretacionEscala,
-        CM.fechaEvento
-    FROM (
         SELECT DISTINCT
-            EventMSQ.idEHREvent as idEventoEHR,
-            Enc.idEncounter as idIngreso,
-            Enc.idUserPatient as idUsuarioPaciente,
+             Enc.idUserPatient           as idUsuarioPaciente
+            ,Enc.idEncounter             as idIngreso
+            ,EventMSQ.idEHREvent         as idEventoEHR
+            ,Ev.actionRecordedDate       as fechaEvento
 
-            EventMSQ.idScale as idEscala,
-            EventMSQ.idQuestion as idPregunta,
-            EventMSQ.idAnswer as idRespuesta,
-            ConfSQA.isForMale as aplicaParaHombres,
-            ConfSQA.isForFemale as aplicaParaMujeres,
-            ConfSQA.description as descripcionRespuesta,
-            CAST(ConfSQA.value AS INT) as valorAnalizado,
-            EventMS.idEvaluation as idResultadoEvaluacion,
-            ConfgSV.idRecord as idRegistro,
-            ConfgSV.name as interpretacionEscala,
-            Ev.actionRecordedDate as fechaEvento
+            ,EventMSQ.idScale            as idEscala
+            ,EventMSQ.idQuestion         as idPregunta
+            ,EventMSQ.idAnswer           as idRespuesta
+            
+            ,ConfSQA.isForMale           as aplicaParaHombres
+            ,ConfSQA.isForFemale         as aplicaParaMujeres
+            ,ConfSQA.description         as descripcionRespuesta
+            ,CAST(ConfSQA.value AS INT)  as valorAnalizado
+            ,ConfgSV.name                as interpretacionEscala
 
         FROM EHREventMedicalScaleQuestions AS EventMSQ WITH(NOLOCK)
         INNER JOIN EHRConfScaleQuestionAnswers AS ConfSQA WITH(NOLOCK) ON EventMSQ.idScale = ConfSQA.idScale AND ConfSQA.idQuestion = EventMSQ.idQuestion AND ConfSQA.idAnswer = EventMSQ.idAnswer
@@ -85,7 +68,7 @@ def func_get_dimConsultasMedicas ():
         INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) ON EventMS.idScale = ConfgSV.idScale AND ConfgSV.idRecord = EventMS.idEvaluation
         INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EventMSQ.idEHREvent = Ev.idEHREvent
         INNER JOIN Encounters AS Enc WITH(NOLOCK) ON Ev.idEncounter = Enc.idEncounter
-        WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}') AS CM
+        WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}'
 
     """
 
@@ -102,7 +85,7 @@ def func_get_dimConsultasMedicas ():
 
     # Si la consulta no es vacía, carga el dataframe a la tabla temporal en BI.
     if ~df.empty and len(df.columns) >0:
-        load_df_to_sql(df, db_tmp_table, sql_connid)
+        load_df_to_sql(df, db_tmp_table, sql_connid) # hace truncate
 
 # Se declara un objeto con los parámetros del DAG
 default_args = {
@@ -141,9 +124,18 @@ with DAG(dag_name,
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
+    
+    load_factConsultasMedicas = MsSqlOperator(task_id='Load_factConsultasMedicas',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblHConsultasMedicas",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
 
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimConsultasMedicas >> load_dimConsultasMedicas >> task_end
+start_task >> get_dimConsultasMedicas >> load_dimConsultasMedicas >> load_factConsultasMedicas >> task_end

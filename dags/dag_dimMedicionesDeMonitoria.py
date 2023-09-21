@@ -29,9 +29,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-01 00:00:00'
+fecha_texto = '2023-06-30 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-05-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -46,34 +46,22 @@ def func_get_dimMedicionesDeMonitoria ():
 
     
     query = f"""
-       SELECT
-            MM.idIngreso,
-            MM.idEventoEHR,
-            MM.idUsuarioPaciente,
-            MM.idMonitoria,
-            MM.idEventoAEvaluar,
-            MM.valorARegistrar,
-            MM.descripcionElemento,
-            MM.esNumerico,
-            MM.isActive,
-            MM.fechaEvento
-        FROM (
         SELECT
-            Eve.idEncounter as idIngreso,
-            ICU.idEHREvent as idEventoEHR,
-            ENC.idUserPatient as idUsuarioPaciente,
-            ICU.idMonitoring as idMonitoria,
-            ICU.idMedition as idEventoAEvaluar,
-            ICU.value as valorARegistrar,
-            UCI.name as descripcionElemento,
-            UCI.isNumeric as esNumerico,
-            Eve.isActive,
-            Eve.actionRecordedDate as fechaEvento
+            ENC.idUserPatient       as idUsuarioPaciente
+            ,Eve.idEncounter         as idIngreso
+            ,ICU.idEHREvent          as idEventoEHR
+            ,Eve.actionRecordedDate  as fechaEvento
+
+            ,ICU.idMonitoring        as idMonitoria
+            ,ICU.idMedition          as idEventoAEvaluar
+            ,ICU.value               as valorARegistrar
+            ,UCI.name                as descripcionElemento
+            ,UCI.isNumeric           as esNumerico
         FROM EHREventICUMonitoringMeditions ICU
         INNER JOIN EHREvents AS Eve ON ICU.idEHREvent = Eve.idEHREvent
         INNER JOIN [dbo].[encounters] ENC on  Eve.idEncounter=ENC.idEncounter
         INNER JOIN EHRConfUCIMonitoringMeditions UCI ON ICU.idMonitoring = UCI.idMonitoring AND ICU.idMedition = UCI.idMedition
-        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS MM
+        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}'
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
@@ -125,9 +113,18 @@ with DAG(dag_name,
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
+    
+    load_factMedicionesDeMonitoria = MsSqlOperator(task_id='Load_factMedicionesDeMonitoria',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblHMedicionesDeMonitoria",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
 
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimMedicionesDeMonitoria >> load_dimMedicionesDeMonitoria >> task_end
+start_task >> get_dimMedicionesDeMonitoria >> load_dimMedicionesDeMonitoria >> load_factMedicionesDeMonitoria >> task_end

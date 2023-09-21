@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-08-01 00:00:00'
+fecha_texto = '2023-01-31 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -46,28 +46,18 @@ def func_get_dimEsquemasConfigurables ():
     
     query = f"""
         SELECT
-            EC.idEvento,
-            EC.idIngreso,
-            EC.idUsuarioPaciente,
-            EC.idEsquemaActividad,
-            EC.idElementoAGuardar,
-            EC.valorTextoARegistrar,
-            EC.isActive,
-            EC.fechaEvento
-        FROM (
-            SELECT
-            EHREvCust.idEvent as idEvento,
-            Enc.idEncounter as idIngreso,
-            Enc.idUserPatient as idUsuarioPaciente,
-            EHREvCust.idConfigActivity as idEsquemaActividad,
-            EHREvCust.idElement as idElementoAGuardar,
-            EHREvCust.valueText as valorTextoARegistrar,
-            Eve.isActive,
-            Eve.actionRecordedDate as fechaEvento
-            FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
-            INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
-            INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
-            WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}') AS EC
+            Enc.idUserPatient               as idUsuarioPaciente
+            ,Enc.idEncounter                 as idIngreso
+            ,EHREvCust.idEvent               as idEvento
+            ,Eve.actionRecordedDate          as fechaEvento
+
+            ,EHREvCust.idConfigActivity      as idEsquemaActividad
+            ,EHREvCust.idElement             as idElementoAGuardar
+            ,EHREvCust.valueText             as valorTextoARegistrar
+        FROM EHREventCustomActivities AS EHREvCust WITH(NOLOCK)
+        INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
+        INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
+        WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}'
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
@@ -121,9 +111,18 @@ with DAG(dag_name,
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
+    
+    load_factEsquemasConfigurables = MsSqlOperator(task_id='Load_factEsquemasConfigurables',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblHEsquemasConfigurables",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
 
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimEsquemasConfigurables >> load_dimEsquemasConfigurables >> task_end
+start_task >> get_dimEsquemasConfigurables >> load_dimEsquemasConfigurables >> load_factEsquemasConfigurables >> task_end

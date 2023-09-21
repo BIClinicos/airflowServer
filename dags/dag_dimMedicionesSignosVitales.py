@@ -29,8 +29,8 @@ db_tmp_table = "TmpMedicionesSignosVitales"
 dag_name = 'dag_' + db_table
 
 
-# Para correr manualmente las fechas
-fecha_texto = '2023-03-01 00:00:00'
+# Para correr manualmente las fechas (Comentario: por historia clinica, solo registros a partir  de Julio 1)
+fecha_texto = '2023-09-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
@@ -50,47 +50,27 @@ def func_get_dimMedicionesSignosVitales ():
 		@idActionEvents VARCHAR(MAX) = '1013,1004,1023'
 
         SELECT
-            MSV.idSignoVital,
-            MSV.idUsuarioPaciente,
-            MSV.idIngreso,
-            MSV.idEventoEHR,
-            MSV.idRegistro,
-            MSV.idHistoriaClinica,
-            MSV.descripcionSignoVital,
-            MSV.valorRegistradoSigno,
-            MSV.aplicaParaMujeres,
-            MSV.aplicaParaHombres,
-            MSV.edadMinimaEnMeses,
-            MSV.edadMaximaEnMeses,
-            MSV.requiereEspecialidadProfesional,
-            MSV.fechaEvento
-        FROM (
-        SELECT
             DISTINCT
-            EHP.idMeasurement as idSignoVital,
-            EHP.idUserPatient as idUsuarioPaciente,
-            EHP.idEncounter as idIngreso,
-            EHP.idEHREvent as idEventoEHR,
-            EHP.idRecord as idRegistro,
-            Ev.idAction as idHistoriaClinica,
-            EHC.name as descripcionSignoVital,
-            CAST(EHP.recordedValue as INT) as valorRegistradoSigno,
-            EHC.isForFemale as aplicaParaMujeres,
-            EHC.isForMale as aplicaParaHombres,
-            EHC.minimumAgeMonths as edadMinimaEnMeses,
-            EHC.maximumAgeMonths as edadMaximaEnMeses,
-            EHC.requireSpeciality as requiereEspecialidadProfesional,
+            EHP.idUserPatient as idUsuarioPaciente
+            ,EHP.idEncounter as idIngreso
+            ,EHP.idEHREvent as idEventoEHR
+            ,EHP.recordedDate as fechaEvento
 
-            
-            EHP.recordedDate as fechaEvento
+            ,EHP.idMeasurement as idSignoVital
+            ,EHP.idRecord as idRegistro
+            ,Ev.idAction as idHistoriaClinica
+            ,EHC.name as descripcionSignoVital
+            ,CAST(EHP.recordedValue as INT) as valorRegistradoSigno
+            ,EHC.isForFemale as aplicaParaMujeres
+            ,EHC.isForMale as aplicaParaHombres
+            ,EHC.minimumAgeMonths as edadMinimaEnMeses
+            ,EHC.maximumAgeMonths as edadMaximaEnMeses
         from EHRPatientMeasurements EHP
         INNER JOIN EHRConfMeasurements EHC ON  EHP.idMeasurement=EHC.idMeasurement
         INNER JOIN Encounters Enc ON Enc.idEncounter = EHP.idEncounter
         INNER JOIN EHREvents Ev ON Ev.idEHREvent = EHP.idEHREvent
-        WHERE recordedDate >='{last_week}' AND recordedDate<='{now}'
-        AND Ev.idAction in (SELECT Value FROM dbo.FnSplit(@idActionEvents))
-        ) AS MSV
-    
+        WHERE Ev.idAction in (SELECT Value FROM dbo.FnSplit(@idActionEvents)) 
+        AND EHP.recordedDate >='{last_week}' AND recordedDate<='{now}'
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
@@ -149,8 +129,18 @@ with DAG(dag_name,
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
+    
+    # Se declara la función encargada de ejecutar el "Stored Procedure"
+    load_factMedicionesSignosVitales = MsSqlOperator(task_id='Load_factMedicionesSignosVitales',
+                                        mssql_conn_id=sql_connid,
+                                        autocommit=True,
+                                        sql="EXECUTE uspCarga_TblHMedicionesSignosVitales",
+                                        # email_on_failure=True, 
+                                        # email='BI@clinicos.com.co',
+                                        dag=dag
+                                       )
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimMedicionesSignosVitales >> load_dimMedicionesSignosVitales >> task_end
+start_task >> get_dimMedicionesSignosVitales >> load_dimMedicionesSignosVitales >> load_factMedicionesSignosVitales >> task_end
