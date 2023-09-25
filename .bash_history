@@ -1334,3 +1334,17 @@ docker version
 sudo docker run hello-world
 clear
 docker compose version
+git add .
+git commit -m "update:NEPS/new:Masiva/new:Innovar/fix:dags"
+git push origin Manar
+git checkout main
+git add .
+git commit -m "update:gitignore"
+git push origin main
+git merge Manar
+git add .
+git commit -m "update:merge Manar"
+git push origin main
+pip freeze
+chmod -R 777 dags/
+chmod -R 777 dags/files_pami/

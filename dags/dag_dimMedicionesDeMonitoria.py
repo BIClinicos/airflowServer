@@ -29,9 +29,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-06-30 00:00:00'
+fecha_texto = '2023-07-07 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-05-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -62,6 +62,10 @@ def func_get_dimMedicionesDeMonitoria ():
         INNER JOIN [dbo].[encounters] ENC on  Eve.idEncounter=ENC.idEncounter
         INNER JOIN EHRConfUCIMonitoringMeditions UCI ON ICU.idMonitoring = UCI.idMonitoring AND ICU.idMedition = UCI.idMedition
         WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}'
+        AND (
+            ((ICU.idMonitoring = 1044			AND ICU.idMedition BETWEEN 2780 AND 2844)
+            OR (ICU.idMonitoring IN (1036, 1037)	AND ICU.idMedition IN (2650, 2666) AND UCI.isNumeric = 1)) 
+        )
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)

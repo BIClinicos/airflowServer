@@ -19,15 +19,17 @@ db_tmp_table = "tmpConsultationGomedisys"
 dag_name = 'dag_' + db_table
 
 now = datetime.now()
-last_week_date = now - timedelta(weeks=1)
-# last_week_date = datetime(2023,7,1)
+# now = datetime(2022,1,1)
+# last_week_date = now - timedelta(weeks=1)
+last_week_date = datetime(2021,2,1)
 last_week = last_week_date.strftime('%Y-%m-%d %H:%M:%S')
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
 def func_get_ConsultationGomedisys ():
     # LECTURA DE DATOS  
     with open("dags/NEPS/queries/ConsultationGomedisys.sql") as fp:
-        query = fp.read().replace("{last_week}", f"{last_week_date.strftime('%Y-%m-%d')!r}")
+        query = fp.read().replace("{last_week}", f"{last_week_date.strftime('%Y-%m-%d')!r}").\
+                replace("{now}",f"{now.strftime('%Y-%m-%d')!r}")
     df:pd.DataFrame = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
     # CARGA A BASE DE DATOS
     if ~df.empty and len(df.columns) >0:
@@ -94,4 +96,4 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> delete_temp_range_python >> get_ConsultationGomedisys_python_task >> load_ConsultationGomedisys >> task_end
+start_task >> get_ConsultationGomedisys_python_task >> load_ConsultationGomedisys >> task_end

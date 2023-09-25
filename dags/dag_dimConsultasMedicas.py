@@ -30,9 +30,10 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-09-01 00:00:00'
+fecha_texto = '2023-06-30 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-08-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-23 00:00:00', '%Y-%m-%d %H:%M:%S')
+
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -69,6 +70,11 @@ def func_get_dimConsultasMedicas ():
         INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EventMSQ.idEHREvent = Ev.idEHREvent
         INNER JOIN Encounters AS Enc WITH(NOLOCK) ON Ev.idEncounter = Enc.idEncounter
         WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}'
+        AND (
+              ((EventMSQ.idScale = 11				        AND EventMSQ.idQuestion  BETWEEN 1 AND 10)
+                OR (EventMSQ.idScale = 12					AND EventMSQ.idQuestion  = 1)
+                OR (EventMSQ.idScale = 58					AND EventMSQ.idQuestion  BETWEEN 1 AND 8))
+            )
 
     """
 

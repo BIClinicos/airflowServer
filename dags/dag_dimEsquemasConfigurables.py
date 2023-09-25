@@ -30,9 +30,10 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-01-31 00:00:00'
+fecha_texto = '2023-07-07 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
+
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -58,6 +59,14 @@ def func_get_dimEsquemasConfigurables ():
         INNER JOIN EHREvents AS Eve WITH(NOLOCK) ON EHREvCust.idEvent = Eve.idEHREvent
         INNER JOIN encounters AS Enc WITH(NOLOCK) ON Eve.idEncounter = Enc.idEncounter
         WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}'
+        AND
+        (
+            ((EHREvCust.idElement = 1						        AND EHREvCust.idConfigActivity IN (292, 293, 301, 302, 304, 375))
+            OR (EHREvCust.idElement IN (3,4)					    AND EHREvCust.idConfigActivity = 293)
+            OR (EHREvCust.idElement IN (1,2,3,4,5,6,7,8,9)		    AND EHREvCust.idConfigActivity = 374)
+            OR (EHREvCust.idElement IN (1,2)					    AND EHREvCust.idConfigActivity = 303)
+            OR (EHREvCust.idElement IN (12,13,14,15,16,17,18,24)    AND EHREvCust.idConfigActivity = 290))
+        )
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
@@ -124,5 +133,6 @@ with DAG(dag_name,
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
+
 
 start_task >> get_dimEsquemasConfigurables >> load_dimEsquemasConfigurables >> load_factEsquemasConfigurables >> task_end

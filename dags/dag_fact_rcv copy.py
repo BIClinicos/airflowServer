@@ -104,9 +104,11 @@ def transform_data (path):
             'clasificacion_de_riesgo' : 'risk_stratification',
             'valoracion_pie_diabetico' : 'diabetic_foot_exam',
             'clasificacion_de_riesgo_pie_diabetico' : 'diabetic_foot_grade',
-            'prestadores' : 'provider',
-            'consulta_enfermeria' : 'nursing_consultation',
-            'consulta_cardiologia' : 'cardiology_consultation'
+            'tasa_de_filtracion_glomerular_ckd_epi' : 'gfr_ckd_epi',
+            'estadio_erc_ckd_epi' : 'stage_ckd_epi', 
+            'rcv' : 'rcv',
+            'erc' : 'erc', 
+            'prestadores' : 'provider'
         }
     )
     print(df['last_creatine'].head(10))
@@ -154,9 +156,8 @@ def transform_data (path):
         'previous_creatine',
         'diff_creatine',
         'diff_date_creatine',
-        'diff_date_hba1c',
-        'framinghan',
-        'findrisk'
+        'gfr_ckd_epi',        
+        'diff_date_hba1c'
     ]
 
     for i in float_col:
@@ -197,6 +198,9 @@ def transform_data (path):
         'risk_stratification',
         'diabetic_foot_exam',
         'diabetic_foot_grade',
+        'stage_ckd_epi',  
+        'rcv', 
+        'erc', 
         'provider'
     ]
     for i in cat_col:
@@ -214,9 +218,7 @@ def transform_data (path):
         'date_last_hba1c', 
         'date_last_tg',
         'period',
-        'date_previous_creatine',
-        'nursing_consultation',
-        'cardiology_consultation'
+        'date_previous_creatine'
     ]
     for i in date_col:
         df[i] = df[i].astype(str)
@@ -312,8 +314,6 @@ def func_get_fact_rcv ():
         'mega', 
         'period',
         'insulinized',
-        'framinghan',
-        'findrisk',
         'antihyp_med',
         'oral_med_dm',
         'insulinized_med_dm',
@@ -330,9 +330,11 @@ def func_get_fact_rcv ():
         'risk_stratification',
         'diabetic_foot_exam',
         'diabetic_foot_grade',
-        'provider',
-        'nursing_consultation',
-        'cardiology_consultation'
+        'gfr_ckd_epi', 
+        'stage_ckd_epi',
+        'rcv',
+        'erc',
+        'provider'
         ]
     ]
 

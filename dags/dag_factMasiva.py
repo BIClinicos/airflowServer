@@ -28,12 +28,20 @@ db_tmp_table = "TmpMasiva"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-02-01 00:00:00'
+fecha_texto = '2023-07-07 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+
+# fechas secundarias
+#fecha_texto_secundario = '2023-09-01 00:00:00'
+#now_secundario = datetime.strptime(fecha_texto_secundario, '%Y-%m-%d %H:%M:%S')
+#
+#last_week_secundario = datetime.strptime('2023-08-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+#now_secundario = now_secundario.strftime('%Y-%m-%d %H:%M:%S')
+#last_week_secundario = last_week_secundario.strftime('%Y-%m-%d %H:%M:%S')
 
 def func_get_factMasiva():
 
@@ -47,71 +55,41 @@ def func_get_factMasiva():
                 @OfficeFilter VARCHAR(MAX) = '1,17,352666',--(SELECT STRING_AGG(idOffice,',') FROM companyOffices WHERE idUserCompany = 352666),
                 @idIns VARCHAR(MAX) = '16,33,285991,20,266465,422816,289134,17,150579,358811,39,88813,4,24,22,25,150571,302708,26,289154,365849,266467,7,28,23,420,32,421',
                 @idCont VARCHAR(MAX) = '83,81,79,76,84,77,88,82,78,80,92'
-                
-                -- @idEncountersEnero VARCHAR(MAX) = '1320588,1320597,1320598,1320600,1320601,1320604,1320605,1321047,1321126,1321137'
-
-
 
             -- QUERY PARA EL DAG
-            SELECT 
-                Todo.idUsuario,
-                Todo.idIngreso,
-                Todo.idEventoEHR,
-                Todo.idOficina,
-                Todo.idNombreAseguradora,
-                Todo.idContratoPrincipal,
-                Todo.idDiagnostico,
-                Todo.idActividadesHC,
-                Todo.idTipoEvento,
-                Todo.fechaRegistroEvento,
-                Todo.fechaRealizacionEventoAlPaciente,
-                Todo.fechaInicioPlan,
-                Todo.esPlanPrincipal,
-                Todo.tipoDeIdentificacion,
-                Todo.numeroIdentificacion,
-                Todo.ingreso,
-                Todo.codigoHabilitacion,
-                Todo.nitIPS,
-                Todo.codigoSucursal,
-                Todo.municipioDeResidencia,
-                Todo.numeroTelefonicoNo1DelPaciente,
-                Todo.numeroTelefonicoNo2DelPaciente,
-                Todo.direccionDeRecidenciaDelPaciente,
-                Todo.esDiagnosticoPrincipal,
-                Todo.codigoServicioAtencionRequeridaPorUsuario
-            FROM (
                 SELECT
                     DISTINCT
-                    Pat.idUser as idUsuario,
-                    Enc.idEncounter as idIngreso,
-                    EV.idEHREvent as idEventoEHR,
-                    Enc.idOffice as idOficina,
-                    EncR.idPrincipalContractee as idNombreAseguradora,
-                    EncR.idPrincipalContract as idContratoPrincipal,
-                    EHREvMDiag.idDiagnostic as idDiagnostico,
-                    EncHc.idHCActivity as idActividadesHC,
-                    EV.idAction as idTipoEvento,
-                    -- sEnc.idUserPatient as idUsuarioPaciente, -- Conecta con Dim Users
-                    Doc.code + ' | ' + Doc.name AS tipoDeIdentificacion,
-                    Pat.documentNumber as numeroIdentificacion,
-                    Enc.identifier as ingreso,
-                    Office.legalCode as codigoHabilitacion,
-                    Ucom.documentNumber as nitIPS,
-                    CAST(RIGHT(Office.legalCode, 1) AS INT) as codigoSucursal,
+                    Pat.idUser                                           as idUsuario
+                    ,Enc.idEncounter                                     as idIngreso
+                    ,EV.idEHREvent                                       as idEventoEHR
+                    ,Enc.idOffice                                        as idOficina
+                    ,EncR.idPrincipalContractee                          as idNombreAseguradora
+                    ,EncR.idPrincipalContract                            as idContratoPrincipal
+                    
+                    ,EHREvMDiag.idDiagnostic                             as idDiagnostico
+                    ,EHREvMDiag.isPrincipal                              as esDiagnosticoPrincipal
+
+                    ,Enc.dateRegister                                    as fechaRegistroEvento
+                    ,EV.actionRecordedDate                               as fechaRealizacionEventoAlPaciente
+                    ,EncHc.dateStart                                     as fechaInicioPlan
+
+                    ,EncHc.idHCActivity                                  as idActividadesHC
+                    ,EncHc.isPrincipal                                   as esPlanPrincipal
+                    ,EV.idAction                                         as idTipoEvento
+                    
+                    ,Doc.code + ' | ' + Doc.name                         as tipoDeIdentificacion
+                    ,Pat.documentNumber                                  as numeroIdentificacion
+                    ,Enc.identifier                                      as ingreso
+                    ,Office.legalCode                                    as codigoHabilitacion
+                    ,Ucom.documentNumber                                 as nitIPS
+                    ,CAST(RIGHT(Office.legalCode, 1) AS INT)             as codigoSucursal
                     
 
-                    CityD.codeConcatenate AS municipioDeResidencia,
-                    PatU.telecom AS numeroTelefonicoNo1DelPaciente,
-                    PatU.phoneHome AS numeroTelefonicoNo2DelPaciente,
-                    PatU.homeAddress AS direccionDeRecidenciaDelPaciente,
-                    EHREvMDiag.isPrincipal as esDiagnosticoPrincipal,
-                    EHRconfAct.codeActivity as codigoServicioAtencionRequeridaPorUsuario,
-                    
-
-                    Enc.dateRegister as fechaRegistroEvento,
-                    EV.actionRecordedDate as fechaRealizacionEventoAlPaciente,
-                    EncHc.dateStart as fechaInicioPlan,
-                    EncHc.isPrincipal as esPlanPrincipal
+                    ,CityD.codeConcatenate                               as municipioDeResidencia
+                    ,PatU.telecom                                        as numeroTelefonicoNo1DelPaciente
+                    ,PatU.phoneHome                                      as numeroTelefonicoNo2DelPaciente
+                    ,PatU.homeAddress                                    as direccionDeRecidenciaDelPaciente
+                    ,EHRconfAct.codeActivity                             as codigoServicioAtencionRequeridaPorUsuario
 
                 FROM Encounters AS Enc
                 INNER JOIN users AS Pat WITH(NOLOCK) ON Enc.idUserPatient = Pat.idUser
@@ -128,30 +106,12 @@ def func_get_factMasiva():
                 INNER JOIN EHREventMedicalDiagnostics AS EHREvMDiag WITH(NOLOCK) ON EHREvMDiag.idEHREvent = EV.idEHREvent
                 INNER JOIN diagnostics AS Diag WITH(NOLOCK) ON EHREvMDiag.idDiagnostic = Diag.idDiagnostic
 
-                -- DIM Actividades HomeCare
-                INNER JOIN (SELECT * FROM encounterHCActivities 
-                                WHERE idProduct IS NOT NULL AND idRol IS NOT NULL) as EncHcAct ON EncHc.idEncounter = EncHcAct.idEncounter AND EncHc.idHCRecord = EncHcAct.idHCRecord
-                            
-                -- DIM Esquemas Configurables
-                INNER JOIN EHREventCustomActivities AS EHREvCust WITH(NOLOCK) ON EV.idEHREvent = EHREvCust.idEvent
-                            
-                -- DIM Mediciones Signos Vitales
-                INNER JOIN EHRPatientMeasurements AS EHRPaMe WITH(NOLOCK) ON Enc.idEncounter = EHRPaMe.idEncounter AND EV.idEHREvent = EHRPaMe.idEHREvent AND Enc.idUserPatient = EHRPaMe.idUserPatient
-                            
-                -- DIM Mediciones de Monitoria
-                INNER JOIN EHREventICUMonitoringMeditions EvICU ON EV.idEHREvent = EvICU.idEHREvent
-                            
-                -- DIM Consultas Medicas
-                INNER JOIN (SELECT DISTINCT idEHREvent, idScale FROM EHREventMedicalScaleQuestions) AS EventMSQ ON EV.idEHREvent = EventMSQ.idEHREvent
-
                 WHERE Enc.idUserCompany = @idUserCompany
-                    AND EncHC.dateStart >='{last_week}' AND EncHC.dateStart<'{now}'
+                    AND (EncHC.dateStart >='{last_week}' AND EncHC.dateStart<'{now}')
                     AND Enc.idOffice IN (SELECT Value FROM dbo.FnSplit (@OfficeFilter))
                     AND EncR.idPrincipalContractee IN (SELECT Value FROM dbo.FnSplit (@idIns))
-                    -- AND Enc.idEncounter IN (SELECT Value FROM dbo.FnSplit (@idEncountersEnero))
-	        ) AS Todo
         """
-    
+
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
     # conversión de campos
@@ -197,20 +157,20 @@ with DAG(dag_name,
                                                                 # email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )
-    """
+    
     # Se declara la función encargada de ejecutar el "Stored Procedure"
     load_factMasiva = MsSqlOperator(task_id='Load_factMasiva',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE uspCarga_TblDEsquemasConfigurables",
+                                        sql="EXECUTE uspCarga_TblHMasiva",
                                         # email_on_failure=True, 
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
-    """
+    
 
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_factMasiva >> task_end
+start_task >> get_factMasiva >> load_factMasiva >> task_end

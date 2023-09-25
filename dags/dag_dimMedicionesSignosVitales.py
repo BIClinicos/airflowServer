@@ -30,9 +30,10 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas (Comentario: por historia clinica, solo registros a partir  de Julio 1)
-fecha_texto = '2023-09-01 00:00:00'
+fecha_texto = '2023-07-07 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
+
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -47,7 +48,7 @@ def func_get_dimMedicionesSignosVitales ():
 
     query = f"""
         DECLARE 
-		@idActionEvents VARCHAR(MAX) = '1013,1004,1023'
+		@idActionEvents VARCHAR(MAX) = '1013,1004,1023' -- Historias Clínicas
 
         SELECT
             DISTINCT
@@ -70,7 +71,14 @@ def func_get_dimMedicionesSignosVitales ():
         INNER JOIN Encounters Enc ON Enc.idEncounter = EHP.idEncounter
         INNER JOIN EHREvents Ev ON Ev.idEHREvent = EHP.idEHREvent
         WHERE Ev.idAction in (SELECT Value FROM dbo.FnSplit(@idActionEvents)) 
-        AND EHP.recordedDate >='{last_week}' AND recordedDate<='{now}'
+        AND EHP.recordedDate >='{last_week}' AND EHP.recordedDate<='{now}'
+
+        AND (EHC.name LIKE '%Talla%'
+            OR EHC.name LIKE '%Peso%'
+            OR EHC.name LIKE '%P.A.%Sist_lica%'
+            OR EHC.name LIKE '%P.A.%Diast_lica%'
+            OR EHC.name LIKE '%Circunferencia%Abdominal%')
+
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)

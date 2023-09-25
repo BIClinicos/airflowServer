@@ -30,9 +30,9 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-01-31 00:00:00'
+fecha_texto = '2023-07-07 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -45,6 +45,9 @@ def func_get_dimActividadesHomeCare ():
 
     
     query = f"""
+        DECLARE 
+		@idProductos VARCHAR(MAX) = '4984,4987,40496,4989,4990,4992,4993,4994'
+
        SELECT
             DISTINCT
              Enc.idUserPatient           as idUsuarioPaciente
@@ -60,9 +63,10 @@ def func_get_dimActividadesHomeCare ():
         INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EncHcAct.idEncounter = Ev.idEncounter
         INNER JOIN encounterHC as EncHC WITH(NOLOCK) ON EncHcAct.idEncounter = EncHC.idEncounter
         LEFT JOIN EHRConfHCActivity AS EHRConf ON EncHC.idHCActivity = EHRConf.idHCActivity
-        WHERE EncHcAct.idRol IS NOT NULL AND EncHcAct.idProduct IS NOT NULL AND EncHcAct.isActive = 1
+        WHERE EncHcAct.idRol IS NOT NULL AND EncHcAct.isActive = 1
         AND EncHcAct.dateRegister >='{last_week}' AND EncHcAct.dateRegister <'{now}'
-        ORDER BY EncHcAct.idEncounter, Enc.idUserPatient, Ev.idEHREvent, EncHcAct.idProduct, EncHcAct.idRol, EHRConf.idHCActivity, EncHcAct.dateRegister
+
+        AND  EncHcAct.idProduct IN (SELECT Value FROM dbo.FnSplit(@idProductos))
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
