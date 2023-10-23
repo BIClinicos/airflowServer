@@ -27,7 +27,7 @@ from utils import sql_2_df, load_df_to_sql
 
 db_table = "SAL_DOM_CO_MallaFinal"
 db_tmp_table = "tmp_SAL_DOM_CO_MallaFinal"
-dag_name = 'dag_' + db_table
+dag_name = 'dag_' + db_table + '_old'
 
 ### Parametros de tiempo
 # Obtencion dinamica
@@ -782,6 +782,12 @@ def query_SAL_DOM_CO_MallaFinal (start_date, end_date):
                 AND EncHC.isActive = 1
                 AND HCAct.idHCActivity IN (SELECT Value FROM STRING_SPLIT(@hcPlanF,','))
                 AND CONVERT(DATE,Enc.dateStart) BETWEEN CONVERT(DATE,@startDate) AND CONVERT(DATE,@endDate)
+                AND EXISTS (
+                    SELECT 1
+                    FROM dbo.EHREvents AS EVFilt
+                    WHERE EVFilt.idEncounter = Enc.idEncounter
+                    AND EVFilt.idAction NOT IN (313, 98, 585, 380, 783)
+                )                
         ) SELECT
             [FECHA DEL REGISTRO]
             ,[REGISTRO]

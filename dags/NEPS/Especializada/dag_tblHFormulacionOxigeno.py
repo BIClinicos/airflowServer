@@ -49,35 +49,28 @@ def func_get_FormulacionOxigenoFinal():
     # LECTURA DE DATOS  
     df_main = func_get_FormulacionOxigeno()
     df_gom = func_get_FormulacionOxigenoGom()
-    df_main = pd.merge(df_gom, df_main,'outer', ["idUser", "Documento", "date_control"] )
-    
-    #PlanTratamiento
     df_plan = func_get_FormulacionOxigenoPlan()
     df_plan.replace('"',"", inplace=True)
     
-    df_main['date_control'] = pd.to_datetime(df_main['date_control'])
-    df_plan['date_control'] = pd.to_datetime(df_plan['date_control'])
+    df_main = df_main.combine_first(df_plan)
     
-    df_main = df_main.sort_values(by=['idUser', 'date_control'])
-    df_main = df_main.groupby('idUser').apply(generar_rango_fechas)
+    df_main["Horas_Oxigeno"] = df_main.apply(get_hours, axis = 1)
+    mask = pd.isna(df_main["Horas_Oxigeno"])
+    df_main.loc[mask, "Horas_Oxigeno"] = df_main.loc[mask, "Recomendaciones"].apply(other_hours)
+    df_main["Dispositivo"] = df_main["Recomendaciones"].apply(get_dispositivo)
     
-    df_plan = df_plan.sort_values(by=['idUser', 'date_control'])
-    df_plan = df_plan.groupby('idUser').apply(generar_rango_fechas)
-    
-    df_last = df_main.reindex().combine_first(df_plan.reindex())
-    
-    # df_last = pd.concat([df_main.reindex(),df_plan.reindex()],ignore_index=True)
-    mask = pd.isna(df_last["Horas_Oxigeno"])
-    df_last.loc[mask,"Horas_Oxigeno"] = df_last[mask].apply(get_hours, axis = 1)
-    if df_last[pd.isna(df_last["Horas_Oxigeno"])].shape[0] != 0:
-        mask = pd.isna(df_last["Horas_Oxigeno"])
-        if mask.any():
-            df_last.loc[mask, "Horas_Oxigeno"] = df_last.loc[mask, "Recomendaciones"].apply(other_hours)
-            
-    mask = pd.isna(df_last["Dispositivo"])
-    df_last.loc[mask, "Dispositivo"] = df_last.loc[mask, "Recomendaciones"].apply(get_dispositivo)
+    df_last = df_gom.combine_first(df_main)
     
     df_last["CPAP_BPAP"] = df_last["Recomendaciones"].apply(get_cpap_bpap)
+    
+    df_last['date_control'] = pd.to_datetime(df_last['date_control'])
+    
+    
+    df_last = df_last.sort_values(by=['idUser', 'date_control'])
+    df_last = df_last.groupby('idUser').apply(generar_rango_fechas)
+    
+    df_last = df_last.reindex()
+    
     
     # CARGA A BASE DE DATOS
     if ~df_last.empty and len(df_last.columns) >0:

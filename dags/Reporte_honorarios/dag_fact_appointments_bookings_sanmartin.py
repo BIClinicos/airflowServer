@@ -1,28 +1,23 @@
-import os
-import xlrd
-import re
 from airflow import DAG
 from airflow.contrib.hooks.wasb_hook import WasbHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
-from datetime import datetime, timedelta
-from datetime import date
+from datetime import datetime
 import pandas as pd
-from pandas import read_excel
 from variables import sql_connid
-from utils import open_xls_as_xlsx,load_df_to_sql,search_for_file_prefix,get_files_xlsx_with_prefix, get_files_xlsx_contains_name, get_files_xlsx_with_prefix_args,search_for_file_contains, respond, read_csv, move_to_history_for_prefix,  get_files_xlsx_with_prefix, get_files_xlsx_with_prefix_args,file_get,remove_accents_cols,remove_special_chars,regular_camel_case,regular_snake_case,move_to_history_for_prefix,normalize_str_categorical, replace_accents_cols
+from utils import load_df_to_sql,file_get,normalize_str_categorical, replace_accents_cols
 #  Se nombran las variables a utilizar en el dag
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 container = 'oportunidad'
 dirname = '/opt/airflow/dags/files_oportunidad/'
-filename = 'TEC_PYR_BookingsBulevar.xlsx'
+filename = 'TEC_PYR_BookingsSanMartin.xlsx'
 db_table_dim = "dim_patients"
 db_tmp_table_dim = "tmp_dim_patients"
 db_table_fact = "fact_appointments_bookings"
 db_tmp_table_fact = "tmp_appointments_bookings"
-dag_name = 'dag_' + 'fact_appointments_bookings_Bulevar'
+dag_name = 'dag_' + 'fact_appointments_bookings_SanMartin'
 
 # Función de transformación de los archivos xlsx
 def transform_tables (path):
@@ -32,7 +27,7 @@ def transform_tables (path):
 
 
     # se añaden las columnas "sede" y "entidad"
-    df['sede'] = 'BULEVAR'
+    df['sede'] = 'SAN MARTIN'
     df['entidad'] = 'ECOPETROL S.A.'
     df['Cita Asignada en E-Salud'] = '1'
 
@@ -314,7 +309,6 @@ def transform_tables (path):
     print(df['document_type'].unique())
 
     # Columna 'document_number'
-
     df['document_number'] = df['document_number'].astype(str)
     df['document_number'] = normalize_str_categorical(df['document_number'])
     cond1 = df['document_type'].isin(['CC', 'TI', 'RC', 'NV', 'CE'])
@@ -415,7 +409,7 @@ def transform_tables (path):
 
     # 202307 Truncamiento de mail
     df['mail'] = df['mail'].str.slice(0,55)
-    
+
     return df
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
@@ -536,7 +530,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # se establece la ejecución a las 12:20 PM(Hora servidor) todos los sabados
-    schedule_interval= '40 6 * * 2',
+    schedule_interval= '50 6 * * 2',
     max_active_runs=1
     ) as dag:
 

@@ -122,21 +122,6 @@ def transform_table(path):
     df = pd.concat([df_active, df_active_innovar, df_retired, df_retired_innovar], ignore_index=True)
     print(f'Las dimensiones son {df.shape}')
 
-    # Reemplazo de valores mal escritos en la columna nombre_ccosto
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Administrativa','Unidad administrativa')
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.replace('Unidades Domiciliaria','unidad domiciliaria')
-    df['Nombre CCosto'] = df['Nombre CCosto'].str.upper()
-
-    # Reemplazo de valores para estandarizar la columna UNIDAD
-    df['UNIDAD'] = df['UNIDAD'].str.replace('GERENCIA  GENERAL','Unidad administrativa')
-    df['UNIDAD'] = df['UNIDAD'].str.replace('MERK','Unidad administrativa')
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Cultura|Talento)+.*$)','Cultura y Talento Humano', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Financiero)+.*$)','Financiera', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(Tecno|calidad)+.*$)','Tecnología', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.replace(r'(^.*(DOMICILIARIA)+.*$)','Unidad Domiciliaria', case = False)
-    df['UNIDAD'] = df['UNIDAD'].str.upper()
-    df['UNIDAD'].fillna(df['Nombre CCosto'])
-
     df_active_innovar = norm_col_names(df_active_innovar)
     df_retired_innovar = norm_col_names(df_retired_innovar)
 
@@ -147,7 +132,6 @@ def transform_table(path):
     # Append entre las hojas de activos y retirados
     df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
 
-
     df_active_innovar = norm_col_names(df_active_innovar)
     df_retired_innovar = norm_col_names(df_retired_innovar)
 
@@ -157,7 +141,6 @@ def transform_table(path):
 
     # Append entre las hojas de activos y retirados
     df = pd.concat([df_retired, df_active, df_active_innovar, df_retired_innovar], ignore_index=True)
-
 
     # Estandarización de los nombres de columnas del dataframe
     df.columns = df.columns.str.lower()
@@ -169,7 +152,6 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ó','o')
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
-
 
     print(df['cargo'].dtype)
 
@@ -190,7 +172,6 @@ def transform_table(path):
     ## Quitar Nombre CCosto de ingesta - 20230321
     # df['Unidad'].fillna(df['Nombre CCosto'])
     
-
     # Separación del cargo y nivel_cargo en dos columnas dentro del dataframe
     df_cargo = df['cargo'].str.split('-', n=1, expand = True)
     

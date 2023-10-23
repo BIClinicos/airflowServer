@@ -28,9 +28,9 @@ db_tmp_table = "TmpMasiva"
 dag_name = 'dag_' + db_table
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-07-07 00:00:00'
+fecha_texto = '2023-08-02 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
+last_week=datetime.strptime('2023-08-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
@@ -67,14 +67,13 @@ def func_get_factMasiva():
                     ,EncR.idPrincipalContract                            as idContratoPrincipal
                     
                     ,EHREvMDiag.idDiagnostic                             as idDiagnostico
-                    ,EHREvMDiag.isPrincipal                              as esDiagnosticoPrincipal
+                    -- ,EHREvMDiag.isPrincipal                              as esDiagnosticoPrincipal
 
                     ,Enc.dateRegister                                    as fechaRegistroEvento
                     ,EV.actionRecordedDate                               as fechaRealizacionEventoAlPaciente
                     ,EncHc.dateStart                                     as fechaInicioPlan
 
                     ,EncHc.idHCActivity                                  as idActividadesHC
-                    ,EncHc.isPrincipal                                   as esPlanPrincipal
                     ,EV.idAction                                         as idTipoEvento
                     
                     ,Doc.code + ' | ' + Doc.name                         as tipoDeIdentificacion
@@ -88,7 +87,7 @@ def func_get_factMasiva():
                     ,CityD.codeConcatenate                               as municipioDeResidencia
                     ,PatU.telecom                                        as numeroTelefonicoNo1DelPaciente
                     ,PatU.phoneHome                                      as numeroTelefonicoNo2DelPaciente
-                    ,PatU.homeAddress                                    as direccionDeRecidenciaDelPaciente
+                    ,PatU.homeAddress                                    as direccionDeResidenciaDelPaciente
                     ,EHRconfAct.codeActivity                             as codigoServicioAtencionRequeridaPorUsuario
 
                 FROM Encounters AS Enc

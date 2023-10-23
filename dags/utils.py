@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from typing import Optional
 from airflow.hooks.mssql_hook import MsSqlHook
 from variables import sql_connid
 from variables import connection_string
@@ -11,6 +12,9 @@ import pymssql
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from collections import Counter
+from xlrd import Book
+from xlrd.sheet import Sheet
+
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -216,12 +220,26 @@ def check_connection(container_name,blob_name):
 
 def file_get(path,container_name,blob_name, **args):
 
-    wbook = args.get('wb',wb)
+    wbook:WasbHook = args.get('wb',wb)
 
     print ('Archivo halado con python operator', path,container_name, blob_name)
     wbook.get_file(path, container_name, blob_name)
     print ('Archivo halado con python operator')
     return('Blob gotten sucessfully')
+
+
+def filelist_get(dirname, container_name, blob_prefix, blob_delimiter: Optional[str] = '/', **args):
+
+    wbook:WasbHook = args.get('wb',wb)
+    if wbook.check_for_prefix(container_name, blob_prefix):
+        blist_names = wbook.get_blobs_list(container_name, blob_prefix, delimiter = blob_delimiter)
+        print('Blobs encontrados ', ' '.join(blist_names))
+        for file in blist_names:
+            wbook.get_file(dirname + file, container_name, file)
+            print ('Archivo halado con python operator', dirname+file,container_name, file)
+        return('Blobs gotten sucessfully')
+    else:
+        return('No blob available')
 
 
 def respond():
@@ -232,6 +250,19 @@ def read_excel(dirname,filename,sheet) -> pd.DataFrame:
     path = os.path.join(dirname, filename)
     excel_to_df = pd.read_excel(path, engine = 'openpyxl',sheet_name=sheet)
     return excel_to_df
+
+def red_excel_big(path, sheet_names:Optional[list]):
+    workbook:Book = xlrd.open_workbook(path)
+    if sheet_names:
+        dfs = {}
+        for sheet_name in sheet_names:
+            data = []
+            sheet = workbook.sheet_by_name(sheet_name)
+            for row in range(sheet.nrows):
+                data.append(sheet.row_values(row))
+            dfs[sheet_name] = pd.DataFrame.from_records(data[1:],columns=data[0])
+        return dfs
+    return workbook.sheet_by_index(0)
 
 
 def read_excel_args(**args):
@@ -681,6 +712,12 @@ def extract_from_filename(filename, name_separator='_', name_position=0):
     text_splited = filename.split(name_separator)
     return text_splited[name_position]
 
+def excel_date_format(x):
+  # Intentar convertir a fechas en formato numérico de Excel
+  try:
+      return datetime.fromordinal(datetime(1900, 1, 1).toordinal() + int(float(x)) - 2)
+  except (ValueError, TypeError):
+      return pd.to_datetime(x, errors='coerce')
 
 def open_xls_as_xlsx(filename):
     # first open using xlrd

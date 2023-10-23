@@ -26,8 +26,8 @@ def func_get_TEC_PYR_GEFFormulacion ():
     # Trae datos de ultima semana
     now = datetime.now()
     last_week = now - timedelta(weeks=1)
-    #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-    last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
+    last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+    #last_week=datetime.strptime('2023-01-01 04:00:00', '%Y-%m-%d %H:%M:%S')
     print(now)
     print(last_week)
 

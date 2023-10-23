@@ -31,12 +31,16 @@ def func_get_ConsultationGomedisys ():
         query = fp.read().replace("{last_week}", f"{last_week_date.strftime('%Y-%m-%d')!r}").\
                 replace("{now}",f"{now.strftime('%Y-%m-%d')!r}")
     df:pd.DataFrame = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
+    
+    duplicates = df.duplicated(subset=['IdEvento', 'IdEncounter', 'FechaActividad', 'IdPaciente',"Contrato_Id","Plan_Id"], keep=False)
+    result_df = pd.concat([df[~duplicates], df[duplicates].loc[~pd.isnull(df[duplicates]["idAction"])]])
+
     # CARGA A BASE DE DATOS
-    if ~df.empty and len(df.columns) >0:
-        df["FechaActividad"] = df["FechaActividad"].astype(str)
-        df["Fecha_Atencion"] = df["Fecha_Atencion"].astype(str)
+    if ~result_df.empty and len(result_df.columns) >0:
+        result_df["FechaActividad"] = result_df["FechaActividad"].astype(str)
+        result_df["Fecha_Atencion"] = result_df["Fecha_Atencion"].astype(str)
         
-        load_df_to_sql_pandas(df, db_tmp_table, sql_connid,["date_control","idUser"])
+        load_df_to_sql_pandas(result_df, db_tmp_table, sql_connid)
 
 
 def delete_temp_range():
@@ -66,14 +70,6 @@ with DAG(dag_name,
 
     # Se declara la función que sirve para denotar el inicio del DAG a través de DummyOperator
     start_task = DummyOperator(task_id='dummy_start')
-    
-    delete_temp_range_python= PythonOperator(
-                                     task_id = "delete_temp_range_python",
-                                     python_callable = delete_temp_range,
-                                     email_on_failure=True, 
-                                     email='BI@clinicos.com.co',
-                                     dag=dag
-                                     )
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_ConsultationGomedisys_python_task = PythonOperator(task_id = "get_ConsultationGomedisys",

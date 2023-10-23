@@ -15,7 +15,7 @@ dag_name = 'dag_' + db_table
 #Se halla las fechas de cargue de la data 
 now = datetime.now()
 last_week = now - timedelta(weeks=1)
-# last_week = datetime(2023,6,1)
+#last_week = datetime(2023,1,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 ###### Mod problema mipres
@@ -34,7 +34,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
     domiConsultas_query = f"""
     DECLARE
 
-    @idContract VARCHAR(MAX) = '57,76,77,92,101'
+    @idContract VARCHAR(MAX) = '57,77,92,101,91'
         (SELECT DISTINCT 
         ENC.identifier 									AS Ingreso, 
         --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 		AS FechaIngreso,
@@ -69,8 +69,7 @@ def func_get_TEC_PYR_DOMIConsultas ():
         LEFT OUTER JOIN dbo.EHREventMedicalCarePlan AS EVMCP ON EV.idEHREvent = EVMCP.idEHREvent	--PlanTratamiento
         LEFT OUTER JOIN dbo.EHREventMedicalConcept AS EVMC ON EV.idEHREvent = EVMC.idEHREvent		--Analisis
         LEFT OUTER JOIN dbo.EHREventCustomActivities AS EVCA ON EV.idEHREvent = EVCA.idEvent		--Analisis
-            AND EVCA.idConfigActivity IN(70,53,146,110)												
-            AND EVCA.idElement=1
+            AND ( (EVCA.idConfigActivity IN(70,53,146,110)	AND EVCA.idElement=1) OR (EVCA.idConfigActivity IN(293)	AND EVCA.idElement=5))
         LEFT OUTER JOIN dbo.EHREventSocialWork AS EVSW ON EV.idEHREvent = EVSW.idEHREvent		--Analisis
         LEFT OUTER JOIN dbo.EHREventCustomActivities AS EVCA2 ON EV.idEHREvent = EVCA2.idEvent		--TipoConsulta
             AND EVCA2.idConfigActivity IN (52,54)

@@ -1,14 +1,14 @@
 with dxv as (
 	SELECT 
-		FORMAT([Fecha cita], 'yyyy-MM') date_control
-		,ci.paciente_id
+		FORMAT(FechaActividad, 'yyyy-MM') date_control
+		,ci.IdPaciente
 		,d.diagnosticDescription
 		,d.code
 		,ed.isPrincipal
-	FROM tblHcitasinasistencia ci 
-		INNER JOIN tblDeventosDiagnosticos ed on ci.idEncuentro = ed.idEncounter AND ci.paciente_id = ed.idUserPatient
-		AND ci.contrato_id = 8 and ci.plan_id = 10  and ci.[Estado Cita] = 'Asistida'
-		AND	ci.calendario_id BETWEEN {last_week} and convert(date, getdate())
+	FROM TblHGomedisysConsultation ci 
+		INNER JOIN tblDeventosDiagnosticos ed on ci.idEncounter = ed.idEncounter AND ci.IdPaciente = ed.idUserPatient
+		AND ci.contrato_id = 8 and ci.plan_id = 10
+		AND	CONVERT(date,ci.FechaActividad) BETWEEN {last_week} and convert(date, getdate())
 		INNER JOIN dimDiagnostics d on d.idDiagnostic = ed.idDiagnostic AND 
 				d.code in ('G473','J459','J451','J458','J46X','J450','B342','U089','U099','I829','I269','I260','I828','I748','I749',
 				'J449','J441','J448','J440','I270','I272','I500','I255','I509','I110','I429','I428','I438','I420','R060','J61X','J628',
@@ -18,16 +18,16 @@ with dxv as (
 		INNER JOIN tblHComorbilidad c on d.code = c.cie10
 		--INNER JOIN tmpConsultationGomedisysNEPS cg on ci.idEncuentro = cg.idEncounter
 	GROUP BY 
-		FORMAT([Fecha cita], 'yyyy-MM'),
-		ci.paciente_id
+		FORMAT(FechaActividad, 'yyyy-MM'),
+		ci.IdPaciente
 		,d.diagnosticDescription
 		,d.code
 		,ed.isPrincipal
 )
 SELECT
     date_control,
-    paciente_id as idUser,
+    IdPaciente as idUser,
     COALESCE(MAX(CASE WHEN isPrincipal = 1 THEN code END), MAX(code)) AS code,
     count(distinct diagnosticDescription) as totalDx
 FROM dxv
-GROUP BY date_control, paciente_id;
+GROUP BY date_control, IdPaciente;

@@ -3,9 +3,9 @@ WITH fechas AS (
     FROM (
         SELECT
             {last_week} AS MinFecha,
-            MAX(ci.[Fecha Cita]) AS MaxFecha
-        FROM tblHcitasinasistencia ci
-        WHERE contrato_id = 8 AND plan_id = 10 AND ci.[Estado Cita] = 'Asistida'
+            MAX(ci.FechaActividad) AS MaxFecha
+        FROM TblHGomedisysConsultation ci
+        WHERE contrato_id = 8 AND plan_id = 10
     ) AS fecha_range
     CROSS JOIN (
         SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
@@ -17,9 +17,9 @@ pacientes AS (
     SELECT
         u.idUser,
         u.Documento
-    FROM tblHcitasinasistencia ci
-    INNER JOIN TblDusuarios u ON u.idUser = ci.Paciente_id
-    WHERE contrato_id = 8 AND plan_id = 10 AND ci.[Estado Cita] = 'Asistida' AND idUser <> 14
+    FROM TblHGomedisysConsultation ci
+    INNER JOIN TblDusuarios u ON u.idUser = ci.IdPaciente
+    WHERE contrato_id = 8 AND plan_id = 10 AND idUser <> 14
     GROUP BY u.idUser, u.Documento
 )
 --insert into tmpUsuariosActivosNEPS
@@ -30,9 +30,10 @@ SELECT
     CASE
         WHEN EXISTS (
             SELECT 1
-            FROM tblHcitasinasistencia ci
-            WHERE ci.Paciente_id = p.idUser AND ci.[Estado Cita] = 'Asistida' 
-			AND ci.[Fecha Cita] between DATEADD(MONTH, -2, f.Fecha) AND EOMONTH(f.Fecha)
+            FROM TblHGomedisysConsultation ci
+            WHERE ci.IdPaciente = p.idUser AND idAction not in (347,399,343,987,986,70,350
+					,394,90,430,393,1051,382,91,464,94,459,95,380,98,1097,286)
+			AND ci.FechaActividad between DATEADD(MONTH, -2, f.Fecha) AND EOMONTH(f.Fecha)
         ) THEN 1
         ELSE 0
     END AS activo

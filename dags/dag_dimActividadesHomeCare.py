@@ -45,12 +45,11 @@ def func_get_dimActividadesHomeCare ():
 
     
     query = f"""
-        DECLARE 
-		@idProductos VARCHAR(MAX) = '4984,4987,40496,4989,4990,4992,4993,4994'
+        DECLARE @idProductos VARCHAR(MAX) = '4984,4987,40496,4989,4990,4992,4993,4994'
 
-       SELECT
+        SELECT
             DISTINCT
-             Enc.idUserPatient           as idUsuarioPaciente
+                Enc.idUserPatient           as idUsuarioPaciente
             ,EncHcAct.idEncounter        as idIngreso
             ,Ev.idEHREvent               as idEventoEHR
             ,EncHcAct.dateRegister       as fechaRegistro

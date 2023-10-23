@@ -2,7 +2,7 @@
 Proyecto: Masiva NEPS
 
 author dag: Luis Esteban Santamaría. Ingeniero de Datos.
-Fecha creación: 29/08/2023
+Fecha creación: 05/10/2023
 
 """
 
@@ -24,65 +24,35 @@ from utils import sql_2_df,open_xls_as_xlsx,load_df_to_sql,search_for_file_prefi
 
 #  Creación de variables
 
-db_table = "TblDConsultasMedicas"
-db_tmp_table = "TmpConsultasMedicas"
+db_table = "TblDDiagnosticosEventosMedicos"
+db_tmp_table = "TmpDiagnosticosEventosMedicos"
 dag_name = 'dag_' + db_table
 
-
 # Para correr manualmente las fechas
-fecha_texto = '2023-07-07 00:00:00'
+fecha_texto = '2023-09-01 00:00:00'
 now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
-
+last_week=datetime.strptime('2023-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 
-
-
-def func_get_dimConsultasMedicas ():
-
-    print('Fecha inicio ', last_week)
-    print('Fecha fin ', now)
-
-   
+def func_get_dimDiagnosticosEventosMedicos ():
     query = f"""
-        SELECT DISTINCT
-             Enc.idUserPatient           as idUsuarioPaciente
-            ,Enc.idEncounter             as idIngreso
-            ,EventMSQ.idEHREvent         as idEventoEHR
-            ,Ev.actionRecordedDate       as fechaEvento
-
-            ,EventMSQ.idScale            as idEscala
-            ,EventMSQ.idQuestion         as idPregunta
-            ,EventMSQ.idAnswer           as idRespuesta
-            
-            ,ConfSQA.isForMale           as aplicaParaHombres
-            ,ConfSQA.isForFemale         as aplicaParaMujeres
-            ,ConfSQA.description         as descripcionRespuesta
-            ,CAST(ConfSQA.value AS INT)  as valorAnalizado
-            ,ConfgSV.name                as interpretacionEscala
-
-        FROM EHREventMedicalScaleQuestions AS EventMSQ WITH(NOLOCK)
-        INNER JOIN EHRConfScaleQuestionAnswers AS ConfSQA WITH(NOLOCK) ON EventMSQ.idScale = ConfSQA.idScale AND ConfSQA.idQuestion = EventMSQ.idQuestion AND ConfSQA.idAnswer = EventMSQ.idAnswer
-        INNER JOIN EHREventMedicalScales AS EventMS WITH(NOLOCK) ON EventMSQ.idEHREvent = EventMS.idEHREvent AND EventMSQ.idScale = EventMS.idScale
-        INNER JOIN EHRConfScaleValorations AS ConfgSV WITH(NOLOCK) ON EventMS.idScale = ConfgSV.idScale AND ConfgSV.idRecord = EventMS.idEvaluation
-        INNER JOIN EHREvents AS Ev WITH(NOLOCK) ON EventMSQ.idEHREvent = Ev.idEHREvent
-        INNER JOIN Encounters AS Enc WITH(NOLOCK) ON Ev.idEncounter = Enc.idEncounter
-        WHERE Ev.actionRecordedDate >='{last_week}' AND Ev.actionRecordedDate<'{now}'
-        AND (
-              ((EventMSQ.idScale = 11				        AND EventMSQ.idQuestion  BETWEEN 1 AND 10)
-                OR (EventMSQ.idScale = 12					AND EventMSQ.idQuestion  = 1)
-                OR (EventMSQ.idScale = 58					AND EventMSQ.idQuestion  BETWEEN 1 AND 8))
-            )
-
+      SELECT
+          EhrEMD.idEHREvent as idEventoEHR,
+          EhrEMD.idDiagnostic as idDiagnostico,
+          Eve.actionRecordedDate  as fechaEvento,
+          EhrEMD.isPrincipal as esDiagnosticoPrincipal,
+          EhrEMD.annotations as anotaciones
+      FROM EHREventMedicalDiagnostics as EhrEMD
+      LEFT JOIN EHREvents AS Eve ON EhrEMD.idEHREvent = Eve.idEHREvent
+      WHERE Eve.actionRecordedDate >='{last_week}' AND Eve.actionRecordedDate<'{now}'
     """
 
     df = sql_2_df(query, sql_conn_id=sql_connid_gomedisys)
 
     # conversión de campos
     df['fechaEvento'] = df['fechaEvento'].astype(str)
-    df['valorAnalizado'] = df['valorAnalizado'].astype(int)
 
     print(df.columns)
     print(df.dtypes)
@@ -114,34 +84,26 @@ with DAG(dag_name,
     start_task = DummyOperator(task_id='dummy_start')
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
-    get_dimConsultasMedicas = PythonOperator(task_id = "get_dimConsultasMedicas",
-                                                                python_callable = func_get_dimConsultasMedicas,
+    get_dimDiagnosticosEventosMedicos = PythonOperator(task_id = "get_dimDiagnosticosEventosMedicos",
+                                                                python_callable = func_get_dimDiagnosticosEventosMedicos,
                                                                 #email_on_failure=False, 
                                                                 # email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )
 
     # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_dimConsultasMedicas = MsSqlOperator(task_id='Load_dimConsultasMedicas',
+    load_dimDiagnosticosEventosMedicos = MsSqlOperator(task_id='Load_dimDiagnosticosEventosMedicos',
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
-                                        sql="EXECUTE uspCarga_TblDConsultasMedicas",
+                                        sql="EXECUTE uspCarga_TblDDiagnosticosEventosMedicos",
                                         # email_on_failure=True, 
                                         # email='BI@clinicos.com.co',
                                         dag=dag
                                        )
-    
-    load_factConsultasMedicas = MsSqlOperator(task_id='Load_factConsultasMedicas',
-                                        mssql_conn_id=sql_connid,
-                                        autocommit=True,
-                                        sql="EXECUTE uspCarga_TblHConsultasMedicas",
-                                        # email_on_failure=True, 
-                                        # email='BI@clinicos.com.co',
-                                        dag=dag
-                                       )
+
 
 
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_dimConsultasMedicas >> load_dimConsultasMedicas >> load_factConsultasMedicas >> task_end
+start_task >> get_dimDiagnosticosEventosMedicos >> load_dimDiagnosticosEventosMedicos >> task_end

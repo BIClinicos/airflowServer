@@ -1348,3 +1348,6 @@ git push origin main
 pip freeze
 chmod -R 777 dags/
 chmod -R 777 dags/files_pami/
+sudo chmod -R 777 dags/Masiva/in
+htop
+docker-compose exec airflow airflow upgrade --packages xlrd

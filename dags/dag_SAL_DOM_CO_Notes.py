@@ -22,6 +22,7 @@ dag_name = 'dag_' + db_table
 #Se halla las fechas de cargue de la data 
 now = datetime.now()
 last_week = now - timedelta(weeks=1)
+#last_week = datetime(2023,1,1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
 now = now.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -36,7 +37,7 @@ def func_get_SAL_DOM_CO_Notas ():
     domiConsultas_query = f"""
 DECLARE
 
-@idContract VARCHAR(MAX) = '57,76,77,92,101'
+@idContract VARCHAR(MAX) = '57,77,92,101,91'
     (SELECT DISTINCT
         ENC.identifier 								AS Ingreso,
         --FORMAT(ENC.dateStart,'dd/MM/yyyy HH:mm') 	AS FechaIngreso,

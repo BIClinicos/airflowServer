@@ -52,7 +52,6 @@ def transform_data (path):
             'genero' : 'gender', 
             'hta' : 'hta', 
             'dm' : 'dm', 
-            'erc' : 'erc', 
             'talla' : 'height',
             'fecha_talla' : 'height_date', 
             'peso' : 'weight', 
@@ -84,15 +83,32 @@ def transform_data (path):
             'fecha_ultimo_tg' : 'date_last_tg',
             'tasa_de_filtracion_glomerular_cockroft_gault' : 'gfr_cockroft_gault',
             'estadio_erc_cockroft_gault' : 'stage_cockroft_gault', 
-            'tasa_de_filtracion_glomerular_ckd_epi' : 'gfr_ckd_epi',
-            'estadio_erc_ckd_epi' : 'stage_ckd_epi', 
-            'enfermera' : 'nursing_professional', 
-            'regimen' : 'regime', 
-            'rcv' : 'rcv',
+            'enfermera' : 'nursing_professional',  
             'mega' : 'mega', 
             'periodo' : 'period',
-            'columna1' : 'in_erc_program', 
-            'insulinizado' : 'insulinized'
+            'insulinizado' : 'insulinized',
+            'medicamentos_antihipertensivos' : 'antihyp_med',
+            'medicamentos_orales_dm' : 'oral_med_dm',
+            'medicamentos_insulinizados_dm' : 'insulinized_med_dm',
+            'insulinizado' : 'insulinized',
+            'glucometro' : 'glucometer',
+            'bomba' : 'insulin_pump',
+            'anterior_creatinina' : 'previous_creatine',
+            'fecha_anterior_creatitinina' : 'date_previous_creatine',
+            'diferencia_creatinina' : 'diff_creatine',
+            'diferencia_fechas_creatinina' : 'diff_date_creatine',
+            'seguimiento_creatininas' : 'creatine_monitoring',
+            'diferencia_fechas_hba1c' : 'diff_date_hba1c',
+            'tipo_de_beneficiario' : 'beneficiary_type',
+            'curso_de_vida' : 'lifetime',
+            'clasificacion_de_riesgo' : 'risk_stratification',
+            'valoracion_pie_diabetico' : 'diabetic_foot_exam',
+            'clasificacion_de_riesgo_pie_diabetico' : 'diabetic_foot_grade',
+            #'tasa_de_filtracion_glomerular_ckd_epi' : 'gfr_ckd_epi',
+            #'estadio_erc_ckd_epi' : 'stage_ckd_epi', 
+            #'rcv' : 'rcv',
+            #'erc' : 'erc', 
+            'prestadores' : 'provider'
         }
     )
     print(df['last_creatine'].head(10))
@@ -137,7 +153,11 @@ def transform_data (path):
         'last_ldl',
         'last_tg', 
         'gfr_cockroft_gault',
-        'gfr_ckd_epi', 
+        'previous_creatine',
+        'diff_creatine',
+        'diff_date_creatine',
+        #'gfr_ckd_epi',        
+        'diff_date_hba1c'
     ]
 
     for i in float_col:
@@ -155,7 +175,6 @@ def transform_data (path):
         'phone_number_two',
         'hta', 
         'dm', 
-        'erc', 
         'category_ta', 
         'hta_controlled',
         'category_weight', 
@@ -165,16 +184,30 @@ def transform_data (path):
         'tracking_hba1c',
         'ldl_controlled', 
         'stage_cockroft_gault', 
-        'stage_ckd_epi',
         'nursing_professional', 
-        'rcv', 
         'mega', 
-        'in_erc_program', 
-        'insulinized'
+        'insulinized',
+        'antihyp_med',
+        'oral_med_dm',
+        'insulinized_med_dm',
+        'glucometer',
+        'insulin_pump',
+        'creatine_monitoring',
+        'beneficiary_type',
+        'lifetime',
+        'risk_stratification',
+        'diabetic_foot_exam',
+        'diabetic_foot_grade',
+        #'stage_ckd_epi',  
+        #'rcv', 
+        #'erc', 
+        'provider'
     ]
+
     for i in cat_col:
         df[i] = df[i].astype(str)
         df[i] = normalize_str_categorical(df[i].astype(str).str.replace('.0',''))
+        df[i] = df[i].str.strip()
     
     # Estandarización columnas fecha
     date_col = [
@@ -186,7 +219,8 @@ def transform_data (path):
         'date_last_creatine', 
         'date_last_hba1c', 
         'date_last_tg',
-        'period'
+        'period',
+        'date_previous_creatine'
     ]
     for i in date_col:
         df[i] = df[i].astype(str)
@@ -247,7 +281,6 @@ def func_get_fact_rcv ():
         'document_number',
         'hta', 
         'dm', 
-        'erc', 
         'height',
         'height_date', 
         'weight', 
@@ -264,7 +297,7 @@ def func_get_fact_rcv ():
         'date_last_creatine', 
         'last_hba1c',
         'date_last_hba1c', 
-        'last_hba1c_range', 
+        'last_hba1c_range',
         'hba1c_controlled',
         'previous_hba1c', 
         'previous_hba1c_range', 
@@ -279,16 +312,36 @@ def func_get_fact_rcv ():
         'date_last_tg', 
         'gfr_cockroft_gault',
         'stage_cockroft_gault', 
-        'gfr_ckd_epi', 
-        'stage_ckd_epi',
         'nursing_professional', 
-        'rcv', 
         'mega', 
         'period',
-        'in_erc_program', 
-        'insulinized'
+        'insulinized',
+        'antihyp_med',
+        'oral_med_dm',
+        'insulinized_med_dm',
+        'glucometer',
+        'insulin_pump',
+        'previous_creatine',
+        'date_previous_creatine',
+        'diff_creatine',
+        'diff_date_creatine',
+        'creatine_monitoring',
+        'diff_date_hba1c',
+        'beneficiary_type',
+        'lifetime',
+        'risk_stratification',
+        'diabetic_foot_exam',
+        'diabetic_foot_grade',
+        #'gfr_ckd_epi', 
+        #'stage_ckd_epi',
+        #'rcv',
+        #'erc',
+        'provider'
         ]
     ]
+
+    for column in df_rcv:
+        print(column,"->", df_rcv[column].astype(str).str.len().max())
 
     # eliminación de los registros repetidos condicionados a las llaves del store procedure
     df_rcv = df_rcv.drop_duplicates(subset=['document_type' ,'document_number', 'nursing_professional' ,'mega' ,'period'])

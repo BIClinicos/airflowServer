@@ -6,7 +6,9 @@ from datetime import datetime
 from datetime import date
 import pandas as pd
 from variables import sql_connid
-from utils import open_xls_as_xlsx,load_df_to_sql,file_get
+from utils import open_xls_as_xlsx,load_df_to_sql,file_get, red_excel_big, excel_date_format
+import xlrd
+import numpy as np
 
 #  Se nombran las variables a utilizar en el dag
 
@@ -25,13 +27,33 @@ def check_connection():
     print('Conexión OK')
     return(wb.check_for_blob(container,filename))
 
+# Vectorizacion del la operacion de concatenacion
+def vectorized_groupby_apply(df, level=0, axis=1, func=lambda x: ','.join(x[x.notnull()].astype(str))):
+    """Vectorized version of df.groupby(level, axis).apply(func).
+
+    Args:
+        df: A Pandas DataFrame.
+        level: The level of the DataFrame to group by.
+        axis: The axis of the DataFrame to group by.
+        func: A function to apply to each group.
+
+    Returns:
+        A Pandas DataFrame with the results of the function applied to each group.
+    """
+
+    vectorized_func = np.vectorize(func)
+    return df.groupby(level, axis).apply(vectorized_func)
+
 # Función de transformación de los archivos xlsx
 def transform_table(path):    
     ### Adicion 20230323 - Lectura de todas las hojas y union
-    df_active_clinicos = pd.read_excel(path, header = [0], sheet_name = "OPS CLÍNICOS")    
-    df_inactive_clinicos = pd.read_excel(path, header = [0], sheet_name = "PERSONAL RETIRADO OPS CLINICOS")
-    df_active_innovar = pd.read_excel(path, header = [0], sheet_name = "OPS INNOVAR")
-    df_inactive_innovar = pd.read_excel(path, header = [0], sheet_name = "PERSONAL RETIRADO OPS INNOVAR")
+    dfs:list[pd.DataFrame] = red_excel_big(path, ["OPS CLÍNICOS","PERSONAL RETIRADO OPS CLINICOS","OPS INNOVAR","PERSONAL RETIRADO OPS INNOVAR"])
+    print("Lectura del archivo completo en xlrd")
+    df_active_clinicos = dfs["OPS CLÍNICOS"]  
+    df_inactive_clinicos = dfs["PERSONAL RETIRADO OPS CLINICOS"]
+    df_active_innovar = dfs["OPS INNOVAR"]
+    df_inactive_innovar = dfs["PERSONAL RETIRADO OPS INNOVAR"]
+    print("Archivos cargados con Pandas")
     ###
     def drop_col_adi(df):
         df = df.drop(df.columns[30:] ,axis=1)
@@ -40,12 +62,15 @@ def transform_table(path):
     df_active_innovar = drop_col_adi(df_active_innovar)
     df_inactive_clinicos = drop_col_adi(df_inactive_clinicos)
     df_inactive_innovar = drop_col_adi(df_inactive_innovar)
+    print("Eliminacion de columnas extra")
     ### Adicion 20230323 - Organizacion
     df_active_clinicos["organizacion"] = "CLÍNICOS"
     df_inactive_clinicos["organizacion"] = "CLÍNICOS"
     df_active_innovar["organizacion"] = "INNOVAR"
     df_inactive_innovar["organizacion"] = "INNOVAR"    
-    df = pd.concat([df_active_clinicos, df_active_innovar, df_inactive_clinicos, df_inactive_innovar], ignore_index= True)    
+    df = pd.concat([df_active_clinicos, df_active_innovar, df_inactive_clinicos, df_inactive_innovar], ignore_index= True)
+    print("Concatenacion de columnas")   
+    print(df.columns) 
     # Tratamiento de todas las columnas
     df.columns = df.columns.str.lower()
     df.columns = df.columns.str.replace('\d','')    ### Adicion 20230323
@@ -60,9 +85,17 @@ def transform_table(path):
     df.columns = df.columns.str.replace('ú','u')
     df.columns = df.columns.str.replace('ñ','ni')
     df.columns = df.columns.str.replace('ñ','ni')
+    print("Estandarizacion de columnas")
+    # Eliminacion de registros nulos
+    df = df.loc[((df['tipo_id'] != '') | (df['tipo_id'].notnull())) & ((df['id'] != '') | (df['id'].notnull()))]
+    print("Eliminacion de nulos")
+    print(df.columns)
     # Merge del mismo nombre
-    df = df.groupby(level=0, axis=1).apply(lambda x: x.apply(lambda x: ','.join(x[x.notnull()].astype(str)), axis=1))
-    
+    #df = df.groupby(level=0, axis=1).apply(lambda x: x.apply(lambda x: ','.join(x[x.notnull()].astype(str)), axis=1))
+    #df = df.groupby(level=0, axis=1).agg(lambda x: ','.join(x.dropna().astype(str)))
+    df = df.pipe(vectorized_groupby_apply)
+    print("Merge de dataframes - sospecha")
+    print(df.columns)
     ### Adicion 20230323
     if 'apellidos_y_nombre' in df.columns:
         df['nombre_completo'] = df['apellidos_y_nombre'].fillna(df['nombre_completo'])
@@ -80,21 +113,17 @@ def transform_table(path):
     df['inicio_contrato'] = df['inicio_contrato'].apply(lambda x: x.replace("/","-"))
     df['inicio_contrato'] = df['inicio_contrato'].apply(lambda x: x.replace(" 00:00:00",""))
     df['inicio_contrato'] = df['inicio_contrato'].apply(lambda x: x.replace("19-06-2019","2019-06-19"))
-    df['inicio_contrato'] = pd.to_datetime(df['inicio_contrato'], format="%Y-%m-%d")
 
-    # print(df['inicio_contrato'].head(487))
-
-    # df['fecha_verificacion_titulo'] = df['fecha_verificacion_titulo'].str.strip()
     df['fecha_verificacion_titulo'] = df['fecha_verificacion_titulo'].replace('...', '')
     df['fecha_verificacion_titulo'] = df['fecha_verificacion_titulo'].replace('.', '')
     # df['fecha_verificacion_titulo'] = pd.to_datetime(df['fecha_verificacion_titulo'], format="%d-%m-%Y", errors='coerce')
-
+    print("Procesamiento 1")
     date_columns = ['inicio_contrato','fecha_nacimiento','fecha_verificacion_titulo','fecha_retiro']
 
     for i in date_columns:
         df[i] = df[i].astype(str)
         df[i] = df[i].str.strip()
-        df[i] = pd.to_datetime(df[i], format="%Y-%m-%d", errors = 'coerce')
+        df[i] = df[i].apply(excel_date_format)
 
     print(df['fecha_verificacion_titulo'].head(50))
 
@@ -114,7 +143,7 @@ def transform_table(path):
     df['sede'] = df['sede'].str.capitalize()
 
     print(df['sede'].unique())
-
+    print("Procesamiento 2")
     ### Adicion 20230323
     df['unidad_para_informe_mensual'] = df['unidad_de_negocio_principal']
 
@@ -158,7 +187,7 @@ def transform_table(path):
 
     print(df['tipo_cuenta'].head(20))
     print(df['tipo_cuenta'].unique())
-
+    print("Procesamiento 3")
     ### Adicion 20230323
     df['estado'] = df['estado'].str.split(',').str[0]
     df['estado_activo_inactivo_retirado'] = df['estado']
