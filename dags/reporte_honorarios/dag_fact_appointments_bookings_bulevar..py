@@ -5,8 +5,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
 from datetime import datetime
 import pandas as pd
+
 from variables import sql_connid
 from utils import load_df_to_sql,file_get,normalize_str_categorical, replace_accents_cols
+from utils.CONSTANS_BULEVAR import *
 #  Se nombran las variables a utilizar en el dag
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
@@ -33,163 +35,14 @@ def transform_tables (path):
 
     # cambio de nombres de columnas
     
-    df = df.rename(
-        columns = {
-            'ID' : 'id',
-            'Servicio' : 'service',
-            'Fecha Solicitud Cita' : 'appointment_request_date',
-            'Fecha deseada' : 'desired_date',
-            'Oportunidad' : 'pertinence',
-            'FechaInicioCita' : 'appointment_start_date',
-            'FechaFinCita' : 'appointment_end_date',
-            'Profesional' : 'professional',
-            'TipoConsulta' : 'consultation_type',
-            'TipoIdentificacion' : 'document_type',
-            'NumeroIdentificacion' : 'document_number',
-            'Title' : 'full_name',
-            'Correo' : 'mail',
-            'Direccion' : 'home_address',
-            'Estado' : 'status',
-            'Tipo de AFILIACIÓN' : 'membership_type',
-            'MEGA-MEPA' : 'mega',
-            'SEXO' : 'gender',
-            'EDAD' : 'age',
-            'Unidad de Medida' : 'unit_measure',
-            'Telefono' : 'phone_number',
-            'Nombre Persona Contacto' : 'contact_name',
-            'Vinculo' : 'relationship',
-            'Teléfono Contacto' : 'phone_contact',
-            'ModalidadConsulta' : 'consultation_modality',
-            'Tipo de Telesalud' : 'telehealth_type',
-            'Estado de la Cita' : 'appointment_status',
-            'Causa Externa' : 'external_cause',
-            'Finalidad de la Consulta' : 'consultation_purpose',
-            'CUPS' : 'cups',
-            'Diagnóstico' : 'dx',
-            'CIE10' : 'cie10',
-            'Tipo de Diagnóstico' : 'dx_type',
-            'Diagnóstico Secundario' : 'secondary_dx',
-            'CIE10 Secundario' : 'secondary_cie10',
-            'Tipo de Diagnóstico Sec' : 'secondary_dx_type',
-            'II Diagnóstico Secundario' : 'tertiary_dx',
-            'CIE10 II Secundario' : 'tertiary_cie10',
-            'Tipo de Diagnóstico II Sec' : 'tertiary_dx_type',
-            'III Diagnóstico Secundario' : 'quaternary_dx',
-            'CIE10 III Secundario' : 'quaternary_cie10',
-            'Tipo de Diagnóstico III Sec' : 'quaternary_dx_type',
-            'Seguimiento' : 'tracing',
-            'Resultado Seguimiento' : 'tracing_result',
-            'SintomasAsociadosCovid' : 'covid_associate_symptoms',
-            'Persona que Asigna' : 'assigning_person',
-            'Procedimientos' : 'procedures',
-            'Notas' : 'notes',
-            'Remitente' : 'sender',
-            'Modificado' : 'modified',
-            'Cita Asignada en E-Salud' : 'esalud_assigned_appoinment',
-            'IDEvento' : 'eventID',
-            'Tipo de elemento' : 'element_type',
-            'Ruta de acceso' : 'path',
-            'sede' : 'headquarter',
-            'entidad' : 'entity'
-        }
-    )
+    df = df.rename(columns = COLUMNS_BULEVAR)
 
     # df seleccionados
-    df = df[['id',
-            'service',
-            'appointment_request_date',
-            'desired_date',
-            'pertinence',
-            'appointment_start_date',
-            'appointment_end_date',
-            'professional',
-            'consultation_type',
-            'document_type',
-            'document_number',
-            'full_name',
-            'mail',
-            'home_address',
-            'status',
-            'membership_type',
-            'mega',
-            'gender',
-            'age',
-            'unit_measure',
-            'phone_number',
-            'contact_name',
-            'relationship',
-            'phone_contact',
-            'consultation_modality',
-            'telehealth_type',
-            'appointment_status',
-            'external_cause',
-            'consultation_purpose',
-            'cups',
-            'dx',
-            'cie10',
-            'dx_type',
-            'secondary_dx',
-            'secondary_cie10',
-            'secondary_dx_type',
-            'tertiary_dx',
-            'tertiary_cie10',
-            'tertiary_dx_type',
-            'quaternary_dx',
-            'quaternary_cie10',
-            'quaternary_dx_type',
-            'tracing',
-            'tracing_result',
-            'covid_associate_symptoms',
-            'assigning_person',
-            'procedures',
-            'notes',
-            'sender',
-            'modified',
-            'esalud_assigned_appoinment',
-            'eventID',
-            'element_type',
-            'path',
-            'headquarter',
-            'entity'
-    ]]
+    df = df[COLUMNS_SELECTED]
 
     # normalización de columnas categóricas
 
-    str_col = [
-        'service',
-        'professional',
-        'consultation_type',
-        'document_type',
-        'full_name',
-        'home_address',
-        'status',
-        'membership_type',
-        'mega',
-        'gender',
-        'unit_measure',
-        'contact_name',
-        'relationship',
-        'consultation_modality',
-        'telehealth_type',
-        'appointment_status',
-        'external_cause',
-        'consultation_purpose',
-        'dx',
-        'dx_type',
-        'secondary_dx',
-        'secondary_dx_type',
-        'tertiary_dx',
-        'tertiary_dx_type',
-        'quaternary_dx',
-        'quaternary_dx_type',
-        'tracing',
-        'tracing_result',
-        'covid_associate_symptoms',
-        'assigning_person',
-        'procedures',
-        'notes',
-        'sender'
-        ]
+    str_col = STR_COL
 
     for i in str_col:
         df[i] = normalize_str_categorical(df[i])
@@ -210,28 +63,8 @@ def transform_tables (path):
 
     df_2['cero'] = df_2['cero'].fillna('')
 
-    stand_val = [
-        'CONSULTA PRIORITARIA MEDICINA GENERAL',
-        'CONSULTA PREFERENTE MEDICINA GENERAL',
-        'QUIMICO FARMACEUTICO', 
-        'MEDICO OCUPACIONAL', 
-        'CONSULTA PRIORITARIA MEDICINA GENERAL',
-        'CONSULTA DE ENFERMERÍA RIESGO CARDIOVASCULAR'
-        'CRECIMIENTO Y DESARROLLO',
-        'CRECIMIENTO Y DESARROLLO',
-        'TERAPIA FÍSICA',
-        'FISIOTERAPEUTAS',
-        'VEJEZ',
-        'ADOLESCENCIA',
-        'CITOLOGÍA',
-        'ADOLECENTE'
-        'ADULTEZ',
-        'CITOLOGIA',
-        'MEDICINA INTERNA' 
-        'FISIATRÍA', 
-        'MEDICO GENERAL PARA CONSULTA PRIORITARIA',
-        'FISIOTERAPIA'
-    ]
+    stand_val = STAND_VAL
+    
     for i in stand_val:
         df_2.loc[df_2['cero'].str.contains(i) == True, 'cero'] = i
 
@@ -242,47 +75,7 @@ def transform_tables (path):
     # Columna 'desired_date'
 
     def normalize(col_val):
-        replacements = (
-            
-            (' DE ENERO DE ' , '/01/'),
-            (' DE FEBRERO DE ' , '/02/'),
-            (' DE MARZO DE ' , '/03/'),
-            (' DE ABRIL DE ' , '/04/'),
-            (' DE MAYO DE ' , '/05/'),
-            (' DE JUNIO DE ' , '/06/'),
-            (' DE JULIO DE ' , '/07/'),
-            (' DE AGOSTO DE ' , '/08/'),
-            (' DE SEPTIEMBRE DE ' , '/09/'),
-            (' DE OCTUBRE DE ' , '/10/'),
-            (' DE NOVIEMBRE DE ' , '/11/'),
-            (' DE DICIEMBRE DE ' , '/12/'),
-            (' DE ENERO ' , '/01/'),
-            (' DE FEBRERO ' , '/02/'),
-            (' DE MARZO ' , '/03/'),
-            (' DE ABRIL ' , '/04/'),
-            (' DE MAYO ' , '/05/'),
-            (' DE JUNIO ' , '/06/'),
-            (' DE JULIO ' , '/07/'),
-            (' DE AGOSTO ' , '/08/'),
-            (' DE SEPTIEMBRE ' , '/09/'),
-            (' DE OCTUBRE ' , '/10/'),
-            (' DE NOVIEMBRE ' , '/11/'),
-            (' DE DICIEMBRE ' , '/12/'),
-            (' ENERO ' , '/01/'),
-            (' FEBRERO ' , '/02/'),
-            (' MARZO ' , '/03/'),
-            (' ABRIL ' , '/04/'),
-            (' MAYO ' , '/05/'),
-            (' JUNIO ' , '/06/'),
-            (' JULIO ' , '/07/'),
-            (' AGOSTO ' , '/08/'),
-            (' SEPTIEMBRE ' , '/09/'),
-            (' OCTUBRE ' , '/10/'),
-            (' NOVIEMBRE ' , '/11/'),
-            (' DICIEMBRE ' , '/12/'),
-            ('20222' , '2022'),
-            ('222' , '2022')
-        )
+        replacements = REPLACEMENTS
         for a, b in replacements:
             col_val = col_val.replace(a, b).replace(a.upper(), b.upper())
         return col_val
@@ -426,19 +219,7 @@ def func_get_appointments_bookings ():
     print(df.columns)
 
     df_patients = df[
-        [
-        'document_type', 
-        'document_number',
-        'full_name', 
-        'mail', 
-        'home_address',
-        'birth_date',
-        'gender', 
-        'phone_number', 
-        'contact_name',
-        'relationship', 
-        'phone_contact'
-       ]
+        COLUMNS_PATIENTS
     ]
 
 
@@ -446,54 +227,7 @@ def func_get_appointments_bookings ():
     print(df_patients.columns)
 
     df_fact_bookings = df[
-        [
-        'id', 
-        'service', 
-        'appointment_request_date', 
-        'desired_date',
-        'appointment_start_date', 
-        'appointment_end_date',
-        'professional', 
-        'consultation_type',
-        'document_type',
-        'document_number', # llave conexión con la dimensión de pacientes
-        'membership_type', 
-        'mega',
-        'age',
-        'unit_measure', 
-        'consultation_modality',
-        'telehealth_type', 
-        'appointment_status', 
-        'external_cause',
-        'consultation_purpose', 
-        'cups', 
-        'dx', 
-        'cie10', 
-        'dx_type',
-        'secondary_dx', 
-        'secondary_cie10', 
-        'secondary_dx_type', 
-        'tertiary_dx',
-        'tertiary_cie10', 
-        'tertiary_dx_type', 
-        'quaternary_dx',
-        'quaternary_cie10', 
-        'quaternary_dx_type', 
-        'tracing',
-        'tracing_result',
-        'covid_associate_symptoms', 
-        'assigning_person', 
-        'procedures', 
-        'notes',
-        'sender', 
-        'modified', 
-        'esalud_assigned_appoinment', 
-        'eventID',
-        'element_type', 
-        'path', 
-        'headquarter', 
-        'entity'
-       ]
+        FACT_BOOKINGS
     ]
     print(df_fact_bookings.info())
     print(df_fact_bookings.columns)

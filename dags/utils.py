@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine
 from collections import Counter
 from xlrd import Book
 from xlrd.sheet import Sheet
-
+import numpy as np
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -226,6 +226,21 @@ def file_get(path,container_name,blob_name, **args):
     wbook.get_file(path, container_name, blob_name)
     print ('Archivo halado con python operator')
     return('Blob gotten sucessfully')
+
+
+def get_blob_2_df(container_name,blob_name, **args):
+
+    wbook:WasbHook = args.get('wb',wb)
+    header = args.get("head",0)
+    skiprows = args.get("skiprows",0)
+    sheets = args.get("sheets",None)
+    blob = wbook.download(container_name, blob_name).content_as_bytes()
+    if sheets:
+        dfs = {}
+        for sheet in sheets:
+            dfs[sheet] = pd.read_excel(blob, sheet, skiprows=skiprows)
+        return dfs
+    return pd.read_excel(blob, skiprows=skiprows)
 
 
 def filelist_get(dirname, container_name, blob_prefix, blob_delimiter: Optional[str] = '/', **args):
@@ -712,12 +727,31 @@ def extract_from_filename(filename, name_separator='_', name_position=0):
     text_splited = filename.split(name_separator)
     return text_splited[name_position]
 
-def excel_date_format(x):
-  # Intentar convertir a fechas en formato numérico de Excel
-  try:
-      return datetime.fromordinal(datetime(1900, 1, 1).toordinal() + int(float(x)) - 2)
-  except (ValueError, TypeError):
-      return pd.to_datetime(x, errors='coerce')
+def validate_date_format(test_str,format):
+    try:
+        res = bool(datetime.strptime(test_str, format))
+    except ValueError:
+        res = False
+    return res
+
+def excel_date_format(y, col):
+    x = y[col]  
+    # Elimina el contenido decimal con regex
+    x = x.str.replace(r'\.\d+$', '', regex=True)  
+    # Intenta convertir a numérico
+    numeric_x = pd.to_numeric(x, errors='coerce')
+    # Verifica si el valor es una fecha en formato YYYY-MM-DD
+    date_format_mask = x.str.match(r'\d{4}-\d{2}-\d{2}')   
+    # Convierte valores a datetime64[ns]
+    x = np.where(
+        numeric_x.isna(),
+        np.where(date_format_mask, x, None),
+        datetime(1899, 12, 30) + pd.to_timedelta(numeric_x, unit='D')
+    ) 
+    # Convierte en serie
+    x = pd.to_datetime(x, errors = 'coerce')
+    return x
+
 
 def open_xls_as_xlsx(filename):
     # first open using xlrd

@@ -34,8 +34,8 @@ dag_name = 'dag_' + db_table
 end_date = date.today() - timedelta(days=1)
 start_date = end_date.replace(day=1)
 # Carge historico
-#start_date = date(2023, 1, 1) 
-#end_date = date(2022, 11, 30)
+#start_date = date(2023, 6, 1) 
+#end_date = date(2023, 6, 30)
 # Formato
 start_date = start_date.strftime('%Y-%m-%d')
 end_date = end_date.strftime('%Y-%m-%d')

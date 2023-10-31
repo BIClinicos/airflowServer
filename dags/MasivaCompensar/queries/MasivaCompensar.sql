@@ -732,7 +732,7 @@ WITH CTE AS(
         AND EncHC.isActive = 1
         AND HCAct.idHCActivity IN (SELECT Value FROM STRING_SPLIT(@hcPlanF,','))
         AND CONVERT(DATE,Enc.dateStart) BETWEEN CONVERT(DATE,@startDate) AND CONVERT(DATE,@endDate)
-		AND ContP.name in ('ACUEDUCTO','PAC','POS S','POS C')
+		--AND ContP.name in ('ACUEDUCTO','PAC','POS S','POS C')
 		AND EXISTS (
 			SELECT 1
 			FROM dbo.EHREvents AS EVFilt

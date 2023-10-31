@@ -1351,3 +1351,12 @@ chmod -R 777 dags/files_pami/
 sudo chmod -R 777 dags/Masiva/in
 htop
 docker-compose exec airflow airflow upgrade --packages xlrd
+git add .
+git commit -m "update many dags --NEPS --Masiva --MasivaCompensar"
+git push origin main
+/usr/bin/python3
+ls
+ls | grep .xlsx
+chmod 777 dags/nota_tecnica/files/
+'/home/airflowclinicos/dags/nota_tecnica/dag_nota_tecnica.py'
+git branch -l

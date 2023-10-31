@@ -64,7 +64,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag a las 9:10 am (hora servidor) todos los Jueves
-    schedule_interval= None, # '10 9 * * 04', # cron expression
+    schedule_interval= '5 19 * * SAT', # cron expression
     max_active_runs=1
     ) as dag:
 
@@ -74,8 +74,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_dimParametrosInformeOficina = PythonOperator(task_id = "get_dimParametrosInformeOficina",
                                                                 python_callable = func_get_dimParametrosInformeOficina,
-                                                                #email_on_failure=False, 
-                                                                # email='BI@clinicos.com.co',
+                                                                email_on_failure=False, 
+                                                                email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )
 
@@ -84,8 +84,8 @@ with DAG(dag_name,
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
                                         sql="EXECUTE uspCarga_TblDParametrosInformeOficina",
-                                        # email_on_failure=True, 
-                                        # email='BI@clinicos.com.co',
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
 

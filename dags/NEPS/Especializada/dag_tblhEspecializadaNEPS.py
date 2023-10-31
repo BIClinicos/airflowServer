@@ -18,7 +18,7 @@ dag_name = 'dag_' + db_table
 
 now = datetime.now()
 last_week_date = now - timedelta(weeks=1)
-# last_week_date = datetime(2021,2,1)
+last_week_date = datetime(2023,10,1)
 last_week = last_week_date.strftime('%Y-%m-%d %H:%M:%S')
 
 

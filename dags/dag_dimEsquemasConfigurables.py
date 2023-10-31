@@ -30,14 +30,18 @@ dag_name = 'dag_' + db_table
 
 
 # Para correr manualmente las fechas
-fecha_texto = '2023-07-07 00:00:00'
-now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
-last_week=datetime.strptime('2023-06-30 00:00:00', '%Y-%m-%d %H:%M:%S')
+# fecha_texto = '2023-10-26 00:00:00'
+# now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
+# last_week=datetime.strptime('2023-07-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 
 
-now = now.strftime('%Y-%m-%d %H:%M:%S')
+# now = now.strftime('%Y-%m-%d %H:%M:%S')
+# last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+
+now = datetime.now()
+last_week = now - timedelta(weeks=1)
 last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-
+now = now.strftime('%Y-%m-%d %H:%M:%S')
 
 def func_get_dimEsquemasConfigurables ():
 
@@ -96,7 +100,7 @@ with DAG(dag_name,
     catchup=False,
     default_args=default_args,
     # Se establece la ejecución del dag a las 9:10 am (hora servidor) todos los Jueves
-    schedule_interval= None, # '10 9 * * 04', # cron expression
+    schedule_interval= '30 18 * * SAT', # cron expression
     max_active_runs=1
     ) as dag:
 
@@ -106,8 +110,8 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_dimEsquemasConfigurables = PythonOperator(task_id = "get_dimEsquemasConfigurables",
                                                                 python_callable = func_get_dimEsquemasConfigurables,
-                                                                #email_on_failure=False, 
-                                                                # email='BI@clinicos.com.co',
+                                                                email_on_failure=False, 
+                                                                email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )
 
@@ -116,8 +120,8 @@ with DAG(dag_name,
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
                                         sql="EXECUTE uspCarga_TblDEsquemasConfigurables",
-                                        # email_on_failure=True, 
-                                        # email='BI@clinicos.com.co',
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
     
@@ -125,8 +129,8 @@ with DAG(dag_name,
                                         mssql_conn_id=sql_connid,
                                         autocommit=True,
                                         sql="EXECUTE uspCarga_TblHEsquemasConfigurables",
-                                        # email_on_failure=True, 
-                                        # email='BI@clinicos.com.co',
+                                        email_on_failure=True, 
+                                        email='BI@clinicos.com.co',
                                         dag=dag
                                        )
 
