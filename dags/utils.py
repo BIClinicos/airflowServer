@@ -13,8 +13,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from collections import Counter
 from xlrd import Book
-from xlrd.sheet import Sheet
 import numpy as np
+from unicodedata import normalize
+from numpy import vectorize
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')
 
@@ -44,6 +45,20 @@ def add_days_to_date(date, days):
     """
 
     return date + timedelta(days=days)
+
+@vectorize
+def normalize_strings(value:str):
+
+    # -> NFD y eliminar diacríticos
+    value = re.sub(
+            r"([^n\u0300-\u036f]|n(?!\u0303(?![\u0300-\u036f])))[\u0300-\u036f]+", r"\1", 
+            normalize( "NFD", value), 0, re.I
+        )
+
+    # -> NFC
+    value = normalize( 'NFC', value)
+
+    return value
 
 def normalize_str_categorical(df_serie,func_type='upper'):
   if func_type == 'upper':

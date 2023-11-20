@@ -1360,3 +1360,32 @@ ls | grep .xlsx
 chmod 777 dags/nota_tecnica/files/
 '/home/airflowclinicos/dags/nota_tecnica/dag_nota_tecnica.py'
 git branch -l
+git log dags/NEPS/Especializada/dag_tblhEspecializadaNEPS.py
+git show 74eda7bfbbf737f80e39e8813267ce91129caf9f:dags/NEPS/Especializada/dag_TblhUsuariosActivosNEPS.py
+git show 74eda7bfbbf737f80e39e8813267ce91129caf9f:dags/NEPS/Especializada/dag_tblhUsuarioActivosNEPS.py
+git show 74eda7bfbbf737f80e39e8813267ce91129caf9f:dags/NEPS/Especializada/dag_tblhEspecializadaNEPS.py
+git log dags/NEPS/Especializada/dag_tblhEspecializadaNEPS.py
+git diff 74eda7bfbbf737f80e39e8813267ce91129caf9f 53c7efd75b44a3879fff414606158ba69ae4330c dags/NEPS/Especializada/dag_tblhEspecializadaNEPS.py
+git diff 74eda7bfbbf737f80e39e8813267ce91129caf9f 53c7efd75b44a3879fff414606158ba69ae4330c dags/NEPS/queries/tblhEspecializadaNEPS.sql
+/usr/bin/python3 /home/airflowclinicos/dags/NEPS/Especializada/dag_tblhEspecializadaNEPS.py
+cd /home/airflowclinicos/logs/
+ls
+ls -f
+ls -h
+cd /home/airflowclinicos/logs/
+ls -h
+sudo rm -r -f dag*
+ls -h
+cd /home/airflowclinicos/logs/scheduler/
+ls -h
+sudo rm -r -f 2023-09*
+cd /home/airflowclinicos/logs/scheduler/
+ls -h
+sudo rm -r -f 2023-09
+ls -h
+sudo rm -r -f 2023-09*
+ls -h
+sudo rm -r -f 2023-08*
+sudo rm -r -f 2023-07*
+sudo rm -r -f 2023-06*
+ls -h

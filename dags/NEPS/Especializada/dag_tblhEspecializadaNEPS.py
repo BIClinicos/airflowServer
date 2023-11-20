@@ -6,7 +6,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.mssql_operator import MsSqlOperator
 from airflow.hooks.mssql_hook import MsSqlHook
 from datetime import datetime, timedelta
-from NEPS.utils.utils import generar_rango_fechas, generar_rango_horas, obtener_fila_prevaleciente, regex_control_asma, regex_disnea, regex_exacerbacion, regex_suspencion_oxigeno
+from NEPS.utils.utils import generar_rango_fechas, generar_rango_horas, obtener_fila_prevaleciente, regex_control_asma, regex_disnea, regex_exacerbacion, regex_suspencion_oxigeno, regex_epoc_gold
 from variables import sql_connid, sql_connid_gomedisys
 from utils import load_df_to_sql,load_df_to_sql_pandas,sql_2_df
 
@@ -18,7 +18,7 @@ dag_name = 'dag_' + db_table
 
 now = datetime.now()
 last_week_date = now - timedelta(weeks=1)
-last_week_date = datetime(2023,10,1)
+#last_week_date = datetime(2023,9,1)
 last_week = last_week_date.strftime('%Y-%m-%d %H:%M:%S')
 
 
@@ -80,6 +80,11 @@ def func_get_tblhEspecializadaNEPS():
     df["disnea"] = df["Analisis"].apply(regex_disnea)
     df.loc[df["disnea"].isnull(), "disnea"] = df.loc[df["disnea"].isnull()]["PlanTratamiento"].apply(regex_disnea)
     df.loc[df["disnea"].isnull(), "disnea"] = df.loc[df["disnea"].isnull()]["EnfermedadActual"].apply(regex_disnea)
+
+    # --------------------------------------------------------------- EPOC GOLD
+    
+    df.loc[df["EpocGOLD"].isnull(), "EpocGOLD"] = df.loc[df["EpocGOLD"].isnull()]["PlanTratamiento"].apply(regex_epoc_gold)
+    df.loc[df["EpocGOLD"].isnull(), "EpocGOLD"] = df.loc[df["EpocGOLD"].isnull()]["EnfermedadActual"].apply(regex_epoc_gold)
     
     # --------------------------------------------------------------- EXACERBACION
     
@@ -118,6 +123,7 @@ def func_get_tblhEspecializadaNEPS():
     data_guardada = data_guardada.sort_values(by=['idUser', 'date_control'])
     data_guardada = data_guardada.groupby('idUser').apply(generar_rango_fechas)
     data_guardada.drop_duplicates(["idUser","date_control"], keep='last', inplace=True)
+    data_guardada.ffill(inplace=True)
     
     # --------------------------------------------------------------- CARGA A BASE DE DATOS
     if ~data_guardada.empty and len(data_guardada.columns) >0:

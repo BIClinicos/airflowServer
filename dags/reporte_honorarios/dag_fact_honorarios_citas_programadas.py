@@ -17,18 +17,18 @@ db_tmp_table = 'TmpHonorariosCitasModeloEspecializada'
 db_table = "TblHHonorariosCitasModeloEspecializada"
 dag_name = 'dag_' + db_table
 
+# Para correr fechas con delta
+now = datetime.now()
+last_week = now - timedelta(weeks=1)
+last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
+now = now.strftime('%Y-%m-%d %H:%M:%S')
+
 # Para correr manualmente las fechas
 #fecha_texto = '2023-04-19 00:00:00'
 #now = datetime.strptime(fecha_texto, '%Y-%m-%d %H:%M:%S')
 #last_week=datetime.strptime('2023-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 #now = now.strftime('%Y-%m-%d %H:%M:%S')
 #last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-
-# Para correr fechas con delta
-now = datetime.now()
-last_week = now - timedelta(weeks=1)
-last_week = last_week.strftime('%Y-%m-%d %H:%M:%S')
-now = now.strftime('%Y-%m-%d %H:%M:%S')
 
 def func_get_honoraries_stating ():
 

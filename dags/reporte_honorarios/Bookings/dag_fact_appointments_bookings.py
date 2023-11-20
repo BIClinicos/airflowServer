@@ -8,8 +8,8 @@ import pandas as pd
 import os
 
 from variables import sql_connid
-from dags.utils import load_df_to_sql_pandas, normalize_str_categorical, sql_2_df
-from utils.CONSTANS_BULEVAR import *
+from utils import load_df_to_sql_pandas, normalize_str_categorical, sql_2_df,replace_accents_cols
+from reporte_honorarios.utils.CONSTANS_BULEVAR import *
 #  Se nombran las variables a utilizar en el dag
 
 QUERY_PATH = "dags/reporte_honorarios/queries/"
@@ -23,12 +23,11 @@ end_week = datetime.now()
 
 
 # Función de extracción del archivo del blob al servidor, transformación del dataframe y cargue a la base de datos mssql
-def func_get_appointments_bookings_bulebar():
+def func_get_appointments_bookings_transform():
 
     with open(os.path.join(QUERY_PATH,"PrepSabanasAtencionesPrimaria.sql")) as fp:
         query = fp.read().replace("{last_week}", f"{last_week.strftime('%Y-%m-%d')!r}").\
-                replace("{end_week}",f"{end_week.strftime('%Y-%m-%d')!r}").\
-                replace("{category}","BULEVAR")
+                replace("{end_week}",f"{end_week.strftime('%Y-%m-%d')!r}")
                 
     df:pd.DataFrame = sql_2_df(query, sql_conn_id=sql_connid)
     
@@ -37,7 +36,9 @@ def func_get_appointments_bookings_bulebar():
     str_col = STR_COL
 
     for i in str_col:
-        df[i] = normalize_str_categorical(df[i])
+        try:
+            df[i] = normalize_str_categorical(df[i])
+        except KeyError: pass
         
     df_2 = df['service'].str.split(':', n=1, expand = True)
     df_2
@@ -60,14 +61,19 @@ def func_get_appointments_bookings_bulebar():
 
     df['service'] = df_2['cero']
     
-    def normalize(col_val):
-        replacements = REPLACEMENTS
-        for a, b in replacements:
-            col_val = col_val.replace(a, b).replace(a.upper(), b.upper())
-        return col_val
+    # def normalize(col_val:str):
+    #     replacements = REPLACEMENTS
+    #     for a, b in replacements:
+    #         print(a,b)
+    #         col_val = col_val.replace(a, b).replace(a.upper(), b.upper())
+    #     return col_val
 
-    df['desired_date'] = df['desired_date'].fillna('')
-    df['desired_date'] = df['desired_date'].apply(lambda x: normalize(x))
+    # df['desired_date'] = df['desired_date'].fillna('')
+    # print(df.info())
+    # print(df.head())
+    # print(df["desired_date"].unique())
+    # df['desired_date'] = df['desired_date'].apply(lambda x: normalize(x))
+    
     df['desired_date'] = pd.to_datetime(df['desired_date'], errors='coerce')
     
     df['consultation_type'] = df['consultation_type'].fillna('')    
@@ -85,10 +91,10 @@ def func_get_appointments_bookings_bulebar():
     df.loc[cond3,['document_number']] = df.loc[cond3]['document_number'].str.replace('.','').str.extract(r'(-?\d+\.?)').values
     df['document_number'] = df['document_number'].fillna('NO DATA')
     
-    tmp1 = df['status'].str.startswith('ACT', na = False)
-    tmp2 = df['status'].str.startswith('INAC', na = False)
-    df.loc[tmp1, 'status'] = 'ACTIVO/A'
-    df.loc[tmp2, 'status'] = 'INACTIVO/A'
+    # tmp1 = df['status'].str.startswith('ACT', na = False)
+    # tmp2 = df['status'].str.startswith('INAC', na = False)
+    # df.loc[tmp1, 'status'] = 'ACTIVO/A'
+    # df.loc[tmp2, 'status'] = 'INACTIVO/A'
     
     df['membership_type'].fillna('NO DATA')
     w1 = df['membership_type'].str.startswith('CALLE', na = False)
@@ -96,9 +102,9 @@ def func_get_appointments_bookings_bulebar():
     df.loc[w1, 'membership_type'] = ''
     df.loc[w2, 'membership_type'] = ''
     
-    df['gender'] = df['gender'].fillna('')
-    df.loc[df['gender'].str.contains('MMJ'), 'gender'] = ''  
-    df['gender'] = df['gender'].replace('M','MASCULINO').replace('F','FEMENINO')
+    # df['gender'] = df['gender'].fillna('')
+    # df.loc[df['gender'].str.contains('MMJ'), 'gender'] = ''  
+    # df['gender'] = df['gender'].replace('M','MASCULINO').replace('F','FEMENINO')
     
     df['telehealth_type'] = df['telehealth_type'].fillna('NO DATA')
     df['telehealth_type'] = df['telehealth_type'].str.replace('0','')
@@ -146,8 +152,8 @@ def func_get_appointments_bookings_bulebar():
 
     df['birth_date'] = ''
 
-    # 202307 Truncamiento de mail
-    df['mail'] = df['mail'].str.slice(0,55)
+    # # 202307 Truncamiento de mail
+    # df['mail'] = df['mail'].str.slice(0,55)
 
     return df
     
@@ -156,15 +162,15 @@ def func_get_appointments_bookings_bulebar():
 
 def fact_appointments_bookings():
     
-    df_bulevar = func_get_appointments_bookings_bulebar()
+    df_bulevar = func_get_appointments_bookings_transform()
     
-    df_patients = df_bulevar[
-        COLUMNS_PATIENTS
-    ]
+    # df_patients = df_bulevar[
+    #     COLUMNS_PATIENTS
+    # ]
 
 
-    print(df_patients.info())
-    print(df_patients.columns)
+    # print(df_patients.info())
+    # print(df_patients.columns)
 
     df_fact_bookings = df_bulevar[
         FACT_BOOKINGS
@@ -172,11 +178,11 @@ def fact_appointments_bookings():
     print(df_fact_bookings.info())
     print(df_fact_bookings.columns)
 
-    df_patients = df_patients.drop_duplicates(subset=[
-        'document_type', 
-        'document_number'
-       ]
-    )
+    # df_patients = df_patients.drop_duplicates(subset=[
+    #     'document_type', 
+    #     'document_number'
+    #    ]
+    # )
 
     df_fact_bookings = df_fact_bookings.drop_duplicates(subset=[
         'id', 
@@ -187,8 +193,8 @@ def fact_appointments_bookings():
     )
 
 
-    if ~df_patients.empty and len(df_patients.columns) >0:
-        load_df_to_sql_pandas(df_patients, db_tmp_table_dim, sql_connid)
+    # if ~df_patients.empty and len(df_patients.columns) >0:
+    #     load_df_to_sql_pandas(df_patients, db_tmp_table_dim, sql_connid)
 
     if ~df_fact_bookings.empty and len(df_fact_bookings.columns) >0:
         load_df_to_sql_pandas(df_fact_bookings, db_tmp_table_fact, sql_connid)
@@ -215,21 +221,21 @@ with DAG(dag_name,
 
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_appointments_bookings_python_task = PythonOperator( task_id = "get_appointments_bookings",
-                                                        python_callable = func_get_appointments_bookings,
+                                                        python_callable = fact_appointments_bookings,
                                                         email_on_failure=True, 
                                                         email='BI@clinicos.com.co',
                                                         dag=dag
                                                         )
     
-    # Se declara la función encargada de ejecutar el "Stored Procedure"
-    load_dim_patient = MsSqlOperator( task_id='Load_dim_patient',
-                                            mssql_conn_id=sql_connid,
-                                            autocommit=True,
-                                            sql="EXECUTE sp_load_dim_patients",
-                                            email_on_failure=True,
-                                            email='BI@clinicos.com.co',
-                                            dag=dag
-                                       )
+    # # Se declara la función encargada de ejecutar el "Stored Procedure"
+    # load_dim_patient = MsSqlOperator( task_id='Load_dim_patient',
+    #                                         mssql_conn_id=sql_connid,
+    #                                         autocommit=True,
+    #                                         sql="EXECUTE sp_load_dim_patients",
+    #                                         email_on_failure=True,
+    #                                         email='BI@clinicos.com.co',
+    #                                         dag=dag
+    #                                    )
 
     load_fact_appointments_bookings = MsSqlOperator( task_id='Load_fact_appointments_bookings',
                                             mssql_conn_id=sql_connid,
@@ -243,4 +249,4 @@ with DAG(dag_name,
     # Se declara la función que sirva para denotar la Terminación del DAG, por medio del operador "DummyOperator"
     task_end = DummyOperator(task_id='task_end')
 
-start_task >> get_appointments_bookings_python_task >> load_dim_patient >> load_fact_appointments_bookings >> task_end
+start_task >> get_appointments_bookings_python_task >> load_fact_appointments_bookings >> task_end

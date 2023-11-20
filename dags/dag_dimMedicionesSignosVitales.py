@@ -128,7 +128,7 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"  
     get_dimMedicionesSignosVitales = PythonOperator(task_id = "get_dimMedicionesSignosVitales",
                                                                 python_callable = func_get_dimMedicionesSignosVitales,
-                                                                email_on_failure=False, 
+                                                                email_on_failure=True, 
                                                                 email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )

@@ -74,7 +74,7 @@ with DAG(dag_name,
     #Se declara y se llama la función encargada de traer y subir los datos a la base de datos a través del "PythonOperator"
     get_dimParametrosInformeOficina = PythonOperator(task_id = "get_dimParametrosInformeOficina",
                                                                 python_callable = func_get_dimParametrosInformeOficina,
-                                                                email_on_failure=False, 
+                                                                email_on_failure=True, 
                                                                 email='BI@clinicos.com.co',
                                                                 dag=dag
                                                                 )

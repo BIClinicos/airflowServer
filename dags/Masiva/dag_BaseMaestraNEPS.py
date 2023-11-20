@@ -22,7 +22,14 @@ dag_name = 'dag_' + db_table
 def transform_data(files_path):
     # Lectura de todos los archivos que coninciden con el patron
     df_list = [pd.read_excel(path, header = [0]) for path in files_path]
+    for indx in range(len(df_list)):
+        if len(df_list[indx].columns) == 19:
+            df_list[indx].iloc[:,1] = df_list[indx].iloc[:,1].astype(str) + " " + df_list[indx].iloc[:,2].astype(str)
+            df_list[indx] = df_list[indx].drop(df_list[indx].columns[2], axis = 1)
+        df_list[indx].columns = [''] * len(df_list[indx].columns)
+
     df = pd.concat(df_list)
+    print(df.columns)
     # Nombres personalizados a columnas
     df_colnames = ['fecha_emision','id','nombre','ips','tipo','clase','numero','estado','usuario_autorizador'
       ,'codigo','descripcion','cantidad','cubrimiento','pago_afiliado','origen','anexo','no_prescripcion',

@@ -7,8 +7,8 @@ from datetime import datetime
 import pandas as pd
 
 from variables import sql_connid
-from utils import load_df_to_sql,file_get,normalize_str_categorical, replace_accents_cols
-from utils.CONSTANS_BULEVAR import *
+from utils import load_df_to_sql,file_get,normalize_str_categorical, replace_accents_cols 
+from reporte_honorarios.utils.CONSTANS_BULEVAR import *
 #  Se nombran las variables a utilizar en el dag
 
 wb = WasbHook(wasb_conn_id= 'bs_clinicos_bi')

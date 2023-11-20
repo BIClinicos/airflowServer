@@ -44,7 +44,7 @@ with cte as (
 			and FORMAT(ox.date_control, 'yyyy-MM-01') = FORMAT(cg.FechaActividad, 'yyyy-MM-01')
 		LEFT JOIN TblHActividadesPersonalizadas up on up.idEncuentro = cg.idEncounter
 
-		Where cg.FechaActividad between '2022-01-01' and CONVERT(date, getdate())  
+		Where cg.FechaActividad between {last_week} and CONVERT(date, getdate())  
 	GROUP BY 
 	u.idUser
 	,u.Documento

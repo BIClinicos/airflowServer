@@ -93,7 +93,13 @@ def get_cpap_bpap(value:str):
     path = re.search(r" ?bp[a-z]?p",value)
     if path : return "BPAP"
     
-    
+def regex_epoc_gold(value: str):
+    if value:
+        str_path = re.search(r"gold(?:\s)+(?:de\s+grado\s+)?(?:grado\s+)?(?:\d+)?([A-Ea-e])", value, re.IGNORECASE)
+        if str_path:
+            return re.sub(r"gold(?:\s)+(?:de\s+grado\s+)?(?:grado\s+)?(?:\d+)?", "", str_path.group(0), flags=re.I).upper()
+    else: return None
+
 def regex_suspencion_oxigeno(value: str):
     if value:
         path = re.search(r"(?<=:^|\s)suspensi[oó]n(?: \w+ )*ox[ií]geno", value)
@@ -104,14 +110,18 @@ def regex_suspencion_oxigeno(value: str):
     else: return False
     
 def regex_disnea(value: str):
+    
     if value:
+        value = value.lower()
         str_path = re.search(r"mmrc(?: \w+ )*\d+(?:\/\d+|-\d+)*", value)
         if str_path:
             return re.sub(r"mmrc(?: \w+ )*", "", str_path.group(0))
     else: return None
 
 def regex_exacerbacion(value: str):
+    
     if value:
+        value = value.lower()
         value = re.sub(r"libre de |libre |sin |no ", "", value)
         value = re.sub(r"evidencia de |presenta |signos de |s[ií]ntomas de ", "", value)
         path = re.search(r"exacerbaci[oó]n", value)
@@ -120,7 +130,9 @@ def regex_exacerbacion(value: str):
     return False
         
 def regex_control_asma(value:str):
+    
     if value:
+        value = value.lower()
         path = re.search(r"asma(?:\s*\w+ )*\s?(?<!no )controlad[ao]", value)
         if path:
             return True

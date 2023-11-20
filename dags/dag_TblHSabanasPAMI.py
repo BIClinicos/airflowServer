@@ -103,6 +103,7 @@ def transform_table(dir, filenames):
         'Cancelada':'CANCELADO',
         'Reprogramada':'REPROGRAMADA'
     }
+    df = df[df['profesional'].notna()]
     df = df.replace({'estado_cita':dict_replace})
     df['estado_cita'] = df['estado_cita'].fillna('ASISTIDO')
     ### Cambiar sede

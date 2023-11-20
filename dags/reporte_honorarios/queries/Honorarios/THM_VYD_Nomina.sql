@@ -1,0 +1,1 @@
+select [identific.] DocumentoProfesional, fecha_ingreso, fecha_retiro from THM_VYD_Nomina where [identific.] in ({professional});
